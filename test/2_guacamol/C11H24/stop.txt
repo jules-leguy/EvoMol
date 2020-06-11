@@ -1,0 +1,1 @@
+Kth score has max value

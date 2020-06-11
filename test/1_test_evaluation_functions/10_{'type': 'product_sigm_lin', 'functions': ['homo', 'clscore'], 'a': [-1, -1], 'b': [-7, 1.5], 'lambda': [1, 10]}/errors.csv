@@ -1,0 +1,17 @@
+step,error
+0,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
+0,No more individual to be mutated
+0,No replacement occured
+1,No more individual to be mutated
+5,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CC(C)O InsA-1_Sub-5 (Evaluation error)
+6,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CCCO Sub-3 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CC(C)N MoveFG-39_ChB-741 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CC(C)O RmA-0_AddA-4 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CCCO Sub-2 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CCO RmA-1_InsA-0 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CO InsA-0_MoveFG-39 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C=O AddA-4 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'OCF InsA-37 (Evaluation error)
+7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'O=CF AddA-4 (Evaluation error)
+9,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CN AddA-11 (Evaluation error)
+9,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CCN ChB-1407_RmA-1 (Evaluation error)
