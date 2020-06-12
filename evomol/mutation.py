@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from evomol.evaluation import EvaluationError
+from .evaluation import EvaluationError
 from evomol.molgraphops.molgraph import MolGraphBuilder
 from evomol.molgraphops.exploration import random_neighbour
 

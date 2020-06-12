@@ -1,16 +1,16 @@
 from os.path import join
 
-from evomol.evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, QEDEvaluationStrategy, \
+from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, QEDEvaluationStrategy, \
     NormalizedSAScoreEvaluationStrategy, CLScoreEvaluationStrategy, SAScoreEvaluationStrategy, \
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy
-from evomol.evaluation_dft import OPTEvaluationStrategy
-from evomol.molgraphops.default_actionspaces import generic_action_space
-from evomol.mutation import KRandomGraphOpsImprovingMutationStrategy
-from evomol.popalg import PopAlg
-from evomol.stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy
+from .evaluation_dft import OPTEvaluationStrategy
+from .molgraphops.default_actionspaces import generic_action_space
+from .mutation import KRandomGraphOpsImprovingMutationStrategy
+from .popalg import PopAlg
+from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy
 from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
-from guacamol_binding import ChemPopAlgGoalDirectedGenerator
+from .guacamol_binding import ChemPopAlgGoalDirectedGenerator
 
 
 def _is_describing_multi_objective_function(param_eval):
@@ -339,7 +339,7 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
         else:
             pop_alg.load_pop_from_smiles_list(
                 smiles_list=_read_smiles_list_from_file(explicit_IO_parameters_dict["smiles_list_init_path"]),
-                atom_mutability=explicit_IO_parameters_dict["mutable_init_pop"])
+                atom_mutability=explicit_search_parameters_dict["mutable_init_pop"])
 
     return pop_alg
 

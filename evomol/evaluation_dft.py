@@ -4,7 +4,7 @@ import time
 from os.path import join
 import numpy as np
 import cclib
-from evomol.evaluation import EvaluationStrategy, EvaluationError
+from .evaluation import EvaluationStrategy, EvaluationError
 from evomol.molgraphops.molgraph import MolGraph
 from rdkit.Chem.rdmolfiles import MolFromSmiles
 from rdkit.Chem.rdmolops import RemoveHs, RemoveStereochemistry

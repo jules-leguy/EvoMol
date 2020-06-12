@@ -1,10 +1,10 @@
 from os.path import join
 from typing import Optional, List
 import numpy as np
-from evomol.evaluation import EvaluationStrategy
+from .evaluation import EvaluationStrategy
 from guacamol.goal_directed_benchmark import GoalDirectedGenerator
 from guacamol.scoring_function import ScoringFunction
-from evomol.stopcriterion import KthScoreMaxValue
+from .stopcriterion import KthScoreMaxValue
 
 
 class GuacamolEvaluationStrategy(EvaluationStrategy):

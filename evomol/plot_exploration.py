@@ -1,5 +1,5 @@
 import csv
-from os import makedirs
+from os.path import join
 
 import networkx as nx
 from PIL import Image, ImageChops, ImageDraw
@@ -100,16 +100,23 @@ def trim(im):
         return im.crop(bbox)
 
 
+
+
 def crop_image_with_transparency(img):
+
     # Extracting zone to conserve (https://stackoverflow.com/questions/14211340/automatically-cropping-an-image-with-python-pil)
-    bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
-    diff = ImageChops.difference(img, bg)
-    diff = ImageChops.add(diff, diff, 1, 0)
-    bbox = diff.getbbox()
+    image_data = np.asarray(img)
 
-    l, u, r, b = bbox
+    sum_data = np.sum(image_data, axis=2)
+
+    non_empty_columns = np.where(sum_data.min(axis=0) < 1020)[0]
+    non_empty_rows = np.where(sum_data.min(axis=1) < 1020)[0]
+
+    l, r, u, b = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
+    l, u = min(l, u), min(l, u)
+    r, b = max(r, b), max(r, b)
+
     w, h = img.size
-
     mask = Image.new('L', img.size, color=255)
 
     epsilon = 10
@@ -213,6 +220,7 @@ def compute_mol_attributes(graph, labels_dict, actions_history_smi_pop, actions_
 
             legend, _ = compute_mol_legend(action_history_k, smi, actions_history_scores_removed,
                                            legend_scores_keys_strat)
+
             scores_attributes[action_history_k] = legend
 
     nx.set_node_attributes(graph, images_attributes, "image")
@@ -255,6 +263,7 @@ def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_re
         legends.append(legends_to_draw[k])
         scores_to_sort.append(scores_float[k][0])
 
+
     mols = np.array(mols)
     legends = np.array(legends)
 
@@ -271,7 +280,7 @@ def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_re
     legends = list(legends[sorted_order])
     mols = list(mols[sorted_order])
 
-    img = MolsToGridImage(mols, legends=legends, molsPerRow=mols_per_row, subImgSize=(200, 200), maxMols=200)
+    img = MolsToGridImage(mols, legends=legends, molsPerRow=mols_per_row, subImgSize=(200, 200))
     return img
 
 
@@ -304,11 +313,16 @@ def normalize_layout(input_layout):
     return normalized_layout
 
 
-def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold, root_node="C", plot_images=False,
-                      mol_size=0.1, figsize=(40, 30), draw_scores=False, draw_actions=False, plot_labels=False,
-                      layout="dot", cmap="inferno", output_files_prefix=None, dpi=300, legend_offset=(0, 0),
+def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_images=False,
+                      mol_size=0.1, figsize=(15, 10), draw_scores=False, draw_actions=False, plot_labels=False,
+                      layout="dot", cmap="inferno", dpi=300, legend_offset=(0, 0),
                       legend_scores_keys_strat=None, problem_type="max",
-                      mols_per_row=4, draw_n_mols=None):
+                      mols_per_row=4, draw_n_mols=None, legends_font_size=15):
+
+    # Computing file names file names
+    pop_filepath = join(model_path, "pop.csv")
+    removed_hist_filepath = join(model_path, "removed_ind_act_history.csv")
+
     # Extracting actions history of individuals in population
     actions_history_scores_pop, actions_history_smi_pop = extract_history_data(pop_filepath)
 
@@ -325,16 +339,12 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
     # Adding the individuals in population to the graph
     build_graph(graph, list(actions_history_scores_pop.keys()), edge_labels)
 
-    cc = list(nx.connected_components(graph))
-    print(str(len(cc)) + " connected components")
-
     cmap = plt.get_cmap(cmap)
 
     # Setting color to nodes depending on if they are in the final population
     colors = []
     sizes = []
     labels = {}
-    n_ind_in_pop = 0
     next_label_to_assign = 1
     best_score_key = best_score_node(actions_history_scores_pop, actions_history_scores_removed)
     for node in graph.nodes:
@@ -363,9 +373,6 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
         elif node in actions_history_scores_removed:
             colors.append(cmap(actions_history_scores_removed[node]["total"]))
 
-    print(len(colors))
-    print(str(n_ind_in_pop) + " in final population")
-
     # Drawing the graph
     plt.figure(figsize=figsize)
 
@@ -379,7 +386,9 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
         labels_to_print = {}
 
     nx.draw_networkx(graph, pos=layout, node_size=sizes, node_color=colors, with_labels=True, labels=labels_to_print,
-                     font_size=25)
+                     font_size=legends_font_size)
+
+    plt.axis('off')
 
     if draw_actions:
         nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels,
@@ -415,7 +424,7 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
                     a.axis('off')
 
                 if draw_scores:
-                    fig.text(xa + legend_offset[0], ya + legend_offset[1], scores[n], fontsize=15,
+                    fig.text(xa + legend_offset[0], ya + legend_offset[1], scores[n], fontsize=legends_font_size,
                              bbox=dict(facecolor='white', alpha=0.3, edgecolor='none'))
 
     if plot_images:
@@ -423,8 +432,8 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
                                      actions_history_scores_pop, actions_history_scores_removed,
                                      legend_scores_keys_strat=legend_scores_keys_strat, problem_type=problem_type,
                                      mols_per_row=mols_per_row, draw_n_mols=draw_n_mols)
-    else:
-        img_labels = None
+        with open(join(model_path, "mol_table.png"), "wb") as f:
+            img_labels.save(f, "png")
 
     if not plot_images:
         norm = mpl.colors.Normalize(vmin=0, vmax=1)
@@ -432,11 +441,4 @@ def exploration_graph(pop_filepath, removed_hist_filepath, neighbours_threshold,
         sm.set_array([])
         plt.colorbar(sm)
 
-    if output_files_prefix is not None:
-
-        makedirs(output_files_prefix, exist_ok=True)
-        plt.savefig(output_files_prefix + "_expl_tree.png", dpi=dpi)
-
-    plt.show()
-
-    return plt, img_labels
+    plt.savefig(join(model_path, "expl_tree.png"), dpi=dpi)

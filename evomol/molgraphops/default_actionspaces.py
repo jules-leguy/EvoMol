@@ -1,4 +1,4 @@
-from chempopalg.molgraphops.actionspace import ActionSpace, AddAtomActionSpace, SubstituteAtomActionSpace, \
+from .actionspace import ActionSpace, AddAtomActionSpace, SubstituteAtomActionSpace, \
     RemoveAtomActionSpace, ChangeBondActionSpace, CutAtomV2ActionSpace, InsertCarbonAtomV2ActionSpace, \
     MoveFunctionalGroupActionSpace
 
