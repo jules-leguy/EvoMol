@@ -31,7 +31,6 @@ dependencies:
     - packaging==20.4
     - pygraphviz==1.5
     - pyyaml==5.3
-    - rd-filters==0.1
     - tqdm==4.43.0
     - wget==3.2
 prefix: /home/jleguy/anaconda3/envs/chem
