@@ -23,15 +23,9 @@ dependencies:
   - pip:
     - babel==2.8.0
     - docutils==0.16
-    - fcd==1.0
-    - gast==0.2.2
     - guacamol==0.5.0
     - markdown==3.2.1
-    - oauthlib==3.1.0
-    - packaging==20.4
     - pygraphviz==1.5
-    - pyyaml==5.3
     - tqdm==4.43.0
-    - wget==3.2
 prefix: /home/jleguy/anaconda3/envs/chem
 
