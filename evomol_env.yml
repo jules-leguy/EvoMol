@@ -1,5 +1,4 @@
 name: evomolenv
-
 channels:
   - anaconda
   - conda-forge
@@ -21,7 +20,6 @@ dependencies:
   - seaborn=0.9.0=pyh91ea838_1
   - setuptools=47.1.1=py36_0
   - wheel=0.34.2=py36_0
-
   - pip:
     - babel==2.8.0
     - docutils==0.16
