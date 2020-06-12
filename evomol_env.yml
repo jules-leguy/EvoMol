@@ -1,4 +1,4 @@
-name: evomol_env
+name: evomolenv
 
 channels:
   - anaconda

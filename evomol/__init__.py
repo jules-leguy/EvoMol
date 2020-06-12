@@ -222,6 +222,7 @@ def _extract_explicit_search_parameters(parameters_dict):
     """
 
     input_search_parameters = parameters_dict["search_parameters"] if "search_parameters" in parameters_dict else {}
+
     explicit_search_parameters = {
         "problem_type": input_search_parameters["problem_type"] if "problem_type" in input_search_parameters else "max",
         "pop_max_size": input_search_parameters["pop_max_size"] if "pop_max_size" in input_search_parameters else 1000,
@@ -390,5 +391,5 @@ def run_model(parameters_dict):
                                                               "output_GuacaMol.json"),
                                         benchmark_version='v2')
 
-    # Running the algorithm
-    pop_alg.run()
+    else:
+        pop_alg.run()
