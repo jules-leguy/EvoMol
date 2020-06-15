@@ -2,10 +2,10 @@ import csv
 from os.path import join
 
 import networkx as nx
-from PIL import Image, ImageChops, ImageDraw
-from evomol.evaluation import EvaluationStrategy
+from PIL import Image, ImageDraw
+from .evaluation import EvaluationStrategy
 from matplotlib.colors import LogNorm
-from evomol.molgraphops.molgraph import MolGraph
+from .molgraphops.molgraph import MolGraph
 from networkx.drawing.nx_agraph import graphviz_layout
 from rdkit.Chem.Draw import MolsToGridImage, MolToImage, DrawingOptions
 from rdkit.Chem.rdmolfiles import MolFromSmiles

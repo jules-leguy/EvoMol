@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from .evaluation import EvaluationError
-from evomol.molgraphops.molgraph import MolGraphBuilder
-from evomol.molgraphops.exploration import random_neighbour
+from .molgraphops.molgraph import MolGraphBuilder
+from .molgraphops.exploration import random_neighbour
 
 
 class MutationError(RuntimeError):

@@ -5,9 +5,9 @@ from os import makedirs
 from os.path import dirname, join
 
 import numpy as np
-from evomol.evaluation import EvaluationError, scores_to_scores_dict
-from evomol.molgraphops.molgraph import MolGraph
-from evomol.mutation import NoImproverError, MutationError
+from .evaluation import EvaluationError, scores_to_scores_dict
+from .molgraphops.molgraph import MolGraph
+from .mutation import NoImproverError, MutationError
 from rdkit.Chem.rdmolfiles import MolFromSmiles
 
 

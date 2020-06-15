@@ -1,6 +1,7 @@
 from os.path import join
-
 from evomol import run_model
+from joblib import Parallel, delayed
+
 
 output_results_prefix_path = "results/"
 
@@ -52,5 +53,4 @@ def run_model_params(params):
     })
 
 
-for exp_param in params:
-    run_model_params(exp_param)
+Parallel(n_jobs=7)(delayed(run_model_params)(params[i]) for i in range(7))
