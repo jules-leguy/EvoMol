@@ -122,8 +122,6 @@ def crop_image_with_transparency(img):
         draw.rectangle(transparent_zone, fill=0)
         img.putalpha(mask)
 
-    img.show()
-
     return img
 
 
