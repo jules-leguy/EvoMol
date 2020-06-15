@@ -135,7 +135,7 @@ Performing the experiment of mutating a fixed core of acetylsalicylic acid to in
 ```python
 from evomol import run_model
 
-model_path = "examples/2_large_tree"
+model_path = "examples/3_detailed_tree"
 
 run_model({
     "obj_function": "qed",
