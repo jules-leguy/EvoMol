@@ -95,6 +95,9 @@ def crop_image_with_transparency(img):
     :return:
     """
 
+    # Insuring the image has an alpha channel
+    img.putalpha(255)
+
     # Image to numpy array
     image_data = np.array(img)
 
