@@ -1,7 +1,5 @@
 import csv
 from os.path import join
-import cv2
-
 
 import networkx as nx
 from PIL import Image, ImageChops, ImageDraw
