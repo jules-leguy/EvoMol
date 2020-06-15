@@ -102,10 +102,10 @@ class OPTEvaluationStrategy(EvaluationStrategy):
     already computed aromatic canonical SMILES. Each molecule must be represented as a dictionary containing "homo"
     and/or "lumo" keys with the associated value.
 
-    OpenBabel must be installed in a folder referenced with the $LIBS environment variable. It must
-    be set according to the following path. $LIBS/obabel/openbabel-2.4.1/bin/obabel
+    OpenBabel must be installed in a folder referenced with the $OPT_LIBS environment variable. It must
+    be set according to the following path. $OPT_LIBS/obabel/openbabel-2.4.1/bin/obabel
 
-    The $LIBS environment variable must also contain a script named $LIBS/dft.sh, launching a Gaussian optimization of
+    The $OPT_LIBS environment variable must also contain a script named $OPT_LIBS/dft.sh, launching a Gaussian optimization of
     the input file in parameter.
     """
 
@@ -193,12 +193,12 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 f.write(smi)
 
             # Converting SMILES to XYZ after computing MM
-            command_obabel = join(os.getenv("LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
+            command_obabel = join(os.getenv("OPT_LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
                              + " -oxyz -O " + xyz_path + " --gen3d"
             os.system(command_obabel)
 
             # Converting XYZ to smi
-            command_obabel = join(os.getenv("LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ixyz " + xyz_path \
+            command_obabel = join(os.getenv("OPT_LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ixyz " + xyz_path \
                              + " -osmi -O " + post_MM_smi_path
             os.system(command_obabel)
 
@@ -210,7 +210,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 write_input_file(opt_input_path, xyz_path, smi, self.n_jobs)
 
                 # Calculate OPT in the working directory
-                command_opt = "cd " + self.working_dir_path + "; " + join(os.environ["LIBS"],
+                command_opt = "cd " + self.working_dir_path + "; " + join(os.environ["OPT_LIBS"],
                                                                           "dft.sh") + " " + opt_input_path
                 print("Starting OPT")
                 start = time.time()
@@ -226,7 +226,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 if "Normal termination" in last_line:
 
                     # Extracting the smiles from the log file
-                    command_obabel = join(os.getenv("LIBS"),
+                    command_obabel = join(os.getenv("OPT_LIBS"),
                                           "obabel/openbabel-2.4.1/bin/obabel") + " -ilog " + opt_log_path \
                                      + " -ocan -O " + post_opt_smi_path
                     os.system(command_obabel)
