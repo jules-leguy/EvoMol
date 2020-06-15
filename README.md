@@ -35,18 +35,31 @@ run_model({
 
 To run a model, you need to pass a dictionary describing the run to the run_model function. This dictionary can have up to 4 entries that are described in this section.
 
+**Default values** are represented in bold.
+
 ### Objective function
 
-The ```"obj_function"``` entry can take the following values.
+The ```"obj_function"``` attribute can take the following values.
 * Implemented functions (see article) : "qed", "plogp", "norm_plogp", "sascore", "norm_sascore", "clscore", "homo", "lumo".
 * A custom function evaluating a SMILES.
 * A dictonary describing a multiobjective function containing the following entries.
     * ```"type"``` : "linear_combination" (linear combination of the properties) or "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
     * ```"functions"``` : list of functions (string keys describing implemented functions or custom functions).
     * Specific to the linear combination.
-        * ```"coefs"``` : list of coefficients.
+        * ```"coef"``` : list of coefficients.
     * Specific to the product of sigmoid/linear functions
         * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
-        * ```"lambda"``` list of λ coefficients for the sigmoid function definition.
+        * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
 
+
+### Definition of the search space
+
+The ```"action_space_parameters"``` can be set with a dictionary containing the following entries.
+* ```"atoms"``` : text list of available atoms (**"C,N,O,F,P,S,Cl,Br"**).
+* ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
+* ```"substitution"```: whether to use *substitute atom type* action (**True**).
+* ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
+* ```"move_group"```: whether to use *move group* action (**True**).
+
+### Search 

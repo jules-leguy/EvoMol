@@ -122,7 +122,7 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
                                                                                           explicit_IO_parameters_dict))
 
         if param_eval["type"] == "linear_combination":
-            return LinearCombinationEvaluationStrategy(evaluation_strategies, coefs=param_eval["coefs"])
+            return LinearCombinationEvaluationStrategy(evaluation_strategies, coefs=param_eval["coef"])
         elif param_eval["type"] == "product_sigm_lin":
             return ProductSigmLinEvaluationStrategy(evaluation_strategies, a=param_eval["a"], b=param_eval["b"],
                                                     l=param_eval["lambda"])
