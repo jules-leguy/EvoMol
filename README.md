@@ -155,4 +155,4 @@ exploration_graph(model_path=model_path, layout="dot", draw_actions=True, plot_i
 
 ![Detailed exploration tree](examples/figures/detailed_expl_tree.png)
 
-<img src="examples/figures/detailed_mol_table.png" alt="Detailed molecular drawings table" width="200"/>
+<img src="examples/figures/detailed_mol_table.png" alt="Detailed molecular drawings table" width="800"/>
