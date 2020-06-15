@@ -1,5 +1,7 @@
 import csv
 from os.path import join
+import cv2
+
 
 import networkx as nx
 from PIL import Image, ImageChops, ImageDraw
@@ -100,25 +102,28 @@ def trim(im):
         return im.crop(bbox)
 
 
-
-
 def crop_image_with_transparency(img):
+    """
+    Cropping image with a transparent channel.
+    :param img:
+    :return:
+    """
 
-    # Extracting zone to conserve (https://stackoverflow.com/questions/14211340/automatically-cropping-an-image-with-python-pil)
-    image_data = np.asarray(img)
+    # Image to numpy array
+    image_data = np.array(img)
 
-    sum_data = np.sum(image_data, axis=2)
+    # Computing the mask of white pixels
+    r, g, b, a = np.rollaxis(image_data, axis=-1)
+    white_pixels_mask = np.logical_and(np.logical_and(r == 255, g == 255), b == 255)
 
-    non_empty_columns = np.where(sum_data.min(axis=0) < 1020)[0]
-    non_empty_rows = np.where(sum_data.min(axis=1) < 1020)[0]
+    # Replacing all white pixels by transparent pixels
+    a[white_pixels_mask] = 0
 
-    l, r, u, b = (min(non_empty_rows), max(non_empty_rows), min(non_empty_columns), max(non_empty_columns))
-    l, u = min(l, u), min(l, u)
-    r, b = max(r, b), max(r, b)
-
+    # Computing bounding box of non zero pixels
+    l, u, r, b = Image.fromarray(image_data).getbbox()
     w, h = img.size
-    mask = Image.new('L', img.size, color=255)
 
+    mask = Image.new('L', img.size, color=255)
     epsilon = 10
 
     # Applying transparency (https://stackoverflow.com/questions/4379978/python-pil-how-to-make-area-transparent-in-png)
@@ -127,6 +132,8 @@ def crop_image_with_transparency(img):
         draw = ImageDraw.Draw(mask)
         draw.rectangle(transparent_zone, fill=0)
         img.putalpha(mask)
+
+    img.show()
 
     return img
 

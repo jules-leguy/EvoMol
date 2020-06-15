@@ -1,22 +1,22 @@
 from evomol import run_model
 from evomol.plot_exploration import exploration_graph
-
-
-# Plotting large exploration tree with colors
-model_path = "3_plot_exploration_tree/"
-
-run_model({
-    "obj_function": "qed",
-    "optimization_parameters": {
-        "max_steps": 500},
-    "io_parameters": {
-        "model_path": model_path,
-        "record_history": True
-    }
-})
-
-exploration_graph(model_path=model_path, layout="neato")
-
+#
+#
+# # Plotting large exploration tree with colors
+# model_path = "3_plot_exploration_tree/"
+#
+# run_model({
+#     "obj_function": "qed",
+#     "optimization_parameters": {
+#         "max_steps": 500},
+#     "io_parameters": {
+#         "model_path": model_path,
+#         "record_history": True
+#     }
+# })
+#
+# exploration_graph(model_path=model_path, layout="neato")
+#
 
 # Plotting small exploration tree with images and actions
 
