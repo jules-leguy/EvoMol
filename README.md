@@ -129,7 +129,7 @@ exploration_graph(model_path=model_path, layout="neato")
 
 ### Detailed exploration tree
 
-Performing the experiment of mutating a fixed core of acetylsalicylic to increase its 
+Performing the experiment of mutating a fixed core of acetylsalicylic acid to increase its 
 <a href="https://www.nature.com/articles/nchem.1243">QED</a> value. 
 
 ```python
