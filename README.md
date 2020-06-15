@@ -73,4 +73,18 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"max_steps"``` : number of steps to be run (**1500**).
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation (**2**).
 * ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
-* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100  (**True**).
+* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol ChEMBL subset in case of taking the GuacaMol benchmarks (**True**).
+* ```"mutable_init_pop"``` : if True, the individuals of the initial population can be freely mutated. If False, they can be branched but their atoms and bonds cannot be modified. (**True**).
+
+### Input/Output parameters
+
+The ```"io_parameters"``` attribute can be set with a dictionary containing the following entries.
+* ```"model_path"``` : path where to save model's output data (**"EvoMol_model"**).
+* ```"smiles_list_init_path"``` : path where to find the SMILES list describing the initial population (**None**: initialization of the population with a single methane molecule).
+* ```"record_history"``` : whether to save exploration tree data. Must be set to True to further draw the exploration tree (**False**).
+* ```"save_n_steps"``` : frequency (steps) of saving the data (**100**).
+* ```"print_n_steps"``` : frequency (steps) of printing current population statistics (**1**).
+* ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
+* ```"dft_cache_files"``` : list of json files containing cache of previously computed HOMO or LUMO values (**[]**).
+
+
