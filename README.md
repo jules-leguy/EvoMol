@@ -4,7 +4,7 @@
 
 To install EvoMol, run the following commands in your terminal.
 
-```bash
+```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
 $ conda env create -f evomol_env.yml                      # Create conda environment
@@ -91,23 +91,68 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 
 ### Large exploration tree
 
+Performing a QED optimization run of 500 steps, while recording the exploration data. 
+
 ```python
 from evomol import run_model
-from evomol.plot_exploration import exploration_graph
 
-model_path = "examples/2_large_exploration_tree"
+model_path = "examples/2_large_tree"
 
 run_model({
     "obj_function": "qed",
     "optimization_parameters": {
-        "max_steps": 150},
+        "max_steps": 500},
     "io_parameters": {
         "model_path": model_path,
         "record_history": True
     }
 })
-
-exploration_graph(model_path=model_path, layout="neato")
-
-![Exploration tree](evomol/test/3_plot_exploration_tree/expl_tree.png)
 ```
+
+Plotting the exploration tree with solutions colored according to their score. Nodes represent solutions. Edges represent mutations that lead to an improvement in the population.
+
+```python
+from evomol.plot_exploration import exploration_graph
+exploration_graph(model_path=model_path, layout="neato")
+```
+
+![Large exploration tree](examples/figures/large_expl_tree.png)
+
+### Detailed exploration tree
+
+Performing the experiment of mutating a fixed core of acetylsalicylic to increase its QED value. 
+
+```python
+from evomol import run_model
+
+model_path = "examples/2_large_tree"
+
+run_model({
+    "obj_function": "qed",
+    "optimization_parameters": {
+        "max_steps": 10,
+        "pop_max_size": 10,
+        "k_to_replace": 2,
+        "mutable_init_pop": False
+    },
+    "io_parameters": {
+        "model_path": model_path,
+        "record_history": True,
+        "smiles_list_init_path": "examples/acetylsalicylic_acid.smi"
+    }
+})
+```
+
+Plotting the exploration tree including molecular drawings, scores and action types performed during mutations. Also plotting a table of molecular drawings.
+
+```python
+from evomol.plot_exploration import exploration_graph
+
+exploration_graph(model_path=model_path, layout="dot", draw_actions=True, plot_images=True, draw_scores=True,
+                  root_node="O=C(C)Oc1ccccc1C(=O)O", legend_scores_keys_strat=["total"], mol_size=0.3,
+                  legend_offset=(-0.007, -0.05), figsize=(20, 20/1.5), legends_font_size=13)
+```
+
+![Detailed exploration tree](examples/figures/detailed_expl_tree.png)
+
+![Detailed molecular drawings table](examples/figures/detailed_mol_table.png)

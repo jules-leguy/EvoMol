@@ -8,7 +8,7 @@ model_path = "3_plot_exploration_tree/"
 run_model({
     "obj_function": "qed",
     "optimization_parameters": {
-        "max_steps": 150},
+        "max_steps": 500},
     "io_parameters": {
         "model_path": model_path,
         "record_history": True
