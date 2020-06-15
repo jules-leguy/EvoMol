@@ -13,11 +13,22 @@ conda install -c conda-forge rdkit                      # Install RDKit using co
 pip install .                                           # Instal EvoMol
 ```
 
-To check if the installation is a success, run the following commands.
 
-```
-ipython
-import evomol
+## Quickstart
+
+Launching a QED optimization for 500 steps. Beware, you need to activate the evomolenv conda environment when you use EvoMol.
+
+```python
+from evomol import run_model
+run_model({
+    "obj_function": "qed",
+    "search_parameters": {
+        "max_steps": 500
+    },
+    "io_parameters": {
+        "model_path": "examples/1_qed"
+    },
+})
 ```
 
-No error should appear.
+
