@@ -9,7 +9,7 @@ $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
 $ conda env create -f evomol_env.yml                      # Create conda environment
 $ conda activate evomolenv                                # Activate environment
-$ pip install .                                           # Install EvoMol
+$ python -m pip install .                                 # Install EvoMol
 ```
 
 
