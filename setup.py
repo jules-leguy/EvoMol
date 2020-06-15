@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='EvoMol',
 version='1.0',
@@ -7,5 +7,5 @@ url='https://github.com/jules-leguy/EvoMol',
 author='Jules Leguy',
 author_email='jules.leguy@univ-angers.fr',
 license='MIT',
-packages=['evomol'],
+packages=find_packages(),
 zip_safe=False)
