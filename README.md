@@ -9,7 +9,6 @@ $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
 $ conda env create -f evomol_env.yml                      # Create conda environment
 $ conda activate evomolenv                                # Activate environment
-$ conda install -c conda-forge rdkit                      # Install RDKit using conda-forge
 $ pip install .                                           # Install EvoMol
 ```
 
