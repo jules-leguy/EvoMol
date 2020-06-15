@@ -57,7 +57,7 @@ The ```"obj_function"``` attribute can take the following values.
 ### Search space
 
 The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
-* ```"atoms"``` : text list of available atoms (**"C,N,O,F,P,S,Cl,Br"**).
+* ```"atoms"``` : text list of available heavy atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
