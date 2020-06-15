@@ -88,18 +88,6 @@ def build_graph(graph, actions_history_list, edge_labels):
             graph.add_edge(node, child_node)
 
 
-def trim(im):
-    """
-    from https://stackoverflow.com/questions/14211340/automatically-cropping-an-image-with-python-pil
-    """
-    bg = Image.new(im.mode, im.size, im.getpixel((0, 0)))
-    diff = ImageChops.difference(im, bg)
-    diff = ImageChops.add(diff, diff, 1, 0)
-    bbox = diff.getbbox()
-    if bbox:
-        return im.crop(bbox)
-
-
 def crop_image_with_transparency(img):
     """
     Cropping image with a transparent channel.
@@ -134,32 +122,6 @@ def crop_image_with_transparency(img):
     img.show()
 
     return img
-
-
-def crop_images(images_dict):
-    """
-    Cropping the images on the largest occupied box
-    """
-
-    bboxes = {}
-
-    # Extracting boxes for all images
-    for k, img in images_dict.items():
-        bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
-        diff = ImageChops.difference(img, bg)
-        diff = ImageChops.add(diff, diff, 1, 0)
-        bboxes[k] = diff.getbbox()
-
-    # Computing largest box
-    l = min([v[0] for v in bboxes.values()])
-    u = min([v[1] for v in bboxes.values()])
-    r = max([v[1] for v in bboxes.values()])
-    b = max([v[1] for v in bboxes.values()])
-    bbox = (l, u, r, b)
-
-    # Cropping images
-    for k, img in images_dict.items():
-        bboxes[k] = img.crop(bbox)
 
 
 def compute_mol_legend(action_history_k, smi, action_history_scores, legend_scores_keys_strat=None):
