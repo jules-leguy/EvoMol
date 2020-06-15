@@ -197,4 +197,4 @@ optimization using the best scoring molecules from their subset of
 <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> as initial population, you need to :
 * Download the <a href="https://figshare.com/projects/GuacaMol/56639">ChEMBL subset</a>
 * Give the path of the data using the ```"smiles_list_init_path"``` attribute.
-* Set the ```"guacamol_init_top_100"``` attribute to True
+* Insure that the ```"guacamol_init_top_100"``` attribute is set to True
