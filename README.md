@@ -10,7 +10,7 @@ $ cd EvoMol                                               # Move into EvoMol dir
 $ conda env create -f evomol_env.yml                      # Create conda environment
 $ conda activate evomolenv                                # Activate environment
 $ conda install -c conda-forge rdkit                      # Install RDKit using conda-forge
-$ pip install .                                           # Instal EvoMol
+$ pip install .                                           # Install EvoMol
 ```
 
 
