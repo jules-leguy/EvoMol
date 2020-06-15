@@ -221,7 +221,7 @@ def _extract_explicit_search_parameters(parameters_dict):
     :return: dictionary of search parameters
     """
 
-    input_search_parameters = parameters_dict["search_parameters"] if "search_parameters" in parameters_dict else {}
+    input_search_parameters = parameters_dict["optimization_parameters"] if "optimization_parameters" in parameters_dict else {}
 
     explicit_search_parameters = {
         "problem_type": input_search_parameters["problem_type"] if "problem_type" in input_search_parameters else "max",

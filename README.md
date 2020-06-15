@@ -51,15 +51,26 @@ The ```"obj_function"``` attribute can take the following values.
         * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
+* ```"guacamol"``` for taking the goal directed GuacaMol benchmarks (https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839).
 
 
-### Definition of the search space
+### Search space
 
-The ```"action_space_parameters"``` can be set with a dictionary containing the following entries.
+The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"atoms"``` : text list of available atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
 
-### Search 
+### Optimization parameters
+
+The ```"optimization_parameters"``` attribute can be set with a dictionary containing the following entries.
+* ```"pop_max_size"``` : maximum population size (**1000**).
+* ```"max_steps"``` : number of steps to be run (**1500**).
+* ```"k_to_replace"``` : number of individuals replaced at each step (**2**).
+* ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
+* ```"max_steps"``` : number of steps to be run (**1500**).
+* ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation (**2**).
+* ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
+* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100  (**True**).
