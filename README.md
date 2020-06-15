@@ -22,7 +22,7 @@ Launching a QED optimization for 500 steps. Beware, you need to activate the evo
 from evomol import run_model
 run_model({
     "obj_function": "qed",
-    "search_parameters": {
+    "optimization_parameters": {
         "max_steps": 500
     },
     "io_parameters": {
@@ -73,7 +73,7 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"max_steps"``` : number of steps to be run (**1500**).
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation (**2**).
 * ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
-* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol ChEMBL subset in case of taking the GuacaMol benchmarks (**True**).
+* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol ChEMBL subset in case of taking the GuacaMol benchmarks (**True**). The list of SMILES must be given as initial population.
 * ```"mutable_init_pop"``` : if True, the individuals of the initial population can be freely mutated. If False, they can be branched but their atoms and bonds cannot be modified. (**True**).
 
 ### Input/Output parameters
@@ -85,6 +85,29 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 * ```"save_n_steps"``` : frequency (steps) of saving the data (**100**).
 * ```"print_n_steps"``` : frequency (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
-* ```"dft_cache_files"``` : list of json files containing cache of previously computed HOMO or LUMO values (**[]**).
+* ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 
+## Drawing exploration trees
 
+### Large exploration tree
+
+```python
+from evomol import run_model
+from evomol.plot_exploration import exploration_graph
+
+model_path = "examples/2_large_exploration_tree"
+
+run_model({
+    "obj_function": "qed",
+    "optimization_parameters": {
+        "max_steps": 150},
+    "io_parameters": {
+        "model_path": model_path,
+        "record_history": True
+    }
+})
+
+exploration_graph(model_path=model_path, layout="neato")
+
+![Exploration tree](evomol/test/3_plot_exploration_tree/expl_tree.png)
+```

@@ -3,19 +3,17 @@ from evomol.plot_exploration import exploration_graph
 
 
 # Plotting large exploration tree with colors
-
 model_path = "3_plot_exploration_tree/"
 
 run_model({
     "obj_function": "qed",
-    "search_parameters": {
+    "optimization_parameters": {
         "max_steps": 150},
     "io_parameters": {
         "model_path": model_path,
         "record_history": True
     }
 })
-
 
 exploration_graph(model_path=model_path, layout="neato")
 
@@ -26,7 +24,7 @@ model_path = "3_plot_exploration_tree_images/"
 
 run_model({
     "obj_function": "qed",
-    "search_parameters": {
+    "optimization_parameters": {
         "max_steps": 10,
         "pop_max_size": 10,
         "k_to_replace": 2,

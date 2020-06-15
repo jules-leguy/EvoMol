@@ -14,7 +14,7 @@ eval_functions = ["qed", "plogp", "norm_plogp", "sascore", "norm_sascore", "clsc
                                                                                                        "count_N"),
                   {"type": "linear_combination",
                    "functions": [(count_nitrogen, "count_N"), "qed", "clscore"],
-                   "coefs": [0.5, 0.5, 0]},
+                   "coef": [0.5, 0.5, 0]},
                   {"type": "product_sigm_lin",
                    "functions": ["homo", "clscore"],
                    "a": [-1, -1],
@@ -25,7 +25,7 @@ eval_functions = ["qed", "plogp", "norm_plogp", "sascore", "norm_sascore", "clsc
 for i, eval_fun in enumerate(eval_functions):
     run_model({
         "obj_function": eval_fun,
-        "search_parameters": {
+        "optimization_parameters": {
             "pop_max_size": 10,
             "k_to_replace": 2,
             "max_steps": 10 if eval_fun == "homo" or eval_fun == "lumo" or isinstance(eval_fun, dict) else 50,
