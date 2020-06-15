@@ -195,6 +195,6 @@ To do so, the ```$OPT_LIBS``` variable must point to a folder containing :
 To use EvoMol for <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">GuacaMol</a> goal directed benchmarks 
 optimization using the best scoring molecules from their subset of 
 <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> as initial population, you need to :
-* Download the <a href="https://figshare.com/projects/GuacaMol/56639">ChEMBL subset</a>
+* Download the <a href="https://figshare.com/projects/GuacaMol/56639">ChEMBL subset</a>.
 * Give the path of the data using the ```"smiles_list_init_path"``` attribute.
-* Insure that the ```"guacamol_init_top_100"``` attribute is set to True
+* Insure that the ```"guacamol_init_top_100"``` attribute is set to True.
