@@ -91,6 +91,9 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
         self.pop_alg.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
         self.pop_alg.stop_criterion_strategy.set_pop_alg_instance(self.pop_alg)
 
+        # Setting kth score to record
+        self.pop_alg.kth_score_to_record = number_molecules
+
         # PopAlg instance initialization
         self.pop_alg.initialize()
 
