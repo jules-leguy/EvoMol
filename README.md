@@ -15,7 +15,7 @@ $ python -m pip install .                                 # Install EvoMol
 
 ## Quickstart
 
-Launching a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization for 500 steps. Beware, you need to activate the evomolenv conda environment when you use EvoMol.
+Launching a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization for 500 steps. Make sure to activate the evomolenv conda environment when you use EvoMol.
 
 ```python
 from evomol import run_model
