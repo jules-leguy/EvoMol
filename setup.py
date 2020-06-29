@@ -6,6 +6,6 @@ description='Optimizing molecular properties with an evolutionary algorithm',
 url='https://github.com/jules-leguy/EvoMol',
 author='Jules Leguy',
 author_email='jules.leguy@univ-angers.fr',
-license='MIT',
+license='LGPL',
 packages=find_packages(),
 zip_safe=False)
