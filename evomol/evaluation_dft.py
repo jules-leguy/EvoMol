@@ -231,7 +231,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                                      + " -ocan -O " + post_opt_smi_path
                     os.system(command_obabel)
 
-                    post_opt_smi_rdkit = load_obabel_smi(post_opt_smi_path, sanitize_mol=self.sanitize_mol)
+                    post_opt_smi_rdkit = load_obabel_smi(post_opt_smi_path, sanitize_mol=True)
 
                     # If before/after SMILES are identical
                     if smi == post_opt_smi_rdkit:
