@@ -166,7 +166,7 @@ class PopAlg:
             csv_array.append(["n_replaced"] + self.step_traces["n_replaced"])
             csv_array.append(["timestamps"] + self.step_traces["timestamps"])
 
-            with open(join(self.output_folder_path, 'steps.csv'), "w") as f:
+            with open(join(self.output_folder_path, 'steps.csv'), "w", newline='') as f:
                 writer = csv.writer(f)
                 for row in np.array(csv_array).T:
                     writer.writerow(row)
@@ -201,14 +201,14 @@ class PopAlg:
             # Action history data
             csv_array.append(["history_data"] + self.actions_history)
 
-            with open(join(self.output_folder_path, 'pop.csv'), "w") as f:
+            with open(join(self.output_folder_path, 'pop.csv'), "w", newline='') as f:
                 writer = csv.writer(f)
                 for row in np.array(csv_array).T:
                     writer.writerow(row)
 
             # ### Removed individuals actions recording ###
             if self.record_history:
-                with open(join(self.output_folder_path, 'removed_ind_act_history.csv'), "w") as f:
+                with open(join(self.output_folder_path, 'removed_ind_act_history.csv'), "w", newline='') as f:
 
                     writer = csv.writer(f)
                     writer.writerow(["history_data", "total"] + self.evaluation_strategy.keys() + ["smiles"])
@@ -222,7 +222,7 @@ class PopAlg:
                             writer.writerow([removed_act_history, total_score] + list(scores) + [smi])
 
             # ### Errors data ###
-            with open(join(self.output_folder_path, 'errors.csv'), "w") as f:
+            with open(join(self.output_folder_path, 'errors.csv'), "w", newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(["step", "error"])
                 for error in self.errors:

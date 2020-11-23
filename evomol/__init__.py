@@ -293,7 +293,7 @@ def _read_smiles_list_from_file(smiles_list_path):
     :return: list of SMILES
     """
 
-    with open(smiles_list_path, "r") as f:
+    with open(smiles_list_path, "r", newline='') as f:
         smiles_list = f.readlines()
     return smiles_list
 

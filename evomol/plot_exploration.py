@@ -21,7 +21,7 @@ def extract_history_data(filepath):
     actions_history_scores = {}
     actions_history_smi = {}
 
-    with open(filepath, "r") as f:
+    with open(filepath, "r", newline='') as f:
         reader = csv.reader(f)
         keys = []
         for i, row in enumerate(reader):
