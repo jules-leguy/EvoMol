@@ -24,6 +24,7 @@ dependencies:
   - ipython
   - rdkit=2018.09.1
   - pygraphviz=1.5
+  - graphviz
   - pip:
     - babel==2.8.0
     - docutils==0.16

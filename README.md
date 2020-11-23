@@ -2,12 +2,12 @@
 
 ## Install
 
-To install EvoMol, run the following commands in your terminal.
+To install EvoMol, run the following commands in your terminal. Make sure to use the .yml file corresponding to your OS. 
 
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env.yml                      # Create conda environment
+$ conda env create -f evomol_env.yml                      # Create conda environment (use the evomol_env_windows.yml file for an installation on Windows)
 $ conda activate evomolenv                                # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
