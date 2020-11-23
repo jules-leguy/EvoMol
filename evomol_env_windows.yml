@@ -3,6 +3,7 @@ channels:
   - anaconda
   - conda-forge
   - defaults
+  - alubbock
 dependencies:
   - cclib=1.6.2
   - joblib=0.14.1
