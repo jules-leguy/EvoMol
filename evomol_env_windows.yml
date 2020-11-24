@@ -3,7 +3,6 @@ channels:
   - anaconda
   - conda-forge
   - defaults
-  - alubbock
 dependencies:
   - cclib=1.6.2
   - joblib=0.14.1
@@ -23,8 +22,6 @@ dependencies:
   - pillow=7.1.2
   - ipython
   - rdkit=2018.09.1
-  - pygraphviz=1.5
-  - graphviz
   - pip:
     - babel==2.8.0
     - docutils==0.16
