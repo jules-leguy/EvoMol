@@ -1,5 +1,7 @@
 # EvoMol
 
+test
+
 ## Installation
 
 EvoMol has been designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of exploration trees is currently unavailable on Windows.
