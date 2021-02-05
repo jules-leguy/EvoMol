@@ -3,21 +3,16 @@ step,error
 0,No more individual to be mutated
 0,No replacement occured
 1,No more individual to be mutated
-2,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CF AddA-4 (Evaluation error)
-2,DFT error in cache for  (Evaluation error)C Sub-3_RmA-0 (Evaluation error)
+2,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
 2,No more individual to be mutated
-2,No replacement occured
-3,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-3,No more individual to be mutated
-4,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CF AddA-5 (Evaluation error)
-4,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-4,No more individual to be mutated
-6,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'NO AddA-10 (Evaluation error)
-7,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'NOF InsA-1 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CF InsA-0 (Evaluation error)
-7,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'FF InsA-0_AddA-14 (Evaluation error)
-8,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CO InsA-0_AddA-8 (Evaluation error)
-8,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'O AddA-6 (Evaluation error)
+7,"expected str, bytes or os.PathLike object, not NoneTypeCCO ChB-1443 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCO Sub-2 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeC=O Sub-2 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCN ChB-2110_InsA-37 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCCO InsA-1_RmA-1 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCO MoveFG-39 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCO ChB-1406_Sub-2 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeNC(O)F RmA-1_ChB-1407 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeC=N AddA-10 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeC=O ChB-703_AddA-9 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeOCF AddA-8 (Evaluation error)"

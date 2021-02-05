@@ -2,7 +2,6 @@ import json
 import os
 import time
 from os.path import join
-import numpy as np
 import cclib
 from .evaluation import EvaluationStrategy, EvaluationError
 from .molgraphops.molgraph import MolGraph
@@ -118,6 +117,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         :param cache_files: list of JSON file containing a cache of former computations
         """
 
+        super().__init__()
         self.prop = prop
         self.n_jobs = n_jobs
         self.working_dir_path = working_dir_path
@@ -143,19 +143,18 @@ class OPTEvaluationStrategy(EvaluationStrategy):
     def keys(self):
         return [self.prop]
 
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
-
     def is_in_cache(self, smi):
         return smi in self.cache
 
     def get_cache_value(self, smi):
         return self.cache[smi][self.prop]
 
-    def evaluate_individual(self, individual, file_prefix=""):
+    def evaluate_individual(self, individual, to_replace_idx=None, file_prefix=""):
         """
         Code from https://github.com/Cyril-Grl/AlphaSMILES
         """
+
+        super().evaluate_individual(individual, to_replace_idx)
 
         print()
         print()
@@ -279,14 +278,3 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 remove_files([smi_path, post_MM_smi_path, post_opt_smi_path, xyz_path, opt_input_path])
 
                 raise EvaluationError("MM error : Different SMILES : " + smi + " " + post_MM_smi)
-
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, total_new_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = total_new_score

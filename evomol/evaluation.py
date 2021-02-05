@@ -1,3 +1,4 @@
+import json
 import pickle
 from abc import ABC, abstractmethod
 from math import exp
@@ -8,6 +9,9 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem
 from rdkit.Chem.QED import qed
 from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
+from rdkit.Chem.rdMolDescriptors import CalcNumRotatableBonds
+
+import pandas as pd
 
 from rdkit.Chem import RDConfig
 import os
@@ -27,11 +31,16 @@ class EvaluationError(RuntimeError):
         return self.desc + " (Evaluation error)"
 
 
-class EvaluationStrategy(ABC):
+class EvaluationStrategyComposant(ABC):
     """
-    Strategy to evaluate the individuals of a population.
-    It can be single objective or multi-objective.
+    Base class of all evaluation strategy composants.
+    The subclasses are either EvaluationStrategy leafs that implement the computation of a property to evaluates
+    solutions, or EvaluationStaregyComposite nodes that define a multi-objective strategy and contain themselves a set
+    of EvaluationStrategy leaves.
     """
+
+    def __init__(self):
+        self.n_calls = 0
 
     @abstractmethod
     def keys(self):
@@ -50,31 +59,85 @@ class EvaluationStrategy(ABC):
         pass
 
     @abstractmethod
-    def evaluate_individual(self, individual):
+    def evaluate_individual(self, individual, to_replace_idx=None):
         """
         Evaluation of a given individual.
         :param individual: individual to be evaluated.
+        :param to_replace_idx: idx of individual to be replaced in the population
         :return: total score of given individual, list of intermediate scores for each contained evaluator
         """
-        pass
+        self.n_calls += 1
 
     @abstractmethod
-    def compute_record_scores(self, population):
+    def compute_record_scores_init_pop(self, population):
         """
-        Computing and recording the internal scores for the complete population
+        Computing and recording the internal scores for the complete population at initialization
         :return: None
         """
         pass
 
     @abstractmethod
-    def record_score(self, idx, new_total_score, new_scores):
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
         """
         Updating the scores of the individual at the given index
         :param idx: index
         :param new_total_score: total score of the individual
         :param new_scores: intermediate scores
+        :param new_individual: new individual to be inserted at the given index
         :return:
         """
+
+    @abstractmethod
+    def end_step_population(self, pop):
+        """
+        Informing the evaluator that the step has reached its end, and giving the resulting population.
+        """
+        pass
+
+    @abstractmethod
+    def get_additional_population_scores(self):
+        """
+        The evaluator can assign additional scores on total population. This method returns a dictionary of key/values
+        for these scores.
+        """
+
+        return {
+            "objective_calls": self.n_calls
+        }
+
+
+class EvaluationStrategy(EvaluationStrategyComposant, ABC):
+    """
+    Leaf strategy to evaluate the individuals of a population by implementing the computation of a property.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.to_be_replaced_current_step_idx = None
+        self.scores = None
+
+    def compute_record_scores_init_pop(self, population):
+        self.scores = []
+        for idx, ind in enumerate(population):
+            if ind is not None:
+                self.scores.append(self.evaluate_individual(ind)[0])
+
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+        if idx == len(self.scores):
+            self.scores.append(None)
+        self.scores[idx] = new_total_score
+
+    def get_population_scores(self):
+        return self.scores, np.array([self.scores])
+
+    def end_step_population(self, pop):
+        pass
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
+
+    def get_additional_population_scores(self):
+        return super().get_additional_population_scores()
 
 
 class GenericFunctionEvaluationStrategy(EvaluationStrategy):
@@ -87,27 +150,15 @@ class GenericFunctionEvaluationStrategy(EvaluationStrategy):
         :param evaluation_function: must evaluate a SMILES representation with a value
         :param function_name: name of the function
         """
+        super().__init__()
         self.evaluation_function = evaluation_function
         self.function_name = function_name
 
     def keys(self):
         return [self.function_name]
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
-
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
-
-    def evaluate_individual(self, individual):
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
         score = self.evaluation_function(individual.to_aromatic_smiles())
         return score, [score]
 
@@ -115,15 +166,18 @@ class GenericFunctionEvaluationStrategy(EvaluationStrategy):
 class ZincNormalizedPLogPEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self):
+        super().__init__()
         self.scores = None
 
     def keys(self):
         return ["penalized_logP"]
 
-    def evaluate_individual(self, individual):
+    def evaluate_individual(self, individual, to_replace_idx=None):
         """
         from https://github.com/bowenliu16/rl_graph_generation/blob/master/gym-molecule/gym_molecule/envs/molecule.py
         """
+        super().evaluate_individual(individual, to_replace_idx)
+
         # normalization constants, statistics from 250k_rndm_zinc_drugs_clean.smi
         logP_mean = 2.4570953396190123
         logP_std = 1.434324401111988
@@ -158,20 +212,6 @@ class ZincNormalizedPLogPEvaluationStrategy(EvaluationStrategy):
 
         return score, [score]
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
-
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
-
 
 class PenalizedLogPEvaluationStrategy(EvaluationStrategy):
     """
@@ -180,6 +220,7 @@ class PenalizedLogPEvaluationStrategy(EvaluationStrategy):
     """
 
     def __init__(self):
+        super().__init__()
         self.scores = None
 
     def keys(self):
@@ -202,13 +243,9 @@ class PenalizedLogPEvaluationStrategy(EvaluationStrategy):
             cycle_length = 0
         return cycle_length
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
+    def evaluate_individual(self, individual, to_replace_idx=None):
 
-    def evaluate_individual(self, individual):
+        super().evaluate_individual(individual, to_replace_idx)
 
         mol_graph = MolFromSmiles(individual.to_aromatic_smiles())
 
@@ -219,14 +256,6 @@ class PenalizedLogPEvaluationStrategy(EvaluationStrategy):
         score = log_p - sas_score - cycle_score
         return score, [score]
 
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
-
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
-
 
 class CLScoreEvaluationStrategy(EvaluationStrategy):
     """
@@ -236,6 +265,7 @@ class CLScoreEvaluationStrategy(EvaluationStrategy):
     """
 
     def __init__(self):
+        super().__init__()
         self.scores = None
         self.radius = 3
         self.rooted = True
@@ -254,9 +284,6 @@ class CLScoreEvaluationStrategy(EvaluationStrategy):
 
     def keys(self):
         return ["CLScore"]
-
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
 
     def extract_shingles(self, individual):
 
@@ -292,12 +319,14 @@ class CLScoreEvaluationStrategy(EvaluationStrategy):
 
         return qry_shingles
 
-    def evaluate_individual(self, individual):
+    def evaluate_individual(self, individual, to_replace_idx=None):
         """
         Based on https://github.com/reymond-group/GDBChEMBL
         :param individual:
         :return:
         """
+
+        super().evaluate_individual(individual, to_replace_idx)
 
         # Extracting shingles
         qry_shingles = self.extract_shingles(individual)
@@ -321,17 +350,6 @@ class CLScoreEvaluationStrategy(EvaluationStrategy):
         if self.cut_off == 0.0 or self.cut_off <= avg_score:
             return avg_score, [avg_score]
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
-
 
 class SAScoreEvaluationStrategy(EvaluationStrategy):
     """
@@ -342,13 +360,16 @@ class SAScoreEvaluationStrategy(EvaluationStrategy):
     Returning the opposite of the value so that the metric can be maximized
     """
 
+    def __init__(self):
+        super().__init__()
+        self.scores = None
+
     def keys(self):
         return ["SAScore"]
 
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
 
-    def evaluate_individual(self, individual):
         if individual is None:
             return None
         else:
@@ -357,17 +378,6 @@ class SAScoreEvaluationStrategy(EvaluationStrategy):
             score = sascorer.calculateScore(mol_graph)
 
             return score, [score]
-
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
 
 
 class NormalizedSAScoreEvaluationStrategy(EvaluationStrategy):
@@ -380,15 +390,17 @@ class NormalizedSAScoreEvaluationStrategy(EvaluationStrategy):
     """
 
     def __init__(self):
+        super().__init__()
+        self.scores = None
         self.sascore_evaluation = SAScoreEvaluationStrategy()
 
     def keys(self):
         return ["SAScore"]
 
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+    def evaluate_individual(self, individual, to_replace_idx=None):
 
-    def evaluate_individual(self, individual):
+        super().evaluate_individual(individual, to_replace_idx)
+
         if individual is None:
             return None, [None]
         else:
@@ -396,17 +408,6 @@ class NormalizedSAScoreEvaluationStrategy(EvaluationStrategy):
             score = 1 - (unnormalized_sascore - 1) / 9
 
             return score, [score]
-
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
-
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
 
 
 class QEDEvaluationStrategy(EvaluationStrategy):
@@ -417,89 +418,232 @@ class QEDEvaluationStrategy(EvaluationStrategy):
     """
 
     def __init__(self):
+        super().__init__()
         self.scores = None
 
     def keys(self):
         return ["qed"]
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
+    def evaluate_individual(self, individual, to_replace_idx=None):
 
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+        super().evaluate_individual(individual, to_replace_idx)
 
-    def evaluate_individual(self, individual):
         if individual is None:
-            return None
+            return None, [None]
         else:
             mol_graph = MolFromSmiles(individual.to_aromatic_smiles())
             score = qed(mol_graph)
             return score, [score]
 
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
+
+class RDFiltersEvaluationStrategy(EvaluationStrategy):
+    """
+    Adapted from https://github.com/PatWalters/rd_filters
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.scores = None
+        self.rules_file_name = os.environ["FILTER_RULES_DATA"] + "/rules.json"
+        self.alert_file_name = os.environ["FILTER_RULES_DATA"] + "/alert_collection.csv"
+        self.rule_df = pd.read_csv(self.alert_file_name)
+        # make sure there wasn't a blank line introduced
+        self.rule_df = self.rule_df.dropna()
+        self.rule_list = []
+        with open(self.rules_file_name) as json_file:
+            self.rule_dict = json.load(json_file)
+        self.rules_list = [x.replace("Rule_", "") for x in self.rule_dict.keys()
+                           if x.startswith("Rule") and self.rule_dict[x]]
+        self._build_rule_list()
+
+    def keys(self):
+        return ["RDFilters"]
+
+    def _build_rule_list(self):
+        self.rule_df = self.rule_df[self.rule_df.rule_set_name.isin(self.rules_list)]
+        tmp_rule_list = self.rule_df[["rule_id", "smarts", "max", "description"]].values.tolist()
+        for rule_id, smarts, max_val, desc in tmp_rule_list:
+            smarts_mol = Chem.MolFromSmarts(smarts)
+            if smarts_mol:
+                self.rule_list.append([smarts_mol, max_val, desc])
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        super().evaluate_individual(individual, to_replace_idx)
+
+        mol = Chem.MolFromSmiles(individual.to_aromatic_smiles())
+
+        if mol is None:
+            return 0, [0]
+
+        desc_list = [Descriptors.MolWt(mol), Descriptors.MolLogP(mol), Descriptors.NumHDonors(mol),
+                     Descriptors.NumHAcceptors(mol), Descriptors.TPSA(mol), CalcNumRotatableBonds(mol)]
+        df = pd.DataFrame([desc_list], columns=[
+            "MW", "LogP", "HBD", "HBA", "TPSA", "Rot"])
+        df_ok = df[df.MW.between(*(self.rule_dict["MW"])) &
+                   df.LogP.between(*(self.rule_dict["LogP"])) &
+                   df.HBD.between(*(self.rule_dict["HBD"])) &
+                   df.HBA.between(*(self.rule_dict["HBA"])) &
+                   df.TPSA.between(*(self.rule_dict["TPSA"]))]
+        if len(df_ok) == 0:
+            return 0, [0]
+        for row in self.rule_list:
+            patt, max_val, _ = row
+            if len(mol.GetSubstructMatches(patt)) > max_val:
+                return 0, [0]
+        return 1, [1]
 
 
-class LinearCombinationEvaluationStrategy(EvaluationStrategy):
+class EvaluationStrategyComposite(EvaluationStrategyComposant):
+    """
+    Composite class combining several evaluation strategies
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__()
+        self.evaluation_strategies = evaluation_strategies
+
+    def end_step_population(self, pop):
+        for strategy in self.evaluation_strategies:
+            strategy.end_step_population(pop)
+
+    def get_additional_population_scores(self):
+        d = super().get_additional_population_scores()
+
+        for strategy in self.evaluation_strategies:
+            d.update(strategy.get_additional_population_scores())
+
+        return d
+
+    def keys(self):
+        strat_keys = []
+
+        for strat in self.evaluation_strategies:
+            strat_keys.extend(strat.keys())
+
+        return strat_keys
+
+    def compute_record_scores_init_pop(self, population):
+        for strategy in self.evaluation_strategies:
+            strategy.compute_record_scores_init_pop(population)
+
+    def record_ind_score(self, idx, new_total_score, new_sub_scores, new_individual):
+        # Iterative in-depth search in order to set the previously computed sub-scores for the given individual
+        # (given by index). Building ordered list of evaluation strategies.
+        stack = [self]
+        ordered_strategies = []
+        ordered_leaf_strategies = []
+
+        while not len(stack) == 0:
+
+            # Popping current node
+            curr_strategy = stack.pop()
+
+            # Inserting current strategy in ordered list
+            ordered_strategies.append(curr_strategy)
+
+            # If the current strategy is not a leaf, stacking its contained strategies
+            if isinstance(curr_strategy, EvaluationStrategyComposite):
+
+                # Iterating on reverse order to stack left of list last
+                for i in range(len(curr_strategy.evaluation_strategies) - 1, -1, -1):
+                    stack.append(curr_strategy.evaluation_strategies[i])
+
+        # Saving ordered list of leaf strategies
+        for strategy in ordered_strategies:
+            if not isinstance(strategy, EvaluationStrategyComposite):
+                ordered_leaf_strategies.append(strategy)
+
+        # Recording sub-score values to corresponding leaf strategies
+        for i in range(len(new_sub_scores)):
+            ordered_leaf_strategies[i].record_ind_score(idx, new_sub_scores[i], None, new_individual)
+
+    def get_population_scores(self):
+
+        scores = None
+        sub_scores = []
+
+        # Creating lists of scores all the scores of population for all evaluation strategies
+        for i, strategy in enumerate(self.evaluation_strategies):
+            curr_strategy_evaluation, curr_strategy_sub_scores = strategy.get_population_scores()
+
+            if i == 0:
+                scores = np.full((len(self.evaluation_strategies), len(curr_strategy_evaluation)), np.nan)
+
+            scores[i] = curr_strategy_evaluation
+            sub_scores.extend(curr_strategy_sub_scores)
+
+        total_scores = []
+        for curr_ind_scores in scores.T:
+            total_scores.append(self._compute_total_score(curr_ind_scores))
+
+        return np.array(total_scores), np.array(sub_scores)
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        super().evaluate_individual(individual, to_replace_idx)
+
+        sub_scores = []
+        total_scores = []
+
+        for strategy in self.evaluation_strategies:
+            curr_total_score, curr_sub_scores = strategy.evaluate_individual(individual, to_replace_idx)
+            total_scores.append(curr_total_score)
+            sub_scores.extend(curr_sub_scores)
+
+        # Computing total score
+        total_score = self._compute_total_score(np.array(total_scores))
+
+        # Returning the product of scores
+        return total_score, np.array(sub_scores)
+
+    @abstractmethod
+    def _compute_total_score(self, strat_scores):
+        pass
+
+
+class LinearCombinationEvaluationStrategy(EvaluationStrategyComposite):
     """
     Evaluation of the population with a linear combination of given evaluation strategies.
     The coefficients are given in a list of same size as the number of strategies.
     """
 
     def __init__(self, evaluation_strategies, coefs):
+        super().__init__(evaluation_strategies)
+        self.coefs = np.array(coefs)
 
-        self.evaluation_strategies = evaluation_strategies
-        self.coefs = np.array(coefs).reshape(-1, 1)
-        self.strat_keys = []
-        for strat in self.evaluation_strategies:
-            self.strat_keys.append(strat.keys()[0])
-
-    def get_population_scores(self):
-
-        scores = None
-
-        # Creating lists of scores all the scores of population for all evaluation strategies
-        for i, strategy in enumerate(self.evaluation_strategies):
-            strategy_evaluation, _ = strategy.get_population_scores()
-
-            if i == 0:
-                scores = np.full((len(self.evaluation_strategies), len(strategy_evaluation)), np.nan)
-
-            scores[i] = strategy_evaluation
-
-        total_scores = np.sum(scores * self.coefs, axis=0)
-
-        return total_scores, scores
-
-    def evaluate_individual(self, individual):
-        scores = []
-        for strategy in self.evaluation_strategies:
-
-            strat_score, _ = strategy.evaluate_individual(individual)
-            scores.append(strat_score)
-
-        scores = np.array(scores).reshape(-1, 1)
-
-        return np.sum(scores * self.coefs), scores
-
-    def compute_record_scores(self, population):
-        for strategy in self.evaluation_strategies:
-            strategy.compute_record_scores(population)
-
-    def record_score(self, idx, new_total_score, new_scores):
-        for i, strategy in enumerate(self.evaluation_strategies):
-            strategy.record_score(idx, new_scores[i], None)
-
-    def keys(self):
-        return self.strat_keys
+    def _compute_total_score(self, strat_scores):
+        return np.sum(strat_scores * self.coefs, axis=0)
 
 
-class ProductSigmLinEvaluationStrategy(EvaluationStrategy):
+class ProductEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Computing the product of the internal evaluation strategies as total score
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return np.prod(strat_scores)
+
+
+class SigmLinWrapperEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Passing the wrapped evaluator through a linear function and a sigmoid. Warning : can only wrap a single objective.
+    """
+
+    def __init__(self, evaluation_strategies, a, b, l):
+        super().__init__(evaluation_strategies)
+        self.a = a
+        self.b = b
+        self.l = l
+
+    def _compute_total_score(self, strat_scores):
+        return 1 / (1 + exp(self.l * (self.a * strat_scores[0] + self.b)))
+
+
+class ProductSigmLinEvaluationStrategy(EvaluationStrategyComposite):
     """
     Evaluation strategy returning the product of multiple scores after passing them through a linear function and
     a sigmoid function.
@@ -515,7 +659,7 @@ class ProductSigmLinEvaluationStrategy(EvaluationStrategy):
         :param l: list of lambda coefficient for the sigmoid functions applied to each score
         """
 
-        self.evaluation_strategies = evaluation_strategies
+        super().__init__(evaluation_strategies)
 
         # Recording parameters
         self.a = a
@@ -525,36 +669,7 @@ class ProductSigmLinEvaluationStrategy(EvaluationStrategy):
         # Population initialization
         self.scores = None
 
-        # Recording keys
-        self.strat_keys = []
-        for strat in self.evaluation_strategies:
-            self.strat_keys.append(strat.keys()[0])
-
-    def compute_record_scores(self, population):
-        for strategy in self.evaluation_strategies:
-            strategy.compute_record_scores(population)
-
-    def get_population_scores(self):
-
-        scores = None
-
-        # Creating lists of scores all the scores of population for all evaluation strategies
-        for i, strategy in enumerate(self.evaluation_strategies):
-            strategy_evaluation, _ = strategy.get_population_scores()
-
-            if i == 0:
-                scores = np.full((len(self.evaluation_strategies), len(strategy_evaluation)), np.nan)
-
-            scores[i] = strategy_evaluation
-
-        total_scores = []
-        for curr_ind_scores in scores.T:
-            total_scores.append(self._compute_total_score(curr_ind_scores))
-
-        return total_scores, scores
-
     def _compute_total_score(self, strat_scores):
-
         tmp_scores = []
 
         for i, curr_strat_score in enumerate(strat_scores):
@@ -563,27 +678,6 @@ class ProductSigmLinEvaluationStrategy(EvaluationStrategy):
         print("TMP scores : " + str(tmp_scores))
 
         return np.prod(tmp_scores)
-
-    def evaluate_individual(self, individual):
-
-        strat_scores = []
-        for i, eval_strat in enumerate(self.evaluation_strategies):
-            # Scoring the individual with the current strategy
-            strat_score, _ = eval_strat.evaluate_individual(individual)
-            strat_scores.append(strat_score)
-
-        # Computing total score
-        total_score = self._compute_total_score(strat_scores)
-
-        # Returning the product of scores
-        return total_score, strat_scores
-
-    def record_score(self, idx, new_total_score, new_scores):
-        for i, strat in enumerate(self.evaluation_strategies):
-            self.evaluation_strategies[i].record_score(idx, new_scores[i], None)
-
-    def keys(self):
-        return self.strat_keys
 
 
 def scores_to_scores_dict(total_scores, scores, keys):
@@ -594,3 +688,4 @@ def scores_to_scores_dict(total_scores, scores, keys):
     step_scores_dict["total"] = total_scores
 
     return step_scores_dict
+

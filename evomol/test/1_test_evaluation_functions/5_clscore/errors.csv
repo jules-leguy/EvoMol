@@ -1,6 +1,16 @@
 step,error
 0,No more individual to be mutated
+16,No improver found
 17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No more individual to be mutated
 18,No improver found
 18,No improver found
 18,No improver found
@@ -18,11 +28,6 @@ step,error
 19,No improver found
 19,No improver found
 19,No improver found
-19,No improver found
-19,No improver found
-19,No improver found
-19,No improver found
-19,No more individual to be mutated
 20,No improver found
 20,No improver found
 20,No improver found
@@ -56,9 +61,7 @@ step,error
 22,No improver found
 22,No improver found
 22,No improver found
-22,No improver found
 22,No more individual to be mutated
-22,No replacement occured
 23,No improver found
 23,No improver found
 23,No improver found
@@ -92,9 +95,7 @@ step,error
 25,No improver found
 25,No improver found
 25,No improver found
-25,No improver found
 25,No more individual to be mutated
-25,No replacement occured
 26,No improver found
 26,No improver found
 26,No improver found
@@ -128,7 +129,9 @@ step,error
 28,No improver found
 28,No improver found
 28,No improver found
+28,No improver found
 28,No more individual to be mutated
+28,No replacement occured
 29,No improver found
 29,No improver found
 29,No improver found

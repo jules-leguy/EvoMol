@@ -1,7 +1,10 @@
+import time
 from abc import ABC, abstractmethod
 from os.path import join, exists
 
 import numpy as np
+from rdkit.Chem.Descriptors import NumRadicalElectrons
+from rdkit.Chem.rdmolfiles import MolFromSmiles
 
 
 class StopCriterionStrategy(ABC):
@@ -105,6 +108,48 @@ class KStepsStopCriterionStrategy(StopCriterionStrategy):
 
         return test
 
+
+class TimeStopCriterionStrategy(StopCriterionStrategy):
+    """
+    Stopping the algorithm after a given time
+    """
+
+    def __init__(self, max_duration):
+        super().__init__()
+        self.max_duration = max_duration
+        self.start_time = time.time()
+
+    def time_to_stop(self, output_folder_path):
+
+        test = time.time() - self.start_time > self.max_duration
+
+        if test and output_folder_path:
+            self.write_stop(join(output_folder_path, "stop.txt"), "Max. time reached (" + str(self.max_duration) + " s)")
+
+        return test
+
+
+class RadicalFoundStopCriterionStrategy(StopCriterionStrategy):
+
+    def __init__(self):
+        super().__init__()
+
+    def _is_radical(self, mol):
+        return NumRadicalElectrons(MolFromSmiles(mol.to_aromatic_smiles())) != 0
+
+    def time_to_stop(self, output_folder_path):
+
+        test = False
+
+        for ind in self.pop_alg.pop:
+            if ind is not None and self._is_radical(ind):
+                test = True
+                pass
+
+        if test and output_folder_path:
+            self.write_stop(join(output_folder_path, "stop.txt"), "Radical found")
+
+        return test
 
 class FileStopCriterion(StopCriterionStrategy):
     """

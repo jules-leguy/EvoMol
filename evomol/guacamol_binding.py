@@ -1,38 +1,106 @@
 from os.path import join
 from typing import Optional, List
 import numpy as np
-from .evaluation import EvaluationStrategy
+
+from .evaluation import EvaluationStrategy, EvaluationStrategyComposite
 from guacamol.goal_directed_benchmark import GoalDirectedGenerator
 from guacamol.scoring_function import ScoringFunction
 from .stopcriterion import KthScoreMaxValue
 
 
+class UndefinedGuacaMolEvaluationStrategy(EvaluationStrategy):
+    """
+    Class representing GuacaMol evaluation strategy not defined yet
+    """
+
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def keys(self):
+        return []
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def compute_record_scores_init_pop(self, population):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def get_population_scores(self):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def end_step_population(self, pop):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def get_additional_population_scores(self):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+
 class GuacamolEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, scoring_function, benchmark_name):
+        super().__init__()
         self.scoring_function = scoring_function
         self.benchmark_name = benchmark_name
 
     def keys(self):
         return [self.benchmark_name]
 
-    def evaluate_individual(self, individual):
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
         score = self.scoring_function.score(individual.to_aromatic_smiles())
         return score, [score]
 
-    def compute_record_scores(self, population):
-        self.scores = []
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                self.scores.append(self.evaluate_individual(ind)[0])
 
-    def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+def define_GuacaMol_evaluation_strategies(evaluation_strategy, defined_evaluation_strategy):
+    """
+    Setting all UndefinedGuacaMolEvaluationStrategie instances contained in a EvaluationStrategyComposite to the given
+    defined value
+    """
 
-    def record_score(self, idx, new_total_score, new_scores):
-        if idx == len(self.scores):
-            self.scores.append(None)
-        self.scores[idx] = new_total_score
+    if isinstance(evaluation_strategy, EvaluationStrategyComposite):
+        for i in range(len(evaluation_strategy.evaluation_strategies)):
+            if isinstance(evaluation_strategy.evaluation_strategies[i], UndefinedGuacaMolEvaluationStrategy):
+                evaluation_strategy.evaluation_strategies[i] = defined_evaluation_strategy
+            elif isinstance(evaluation_strategy.evaluation_strategies[i], EvaluationStrategyComposite):
+                define_GuacaMol_evaluation_strategies(evaluation_strategy.evaluation_strategies[i], defined_evaluation_strategy)
+
+
+def is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy):
+    """
+    Returns whether the given evaluation strategy is or contain an undefined GuacaMol evaluation strategy
+    """
+
+    if isinstance(evaluation_strategy, UndefinedGuacaMolEvaluationStrategy):
+        return True
+
+    elif isinstance(evaluation_strategy, EvaluationStrategyComposite):
+        for i in range(len(evaluation_strategy.evaluation_strategies)):
+            if is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy.evaluation_strategies[i]):
+                return True
+
+    return False
+
+
+def get_GuacaMol_benchmark_parameter(evaluation_strategy):
+    """
+    Returning the GuacaMol benchmark parameter describing the set of benchmarks found in the first found
+    UndefinedGuacaMolEvaluationStrategy
+    """
+
+    if isinstance(evaluation_strategy, UndefinedGuacaMolEvaluationStrategy):
+        return evaluation_strategy.name
+    elif isinstance(evaluation_strategy, EvaluationStrategyComposite):
+        for i in range(len(evaluation_strategy.evaluation_strategies)):
+            retrieved_value = get_GuacaMol_benchmark_parameter(evaluation_strategy.evaluation_strategies[i])
+            if retrieved_value is not None:
+                return retrieved_value
+
+    return None
+
 
 
 class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
@@ -72,30 +140,43 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
     def generate_optimized_molecules(self, scoring_function: ScoringFunction, number_molecules: int,
                                      starting_population: Optional[List[str]] = None, name=None) -> List[str]:
 
+        instance = self.pop_alg.copy_instance_with_parameters()
+
         # Updating benchmark id
         self.curr_benchmark_id += 1
 
         # Extracting benchmark name
-        curr_benchmark_name = self._get_benchmark_name(self.curr_benchmark_id)
+        # curr_benchmark_name = self._get_benchmark_name(self.curr_benchmark_id)
 
         # Setting folder to save the results
-        self.pop_alg.output_folder_path = join(self.output_save_path, curr_benchmark_name)
+        # instance.output_folder_path = join(self.output_save_path, curr_benchmark_name)
+        instance.output_folder_path = join(self.output_save_path, name)
 
-        # Setting GuacaMol evaluation function
-        evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, curr_benchmark_name)
-        self.pop_alg.evaluation_strategy = evaluation_strategy
-        self.pop_alg.mutation_strategy.evaluation_strategy = evaluation_strategy
+        # Extracting GuacaMol evaluation function
+        guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
+        # guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, curr_benchmark_name)
+
+        # Merging the evaluation strategy of the PopAlg instance to the GuacaMol objective
+        if isinstance(instance.evaluation_strategy, UndefinedGuacaMolEvaluationStrategy):
+            instance.evaluation_strategy = guacamol_evaluation_strategy
+        else:
+            define_GuacaMol_evaluation_strategies(instance.evaluation_strategy, guacamol_evaluation_strategy)
+
+        # Updating mutation strategy evaluator
+        instance.mutation_strategy.evaluation_strategy = instance.evaluation_strategy
 
         # Setting additional stop criterion, stopping the execution when best possible score is obtained
+        # instance.kth_score_to_record_key = curr_benchmark_name
+        instance.kth_score_to_record_key = name
         additional_stop_criterion = KthScoreMaxValue(1, round=3)
-        self.pop_alg.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
-        self.pop_alg.stop_criterion_strategy.set_pop_alg_instance(self.pop_alg)
+        instance.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
+        instance.stop_criterion_strategy.set_pop_alg_instance(instance)
 
         # Setting kth score to record
-        self.pop_alg.kth_score_to_record = number_molecules
+        instance.kth_score_to_record = number_molecules
 
         # PopAlg instance initialization
-        self.pop_alg.initialize()
+        instance.initialize()
 
         # Population initialization
         if self.guacamol_init_top_100:
@@ -107,18 +188,24 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
                 smiles_list = f.readlines()
                 scores = [scoring_function.score(s) for s in smiles_list]
                 top_100_smiles = np.array(smiles_list)[np.argsort(scores)[::-1][:100]]
-                self.pop_alg.load_pop_from_smiles_list(smiles_list=top_100_smiles)
+                instance.load_pop_from_smiles_list(smiles_list=top_100_smiles)
         else:
-            self.pop_alg.load_pop_from_smiles_list(smiles_list=["C"])
+            instance.load_pop_from_smiles_list(smiles_list=["C"])
 
         # Running EvoMol
-        self.pop_alg.run()
+        instance.run()
+
+        # Extracting the vector containing the guacamol  objective property value for all individuals
+        if instance.kth_score_to_record_key == "total":
+            obj_prop_vector = instance.curr_total_scores
+        else:
+            obj_prop_vector = instance.curr_scores[instance.kth_score_to_record_idx]
 
         # Extracting best individuals
-        ind_to_return_indices = np.argsort(self.pop_alg.curr_total_scores)[::-1].flatten()[:number_molecules]
+        ind_to_return_indices = np.argsort(obj_prop_vector)[::-1].flatten()[:number_molecules]
         output_population = []
         for ind_idx in ind_to_return_indices:
-            output_population.append(self.pop_alg.pop[ind_idx].to_aromatic_smiles())
+            output_population.append(instance.pop[ind_idx].to_aromatic_smiles())
 
         # Returning optimized population
         return output_population

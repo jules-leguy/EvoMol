@@ -1,25 +1,26 @@
 step,error
-0,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 0,No more individual to be mutated
-0,No replacement occured
-1,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-1,No more individual to be mutated
-1,No replacement occured
+2,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+2,DFT error in cache for  (Evaluation error)N RmA-0 (Evaluation error)
+2,DFT error in cache for  (Evaluation error)C Sub-1_RmA-0 (Evaluation error)
 2,No more individual to be mutated
-4,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C#C AddA-8 (Evaluation error)
-4,DFT error in cache for  (Evaluation error)N RmA-0 (Evaluation error)
-6,MM error : Different SMILES : N=CO [NH][CH]O (Evaluation error)C=N AddA-6 (Evaluation error)
-6,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C#N AddA-6 (Evaluation error)
-6,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C#C ChB-1406_AddA-7 (Evaluation error)
-7,"Python argument types in
-    rdkit.Chem.rdmolops.RemoveStereochemistry(NoneType)
-did not match C++ signature:
-    RemoveStereochemistry(RDKit::ROMol {lvalue} mol)C=N AddA-5 (Evaluation error)"
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C#N AddA-6 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C#C InsA-0 (Evaluation error)
+3,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+4,DFT error in cache for N=N (Evaluation error)N=O Sub-1 (Evaluation error)
+4,"expected str, bytes or os.PathLike object, not NoneTypeNO Sub-6 (Evaluation error)"
+5,"expected str, bytes or os.PathLike object, not NoneTypeN=O AddA-9 (Evaluation error)"
+5,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+5,"expected str, bytes or os.PathLike object, not NoneTypeCO AddA-4 (Evaluation error)"
+6,DFT error in cache for N=N (Evaluation error)N=O Sub-1 (Evaluation error)
+6,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+7,"expected str, bytes or os.PathLike object, not NoneTypeN=O Sub-6 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-10 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeNOO Sub-4_AddA-14 (Evaluation error)"
 7,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-7,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'CC(C)N Sub-11_MoveFG-1444 (Evaluation error)
-8,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C=O AddA-10_AddA-11 (Evaluation error)
-8,'OPTEvaluationStrategy' object has no attribute 'sanitize_mol'C=N Sub-4 (Evaluation error)
-9,MM error : Different SMILES : N=NO [NH][N]O (Evaluation error)C=N AddA-6_Sub-1 (Evaluation error)
-9,MM error : Different SMILES : N#CCF [N][C]CF (Evaluation error)N#CF InsA-1 (Evaluation error)
+7,DFT error in cache for  (Evaluation error)CO RmA-1_RmA-0 (Evaluation error)
+7,DFT error in cache for N=CN (Evaluation error)NCN ChB-1407 (Evaluation error)
+8,"expected str, bytes or os.PathLike object, not NoneTypeN=O Sub-6 (Evaluation error)"
+8,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-11_InsA-0 (Evaluation error)"
+8,"expected str, bytes or os.PathLike object, not NoneTypeNOO ChB-740 (Evaluation error)"
+8,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+8,"expected str, bytes or os.PathLike object, not NoneTypeNNO AddA-10_CutA-1 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeN=O AddA-9 (Evaluation error)"

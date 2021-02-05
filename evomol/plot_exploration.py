@@ -252,18 +252,18 @@ def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_re
     return img
 
 
-def best_score_node(actions_history_scores_pop, actions_history_scores_removed):
+def best_score_node(actions_history_scores_pop, actions_history_scores_removed, prop_to_study_key):
     # Extracting best score node
     best_score = - float("inf")
     best_score_key = None
     for key, score_dict in actions_history_scores_pop.items():
-        if score_dict["total"] > best_score:
+        if score_dict[prop_to_study_key] > best_score:
             best_score_key = key
-            best_score = score_dict["total"]
+            best_score = score_dict[prop_to_study_key]
     for key, score_dict in actions_history_scores_removed.items():
-        if score_dict["total"] > best_score:
+        if score_dict[prop_to_study_key] > best_score:
             best_score_key = key
-            best_score = score_dict["total"]
+            best_score = score_dict[prop_to_study_key]
 
     return best_score_key
 
@@ -283,7 +283,7 @@ def normalize_layout(input_layout):
 
 def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_images=False,
                       mol_size=0.1, figsize=(15, 10), draw_scores=False, draw_actions=False, plot_labels=False,
-                      layout="dot", cmap="inferno", dpi=300, legend_offset=(0, 0),
+                      layout="dot", cmap="inferno", prop_to_study_key="total", dpi=300, legend_offset=(0, 0),
                       legend_scores_keys_strat=None, problem_type="max",
                       mols_per_row=4, draw_n_mols=None, legends_font_size=15):
 
@@ -314,7 +314,7 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
     sizes = []
     labels = {}
     next_label_to_assign = 1
-    best_score_key = best_score_node(actions_history_scores_pop, actions_history_scores_removed)
+    best_score_key = best_score_node(actions_history_scores_pop, actions_history_scores_removed, prop_to_study_key)
     for node in graph.nodes:
 
         if plot_images:
@@ -336,10 +336,10 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
             labels[node] = ""
 
         if node in actions_history_scores_pop:
-            colors.append(cmap(actions_history_scores_pop[node]["total"]))
+            colors.append(cmap(actions_history_scores_pop[node][prop_to_study_key]))
 
         elif node in actions_history_scores_removed:
-            colors.append(cmap(actions_history_scores_removed[node]["total"]))
+            colors.append(cmap(actions_history_scores_removed[node][prop_to_study_key]))
 
     # Drawing the graph
     plt.figure(figsize=figsize)
