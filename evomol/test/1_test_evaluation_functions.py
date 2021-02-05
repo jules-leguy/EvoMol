@@ -33,7 +33,8 @@ for i, eval_fun in enumerate(eval_functions):
         },
         "action_space_parameters": {
             "atoms": "C,N,O,F" if eval_fun == "homo" or eval_fun == "lumo" or isinstance(eval_fun,
-                                                                                         dict) else "C,N,O,F,P,S,Cl,Br"
+                                                                                         dict) else "C,N,O,F,P,S,Cl,Br",
+            "use_rd_filters": True
         },
         "io_parameters": {
             "model_path": '1_test_evaluation_functions/' + str(i) + "_" + str(eval_fun),

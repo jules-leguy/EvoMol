@@ -219,7 +219,8 @@ def _parse_action_space(parameters_dict):
         "substitution": input_param_action_space[
             "substitution"] if "substitution" in input_param_action_space else True,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
-        "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True}
+        "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
+        "use_rd_filters": input_param_action_space["use_rd_filters"] if "use_rd_filters" in input_param_action_space else False}
 
     symbols_list = explicit_action_space_parameters["atoms"].split(",")
 
@@ -234,11 +235,11 @@ def _parse_action_space(parameters_dict):
         if parameter not in explicit_action_space_parameters:
             raise RuntimeWarning("Unrecognized parameter in 'action_space_parameters' : " + str(parameter))
 
-    return action_spaces, action_spaces_parameters
+    return action_spaces, action_spaces_parameters, explicit_action_space_parameters
 
 
 def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, action_spaces,
-                               action_spaces_parameters):
+                               action_spaces_parameters, search_space_parameters):
     """
     Parsing mutation parameters
     :param parameters_dict:
@@ -252,7 +253,8 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  action_spaces=action_spaces,
                                                                  action_spaces_parameters=action_spaces_parameters,
                                                                  problem_type=explicit_search_parameters[
-                                                                     "problem_type"])
+                                                                     "problem_type"],
+                                                                 quality_filter=search_space_parameters["use_rd_filters"])
 
     return mutation_strategy
 
@@ -419,13 +421,14 @@ def run_model(parameters_dict):
                                                              explicit_search_parameters_dict=explicit_search_parameters_dict)
 
     # Building action space
-    action_spaces, action_spaces_parameters = _parse_action_space(parameters_dict)
+    action_spaces, action_spaces_parameters, explicit_action_space_parameters = _parse_action_space(parameters_dict)
 
     # Building mutation strategy
     mutation_strategy = _parse_mutation_parameters(explicit_search_parameters=explicit_search_parameters_dict,
                                                    evaluation_strategy=evaluation_strategy,
                                                    action_spaces=action_spaces,
-                                                   action_spaces_parameters=action_spaces_parameters)
+                                                   action_spaces_parameters=action_spaces_parameters,
+                                                   search_space_parameters=explicit_action_space_parameters)
 
     # Building stop criterion strategy
     stop_criterion_strategy = _parse_stop_criterion_strategy(

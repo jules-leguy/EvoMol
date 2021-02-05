@@ -86,6 +86,8 @@ The ```"action_space_parameters"``` attribute can be set with a dictionary conta
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
+* ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
+quality filter before inserting the mutated individuals in the population (**False**).
 
 ### Optimization parameters
 
@@ -229,3 +231,8 @@ optimization using the best scoring molecules from their subset of
 * Download the <a href="https://figshare.com/projects/GuacaMol/56639">ChEMBL subset</a>.
 * Give the path of the data using the ```"smiles_list_init_path"``` attribute.
 * Insure that the ```"guacamol_init_top_100"``` attribute is set to True.
+
+### rd_filters
+To use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a filter of solutions that can be 
+inserted in the population, the ```$FILTER_RULES_DATA``` environment variable must point to a folder containing the 
+```rules.json``` and ```alert_collection.csv``` files.
