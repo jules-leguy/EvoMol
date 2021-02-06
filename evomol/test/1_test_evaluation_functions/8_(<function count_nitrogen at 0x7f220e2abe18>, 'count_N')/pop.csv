@@ -1,0 +1,11 @@
+smiles,n_success_mut,n_failures_mut,count_N,total,history_data
+NNS1(C(F)SP)NN(N)N1,3,0,6,6,C
+NNS1(C(F)S)NN(N)N1,1,0,6,6,
+NNS1(C(N)F)NN(N)N1,0,0,7,7,
+NSS1(C(F)SP)NN(N)N1,0,0,5,5,
+N1=[SH]2(N1)NNN2,2,0,5,5,
+NN[SH]1NN(SCP)N1,2,0,5,5,
+NNS1(F)NN(SSP)N1,1,0,5,5,
+ClN1NN[SH]12=NN2,2,0,5,5,
+NNCS1(C(F)SP)NN(S)N1,2,0,5,5,
+NNS1(C(F)SP)NN(S)N1,5,0,5,5,
