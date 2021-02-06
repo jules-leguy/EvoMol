@@ -1,19 +1,35 @@
 step,error
-0,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 0,No more individual to be mutated
-0,No replacement occured
+1,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 1,No more individual to be mutated
-2,"expected str, bytes or os.PathLike object, not NoneTypeCO ChB-1406_AddA-4 (Evaluation error)"
-2,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-2,No more individual to be mutated
-2,No replacement occured
-6,"expected str, bytes or os.PathLike object, not NoneTypeNCN Sub-7 (Evaluation error)"
-7,DFT error in cache for NNNF (Evaluation error)NNN AddA-11 (Evaluation error)
-8,"expected str, bytes or os.PathLike object, not NoneTypeNN ChB-2109 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeNNN ChB-1406 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeCN AddA-7 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeCCCN InsA-1 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeCCN Sub-10 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeNNO RmA-0_AddA-10 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeNN ChB-2109 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeNCN ChB-740 (Evaluation error)"
+3,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-10 (Evaluation error)"
+3,DFT error in cache for  (Evaluation error)N RmA-0 (Evaluation error)
+3,DFT error in cache for  (Evaluation error)O Sub-3_RmA-0 (Evaluation error)
+5,"expected str, bytes or os.PathLike object, not NoneTypeCCCO InsA-73 (Evaluation error)"
+6,"expected str, bytes or os.PathLike object, not NoneTypeCCN Sub-4 (Evaluation error)"
+6,"expected str, bytes or os.PathLike object, not NoneTypeCCCO InsA-1 (Evaluation error)"
+6,"expected str, bytes or os.PathLike object, not NoneTypeCCO AddA-12_AddA-17 (Evaluation error)"
+6,"expected str, bytes or os.PathLike object, not NoneTypeCO AddA-4 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCN AddA-7 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCCN Sub-10 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCCCO MoveFG-1446_InsA-73 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCCO AddA-9_InsA-37 (Evaluation error)"
+7,DFT error in cache for  (Evaluation error)CO RmA-0_RmA-0 (Evaluation error)
+7,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-10 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCF InsA-0 (Evaluation error)"
+7,"expected str, bytes or os.PathLike object, not NoneTypeCC InsA-0 (Evaluation error)"
+8,DFT error in cache for  (Evaluation error)CN RmA-0_RmA-0 (Evaluation error)
+8,"expected str, bytes or os.PathLike object, not NoneTypeCCN Sub-7 (Evaluation error)"
+8,"expected str, bytes or os.PathLike object, not NoneTypeNCCO CutA-3_MoveFG-1406 (Evaluation error)"
+8,"expected str, bytes or os.PathLike object, not NoneTypeCCCO Sub-0_AddA-18 (Evaluation error)"
+8,"expected str, bytes or os.PathLike object, not NoneTypeCCO AddA-15 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeNN InsA-0_InsA-1 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCN ChB-703_Sub-1 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeNCCO Sub-1 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeNO AddA-10 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCCO ChB-2147 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCCO AddA-5 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCO AddA-4_InsA-0 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeC=O InsA-0_AddA-4 (Evaluation error)"
+9,"expected str, bytes or os.PathLike object, not NoneTypeCNN ChB-704 (Evaluation error)"
+9,No more individual to be mutated

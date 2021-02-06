@@ -1,10 +1,18 @@
 step,error
 0,No more individual to be mutated
+7,No improver found
+8,No improver found
+8,No improver found
+8,No improver found
 8,No improver found
 9,No improver found
 9,No improver found
 9,No improver found
 9,No improver found
+9,No improver found
+9,No improver found
+9,No improver found
+10,No improver found
 10,No improver found
 10,No improver found
 10,No improver found
@@ -14,7 +22,10 @@ step,error
 10,No improver found
 11,No improver found
 11,No improver found
-12,No improver found
+11,No improver found
+11,No improver found
+11,No improver found
+11,No improver found
 12,No improver found
 12,No improver found
 13,No improver found
