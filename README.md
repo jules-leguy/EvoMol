@@ -216,7 +216,8 @@ run_model({
     },
     "optimization_parameters": {
         "max_steps": 500,
-        "pop_max_size": 1000},
+        "pop_max_size": 1000
+    },
     "io_parameters": {
         "model_path": model_path,
         "record_history": True
