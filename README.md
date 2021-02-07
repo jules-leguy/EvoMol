@@ -2,7 +2,7 @@
 
 ## Installation
 
-EvoMol has been designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of exploration trees is currently unavailable on Windows.
+EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of exploration trees is currently unavailable on Windows.
 
 
 To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
@@ -53,13 +53,13 @@ to 4 entries that are described in this section.
 
 ### Objective function
 
-The ```"obj_function"``` attribute can take the following values.
+The ```"obj_function"``` attribute can take the following values. Multi-objective functions can be nested to any depth. 
 * Implemented functions: "<a href="https://www.nature.com/articles/nchem.1243">qed</a>", 
  "<a href="https://arxiv.org/abs/1610.02415v2">plogp</a>", 
  "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
  "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
  "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">functional groups </a>, <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
+ "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function containing the following entries.
     * ```"type"``` : 
@@ -67,7 +67,8 @@ The ```"obj_function"``` attribute can take the following values.
         * "product" (product of properties)
         * "sigm_lin", (passing the values of a unique objective through a linear function and a sigmoid function)
         * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
-    * ```"functions"``` : list of functions (string keys describing implemented functions or custom functions).
+    * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
+    multi-objective functions).
     * Specific to the linear combination.
         * ```"coef"``` : list of coefficients.
     * Specific to the use of sigmoid/linear functions
@@ -118,9 +119,11 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 
-## Drawing exploration trees
+## Examples
 
-### Large exploration tree
+### Drawing exploration trees
+
+#### Large exploration tree
 
 Performing a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization run of 500 steps, while 
 recording the exploration data. 
@@ -151,7 +154,7 @@ exploration_graph(model_path=model_path, layout="neato")
 
 ![Large exploration tree](examples/figures/large_expl_tree.png)
 
-### Detailed exploration tree
+#### Detailed exploration tree
 
 Performing the experiment of mutating a fixed core of acetylsalicylic acid to increase its 
 <a href="https://www.nature.com/articles/nchem.1243">QED</a> value. 
@@ -193,6 +196,44 @@ exploration_graph(model_path=model_path, layout="dot", draw_actions=True, plot_i
 <p align="center">
 <img src="examples/figures/detailed_mol_table.png" alt="Detailed molecular drawings table" width="600"/>
 </p>
+
+### Entropy and multi-objective optimization
+
+Optimizing jointly the <a href="https://www.nature.com/articles/nchem.1243">QED</a> and the entropy of 
+<a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs</a> using a linear combination. The
+weights are set respectively to 1 and 10.
+
+```python
+from evomol import run_model
+
+model_path = "examples/4_entropy_optimization"
+
+run_model({
+    "obj_function": {
+        "type": "linear_combination",
+        "functions": ["qed", "entropy_ifg"],
+        "coef": [1, 10]
+    },
+    "optimization_parameters": {
+        "max_steps": 500,
+        "pop_max_size": 1000},
+    "io_parameters": {
+        "model_path": model_path,
+        "record_history": True
+    },
+})
+```
+
+Plotting the exploration trees representing the QED values.
+
+```python
+from evomol.plot_exploration import exploration_graph
+exploration_graph(model_path=model_path, layout="neato", prop_to_study_key="qed")
+```
+
+![Detailed exploration tree](examples/figures/large_expl_tree_entropy_multiobj.png)
+
+
 
 ## Environment variables and data requirements
 
@@ -236,3 +277,11 @@ optimization using the best scoring molecules from their subset of
 To use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a filter of solutions that can be 
 inserted in the population, the ```$FILTER_RULES_DATA``` environment variable must point to a folder containing the 
 ```rules.json``` and ```alert_collection.csv``` files.
+
+## Citing EvoMol
+
+To reference EvoMol, please cite the following article.
+
+Leguy, J., Cauchy, T., Glavatskikh, M., Duval, B., Da Mota, B. EvoMol: a flexible and interpretable evolutionary 
+algorithm for unbiased de novo molecular generation. J Cheminform 12, 55 (2020). 
+https://doi.org/10.1186/s13321-020-00458-z
