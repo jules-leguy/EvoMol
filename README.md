@@ -100,7 +100,7 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation (**2**).
 * ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
-* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> subset in case of taking the GuacaMol benchmarks (**True**). The list of SMILES must be given as initial population.
+* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> subset in case of taking the GuacaMol benchmarks (**False**). The list of SMILES must be given as initial population.
 * ```"mutable_init_pop"``` : if True, the individuals of the initial population can be freely mutated. If False, they can be branched but their atoms and bonds cannot be modified (**True**).
 * ```"n_max_desc"```: max number of descriptors to be possibly handled when using an evaluator relying on a vector of descriptors such as entropy contribution (**3.000.000**).
 * ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization

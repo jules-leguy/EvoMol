@@ -278,7 +278,7 @@ def _extract_explicit_search_parameters(parameters_dict):
         "mutable_init_pop": input_search_parameters[
             "mutable_init_pop"] if "mutable_init_pop" in input_search_parameters else True,
         "guacamol_init_top_100": input_search_parameters[
-            "guacamol_init_top_100"] if "guacamol_init_top_100" in input_search_parameters else True,
+            "guacamol_init_top_100"] if "guacamol_init_top_100" in input_search_parameters else False,
         "mutation_max_depth": input_search_parameters[
             "mutation_max_depth"] if "mutation_max_depth" in input_search_parameters else 2,
         "mutation_find_improver_tries": input_search_parameters[
