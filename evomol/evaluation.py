@@ -5,6 +5,7 @@ from math import exp
 from os.path import join
 
 import networkx as nx
+from scipy.stats import norm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem
 from rdkit.Chem.QED import qed
@@ -41,6 +42,7 @@ class EvaluationStrategyComposant(ABC):
 
     def __init__(self):
         self.n_calls = 0
+        self.do_count_calls = True
 
     @abstractmethod
     def keys(self):
@@ -66,7 +68,8 @@ class EvaluationStrategyComposant(ABC):
         :param to_replace_idx: idx of individual to be replaced in the population
         :return: total score of given individual, list of intermediate scores for each contained evaluator
         """
-        self.n_calls += 1
+        if self.do_count_calls:
+            self.n_calls += 1
 
     @abstractmethod
     def compute_record_scores_init_pop(self, population):
@@ -104,6 +107,28 @@ class EvaluationStrategyComposant(ABC):
         return {
             "objective_calls": self.n_calls
         }
+
+    def disable_calls_count(self):
+        """
+        Method disabling the count of calls to the objective function. Used to ignore the computation initial population
+        in the total count
+        :return:
+        """
+        self.do_count_calls = False
+
+    def enable_calls_count(self):
+        """
+        Enabling the count of calls to the objective function.
+        :return:
+        """
+        self.do_count_calls = True
+
+    def set_params(self, **kwargs):
+        """
+        Setting the given parameters dynamically
+        """
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
 
 
 class EvaluationStrategy(EvaluationStrategyComposant, ABC):
@@ -576,9 +601,12 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
             if not isinstance(strategy, EvaluationStrategyComposite):
                 ordered_leaf_strategies.append(strategy)
 
-        # Recording sub-score values to corresponding leaf strategies
-        for i in range(len(new_sub_scores)):
-            ordered_leaf_strategies[i].record_ind_score(idx, new_sub_scores[i], None, new_individual)
+        # Recording sub-score values to corresponding leaf strategies (based on the number of keys they declare)
+        i = 0
+        for ordered_leaf_strategy in ordered_leaf_strategies:
+            n_keys = len(ordered_leaf_strategy.keys())
+            ordered_leaf_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
+            i += n_keys
 
     def get_population_scores(self):
 
@@ -665,6 +693,37 @@ class SigmLinWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return 1 / (1 + exp(self.l * (self.a * strat_scores[0] + self.b)))
 
 
+class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Evaluation strategy passing the value of the evaluator through a Gaussian function specified by the user
+    """
+
+    def __init__(self, evaluation_strategies, mu, sigma):
+        """
+        Setting of the Gaussian function
+        :param mu: mu parameter
+        :param sigma: sigma parameter
+        """
+        super().__init__(evaluation_strategies)
+        self.mu = mu
+        self.sigma = sigma
+
+    def _compute_total_score(self, strat_scores):
+        return norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
+
+
+class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Wrapper that returns the opposite of the value of the single contained EvaluationStrategy
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return -strat_scores[0]
+
+
 class ProductSigmLinEvaluationStrategy(EvaluationStrategyComposite):
     """
     Evaluation strategy returning the product of multiple scores after passing them through a linear function and
@@ -710,4 +769,3 @@ def scores_to_scores_dict(total_scores, scores, keys):
     step_scores_dict["total"] = total_scores
 
     return step_scores_dict
-

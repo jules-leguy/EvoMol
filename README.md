@@ -2,10 +2,12 @@
 
 ## Installation
 
-EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of exploration trees is currently unavailable on Windows.
+EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of 
+exploration trees is currently unavailable on Windows.
 
 
-To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
+To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on 
+<a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
 ### Linux
 
@@ -29,7 +31,8 @@ $ python -m pip install .                                 # Install EvoMol
 
 ## Quickstart
 
-Launching a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization for 500 steps. Beware, you need to activate the evomolenv conda environment when you use EvoMol.
+Launching a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization for 500 steps. Beware, you need 
+to activate the evomolenv conda environment when you use EvoMol.
 
 ```python
 from evomol import run_model
@@ -59,14 +62,22 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
  "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
  "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
  "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
+ "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see 
+ <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", 
+ "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, 
+ respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, 
+ <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
+ <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
+ <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function containing the following entries.
     * ```"type"``` : 
         * "linear_combination" (linear combination of the properties)
         * "product" (product of properties)
-        * "sigm_lin", (passing the values of a unique objective through a linear function and a sigmoid function)
+        * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)
         * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
+        * "gaussian" (passing the value of a unique objective function through a Gaussian function)
+        * "opposite" (computing the opposite value of a unique objective function)
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
     multi-objective functions).
     * Specific to the linear combination.
@@ -75,8 +86,11 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
-* ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">GuacaMol</a>
- benchmarks.
+    * Specific to the use of Gaussian functions
+        * ```mu```: μ parameter of the Gaussian
+        * ```sigma```: σ parameter of the Gaussian
+* ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
+GuacaMol</a> benchmarks.
 
 
 ### Search space
@@ -94,30 +108,47 @@ quality filter before inserting the mutated individuals in the population (**Fal
 
 The ```"optimization_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"pop_max_size"``` : maximum population size (**1000**).
-* ```"max_steps"``` : number of steps to be run (**1500**).
+* ```"max_steps"``` : number of steps to be run before stopping EvoMol(**1500**).
+* ```"max_obj_calls""```: number of calls to the objective functions before stopping EvoMol (**float("inf")**).
 * ```"k_to_replace"``` : number of individuals replaced at each step (**2**).
-* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly ("random").
+* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
+ ("random").
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
-* ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation (**2**).
+* ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation 
+(**2**).
 * ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
-* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the GuacaMol <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> subset in case of taking the GuacaMol benchmarks (**False**). The list of SMILES must be given as initial population.
-* ```"mutable_init_pop"``` : if True, the individuals of the initial population can be freely mutated. If False, they can be branched but their atoms and bonds cannot be modified (**True**).
-* ```"n_max_desc"```: max number of descriptors to be possibly handled when using an evaluator relying on a vector of descriptors such as entropy contribution (**3.000.000**).
+* ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the 
+GuacaMol <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> subset in case of taking the 
+GuacaMol benchmarks (**False**). The list of SMILES must be given as initial population.
+* ```"mutable_init_pop"``` : if True, the individuals of the initial population can be freely mutated. If False, they 
+can be branched but their atoms and bonds cannot be modified (**True**).
+* ```"n_max_desc"```: max number of descriptors to be possibly handled when using an evaluator relying on a vector of 
+descriptors such as entropy contribution (**3.000.000**).
 * ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization
 
 ### Input/Output parameters
 
 The ```"io_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"model_path"``` : path where to save model's output data (**"EvoMol_model"**).
-* ```"smiles_list_init"```: list of SMILES describing the initial population (**None**: interpreting the ```"smiles_list_init_path"``` attribute). Note : not available when taking GuacaMol benchmarks.
-* ```"smiles_list_init_path"``` : path where to find the SMILES list text file describing the initial population (**None**: initialization of the population with a single methane molecule).
+* ```"smiles_list_init"```: list of SMILES describing the initial population (**None**: interpreting the 
+```"smiles_list_init_path"``` attribute). Note : not available when taking GuacaMol benchmarks.
+* ```"smiles_list_init_path"``` : path where to find the SMILES list text file describing the initial population 
+(**None**: initialization of the population with a single methane molecule).
 * ```"external_tabu_list"```: list of SMILES that won't be generated by EvoMol.
-* ```"record_history"``` : whether to save exploration tree data. Must be set to True to later draw the exploration tree (**False**).
-* ```"record_all_generated_individuals"``` : whether to record the list of all individuals that are generated during the entire execution (not necessarily inserted in the population). Also recording the number of calls to the objective function at the time of insertion.
+* ```"record_history"``` : whether to save exploration tree data. Must be set to True to later draw the exploration tree
+ (**False**).
+* ```"record_all_generated_individuals"``` : whether to record a list of all individuals that are generated during the 
+entire execution (even if they fail the objective function computation or if they are not inserted in the population as
+they are not improvers). Also recording the step number and the total number of calls to the objective function at the 
+time of generation.
 * ```"save_n_steps"``` : frequency (steps) of saving the data (**100**).
 * ```"print_n_steps"``` : frequency (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
+* ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
+parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
+ "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 
+ optimization process. If None, both keys are set to an empty set of parameters (**None**).
 
 ## Examples
 
@@ -256,12 +287,16 @@ To do so, the ```$OPT_LIBS``` variable must point to a folder containing :
 * obabel/openbabel-2.4.1 : directory containing an installation of OpenBabel 2.4.1. Make sure to also set OpenBabel's
 ```$BABEL_DATADIR``` environment variable to ```$OPT_LIBS/obabel/openbabel-2.4.1/data```.
 
-To install OpenBabel, you should compile <a href='https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1'> the sources </a> using the <a href='https://open-babel.readthedocs.io/en/latest/Installation/install.html#compiling-open-babel'>official instructions</a>.
+To install OpenBabel, you should compile <a href='https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1'> 
+the sources </a> using the <a 
+href='https://open-babel.readthedocs.io/en/latest/Installation/install.html#compiling-open-babel'>
+official instructions</a>.
 
 ### Checkmol descriptor
 
 In order to use the checkmol descriptor for entropy evaluation, the ```$CHECKMOL_EXE``` environment variable must point 
-to the executable of the <a href="https://homepage.univie.ac.at/norbert.haider/download/chemistry/checkmol/checkmol.pas">checkmol program</a>.
+to the executable of the 
+<a href="https://homepage.univie.ac.at/norbert.haider/download/chemistry/checkmol/checkmol.pas">checkmol program</a>.
 
 OpenBabel must also be installed (see above section).
 

@@ -3,13 +3,15 @@ from os.path import join
 from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, QEDEvaluationStrategy, \
     NormalizedSAScoreEvaluationStrategy, CLScoreEvaluationStrategy, SAScoreEvaluationStrategy, \
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
-    ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy
+    ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
+    GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
 from .popalg import PopAlg
-from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy
+from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy, \
+    KObjFunCallsFunctionStopCriterion
 from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
 from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
     GuacamolEvaluationStrategy, UndefinedGuacaMolEvaluationStrategy, get_GuacaMol_benchmark_parameter
@@ -110,7 +112,6 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     elif param_eval.startswith("guacamol"):
         strat = UndefinedGuacaMolEvaluationStrategy(name=param_eval)
 
-
     return strat
 
 
@@ -123,7 +124,7 @@ def _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_par
     """
 
     # Parameter is an already defined EvaluationStrategy
-    if isinstance(param_eval, EvaluationStrategy):
+    if isinstance(param_eval, EvaluationStrategyComposant):
         return param_eval
 
     # Parameter describes a custom function
@@ -145,7 +146,7 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
     :return:
     """
 
-    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin"]:
+    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite"]:
 
         # Building evaluation strategies
         functions_desc = param_eval["functions"]
@@ -171,6 +172,11 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         elif param_eval["type"] == "product_sigm_lin":
             return ProductSigmLinEvaluationStrategy(evaluation_strategies, a=param_eval["a"], b=param_eval["b"],
                                                     l=param_eval["lambda"])
+        elif param_eval["type"] == "gaussian":
+            return GaussianWrapperEvaluationStrategy(evaluation_strategies, mu=param_eval["mu"],
+                                                     sigma=param_eval["sigma"])
+        elif param_eval["type"] == "opposite":
+            return OppositeWrapperEvaluationStrategy(evaluation_strategies)
 
 
 def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_dict, explicit_search_parameters_dict):
@@ -185,7 +191,7 @@ def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_d
     param_eval = parameters_dict["obj_function"]
 
     # Parameter is an already defined EvaluationStrategy
-    if isinstance(param_eval, EvaluationStrategy):
+    if isinstance(param_eval, EvaluationStrategyComposant):
         eval_strat = param_eval
 
     # Parameter is a multi-objective function
@@ -220,7 +226,8 @@ def _parse_action_space(parameters_dict):
             "substitution"] if "substitution" in input_param_action_space else True,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
-        "use_rd_filters": input_param_action_space["use_rd_filters"] if "use_rd_filters" in input_param_action_space else False}
+        "use_rd_filters": input_param_action_space[
+            "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False}
 
     symbols_list = explicit_action_space_parameters["atoms"].split(",")
 
@@ -254,7 +261,8 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  action_spaces_parameters=action_spaces_parameters,
                                                                  problem_type=explicit_search_parameters[
                                                                      "problem_type"],
-                                                                 quality_filter=search_space_parameters["use_rd_filters"])
+                                                                 quality_filter=search_space_parameters[
+                                                                     "use_rd_filters"])
 
     return mutation_strategy
 
@@ -275,6 +283,8 @@ def _extract_explicit_search_parameters(parameters_dict):
         "k_to_replace": input_search_parameters["k_to_replace"] if "k_to_replace" in input_search_parameters else 10,
         "selection": input_search_parameters["selection"] if "selection" in input_search_parameters else "best",
         "max_steps": input_search_parameters["max_steps"] if "max_steps" in input_search_parameters else 1500,
+        "max_obj_calls": input_search_parameters[
+            "max_obj_calls"] if "max_obj_calls" in input_search_parameters else float("inf"),
         "mutable_init_pop": input_search_parameters[
             "mutable_init_pop"] if "mutable_init_pop" in input_search_parameters else True,
         "guacamol_init_top_100": input_search_parameters[
@@ -284,7 +294,8 @@ def _extract_explicit_search_parameters(parameters_dict):
         "mutation_find_improver_tries": input_search_parameters[
             "mutation_find_improver_tries"] if "mutation_find_improver_tries" in input_search_parameters else 50,
         "n_max_desc": input_search_parameters["n_max_desc"] if "n_max_desc" in input_search_parameters else 3000000,
-        "shuffle_init_pop": input_search_parameters["shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False}
+        "shuffle_init_pop": input_search_parameters[
+            "shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False}
 
     for parameter in input_search_parameters:
         if parameter not in explicit_search_parameters:
@@ -305,8 +316,10 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "model_path": input_IO_parameters["model_path"] if "model_path" in input_IO_parameters else "EvoMol_model/",
         "smiles_list_init_path": input_IO_parameters[
             "smiles_list_init_path"] if "smiles_list_init_path" in input_IO_parameters else None,
-        "smiles_list_init": input_IO_parameters["smiles_list_init"] if "smiles_list_init" in input_IO_parameters else None,
-        "external_tabu_list": input_IO_parameters["external_tabu_list"] if "external_tabu_list" in input_IO_parameters else None,
+        "smiles_list_init": input_IO_parameters[
+            "smiles_list_init"] if "smiles_list_init" in input_IO_parameters else None,
+        "external_tabu_list": input_IO_parameters[
+            "external_tabu_list"] if "external_tabu_list" in input_IO_parameters else None,
         "save_n_steps": input_IO_parameters["save_n_steps"] if "save_n_steps" in input_IO_parameters else 100,
         "print_n_steps": input_IO_parameters["print_n_steps"] if "print_n_steps" in input_IO_parameters else 1,
         "dft_working_dir": input_IO_parameters[
@@ -314,7 +327,10 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "dft_cache_files": input_IO_parameters[
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
-        "record_all_generated_individuals": input_IO_parameters["record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False}
+        "record_all_generated_individuals": input_IO_parameters[
+            "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,
+        "evaluation_strategy_parameters": input_IO_parameters[
+            "evaluation_strategy_parameters"] if "evaluation_strategy_parameters" in input_IO_parameters else None}
 
     for parameter in input_IO_parameters:
         if parameter not in explicit_IO_parameters:
@@ -333,6 +349,7 @@ def _parse_stop_criterion_strategy(explicit_search_parameters_dict, explicit_IO_
 
     stop_criterion_strategy = MultipleStopCriterionsStrategy(
         [KStepsStopCriterionStrategy(explicit_search_parameters_dict["max_steps"]),
+         KObjFunCallsFunctionStopCriterion(explicit_search_parameters_dict["max_obj_calls"]),
          FileStopCriterion(join(explicit_IO_parameters_dict["model_path"], "stop_execution"))])
 
     return stop_criterion_strategy
@@ -377,7 +394,9 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
         record_history=explicit_IO_parameters_dict["record_history"],
         record_all_generated_individuals=explicit_IO_parameters_dict["record_all_generated_individuals"],
         shuffle_init_pop=explicit_search_parameters_dict["shuffle_init_pop"],
-        external_tabu_list=explicit_IO_parameters_dict["external_tabu_list"]
+        external_tabu_list=explicit_IO_parameters_dict["external_tabu_list"],
+        evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"]
+
     )
 
     # Setting the instance for the stop criterion

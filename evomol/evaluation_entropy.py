@@ -323,20 +323,23 @@ def extract_checkmol(molgraph):
     return lines
 
 
-def extract_shingles(molgraph, level):
+def extract_shingles(smiles, level, as_list=False):
     """
-    Extracting shingles of given level from the given molecular graph
+    Extracting up to the given level from the given smiles
     see https://jcheminf.biomedcentral.com/articles/10.1186/s13321-018-0321-8
     """
 
-    qry_shingles = set()
+    if as_list:
+        qry_shingles = list()
+    else:
+        qry_shingles = set()
 
     radius_constr = level + 1
 
     # Reloading molecule to make it aromatic
-    mol = MolFromSmiles(molgraph.to_aromatic_smiles())
+    mol = MolFromSmiles(smiles)
 
-    for atm_idx in range(molgraph.mol_graph.GetNumAtoms()):
+    for atm_idx in range(mol.GetNumAtoms()):
         for N in range(1, radius_constr):
             bonds = AllChem.FindAtomEnvironmentOfRadiusN(mol, N, atm_idx)
 
@@ -353,7 +356,9 @@ def extract_shingles(molgraph, level):
             # Computed rooted shingle
             new_shingle = Chem.rdmolfiles.MolFragmentToSmiles(mol, list(atoms), bonds, 0, 0,
                                                               False, False, atm_idx, True, False, False)
-
-            qry_shingles.add(new_shingle)
+            if as_list:
+                qry_shingles.append(new_shingle)
+            else:
+                qry_shingles.add(new_shingle)
 
     return qry_shingles

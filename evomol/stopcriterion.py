@@ -151,6 +151,7 @@ class RadicalFoundStopCriterionStrategy(StopCriterionStrategy):
 
         return test
 
+
 class FileStopCriterion(StopCriterionStrategy):
     """
     Stopping the algorithm if the given file exists
@@ -167,5 +168,24 @@ class FileStopCriterion(StopCriterionStrategy):
         if test and output_folder_path:
             self.write_stop(join(output_folder_path, "stop.txt"),
                             "User stop")
+
+        return test
+
+
+class KObjFunCallsFunctionStopCriterion(StopCriterionStrategy):
+    """
+    Stopping the algorithm if the objective function was called a given number of times
+    """
+
+    def __init__(self, n_calls):
+        super().__init__()
+        self.n_calls = n_calls
+
+    def time_to_stop(self, output_folder_path):
+
+        test = self.pop_alg.evaluation_strategy.n_calls >= self.n_calls
+        if test and output_folder_path:
+            self.write_stop(join(output_folder_path, "stop.txt"),
+                            "Max number of calls to the objective function reached")
 
         return test

@@ -117,6 +117,12 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                                                                                                            to_replace_idx=ind_to_replace_idx)
 
                     except Exception as e:
+                        generated_ind_recorder.record_individual(individual=mutated_ind,
+                                                                 total_score=None,
+                                                                 objective_calls=self.evaluation_strategy.n_calls,
+                                                                 success_obj_computation=False,
+                                                                 improver=False)
+
                         raise EvaluationError(str(e) + individual.to_aromatic_smiles() + " " + desc) from e
 
                     # Recording the mutated individual and returning it if it is an improver
@@ -124,12 +130,14 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
+                                                                 success_obj_computation=True,
                                                                  improver=True)
                         return mutated_ind, desc, mutated_total_score, mutated_scores
                     else:
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
+                                                                 success_obj_computation=True,
                                                                  improver=False)
 
         # Raising error if no improver was found
