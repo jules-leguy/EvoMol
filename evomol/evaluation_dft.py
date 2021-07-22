@@ -218,7 +218,7 @@ def write_input_file(opt_input_path, xyz_path, smi, n_jobs):
         inp.write("%Chk=" + smi + "\n")
         inp.write("%NProcShared=" + str(n_jobs) + "\n")
         inp.write("%mem=512MB\n")
-        inp.write("#P B3LYP/3-21G* opt Symmetry=None gfprint pop=(full,HirshfeldEE)\n")
+        inp.write("#P B3LYP/3-21G* opt Symmetry=(NoInt,NoGrad,None) gfprint pop=(full,HirshfeldEE)\n")
         inp.write("\n" + smi + "\n\n")
         inp.write("0 1\n")
         inp.write(position + "\n\n\n")
