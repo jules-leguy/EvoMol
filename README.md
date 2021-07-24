@@ -285,7 +285,8 @@ To perform DFT and Molecular Mechanics computation (necessary for HOMO and LUMO 
 To do so, the ```$OPT_LIBS``` variable must point to a folder containing : 
 * run.sh : a script launching a DFT optimization with Gaussian09 of the input filepath given as parameter.
 * obabel/openbabel-2.4.1 : directory containing an installation of OpenBabel 2.4.1. Make sure to also set OpenBabel's
-```$BABEL_DATADIR``` environment variable to ```$OPT_LIBS/obabel/openbabel-2.4.1/data```.
+```$BABEL_DATADIR``` environment variable to ```$OPT_LIBS/obabel/openbabel-2.4.1/data```. If necessary, copy this 
+```data``` directory from the OpenBabel sources directory to the installation directory.
 
 To install OpenBabel, you should compile <a href='https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1'> 
 the sources </a> using the <a 
