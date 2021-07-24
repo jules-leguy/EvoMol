@@ -287,10 +287,17 @@ To do so, the ```$OPT_LIBS``` variable must point to a folder containing :
 * obabel/openbabel-2.4.1 : directory containing an installation of OpenBabel 2.4.1. Make sure to also set OpenBabel's
 ```$BABEL_DATADIR``` environment variable to ```$OPT_LIBS/obabel/openbabel-2.4.1/data```.
 
-To install OpenBabel, you should compile <a href='https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1'> 
-the sources </a> using the <a 
-href='https://open-babel.readthedocs.io/en/latest/Installation/install.html#compiling-open-babel'>
-official instructions</a> (**Local build** section).
+You can install Open Babel by following these instructions
+
+```shell script
+$ mkdir obabel; cd obabel                                                                # Create and move to installation directory
+$ wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz   # Download sources
+$ tar zxf openbabel-openbabel-2-4-1.tar.gz                                               # Extract sources
+$ mv openbabel-openbabel-2-4-1 openbabel-2.4.1                                           # Rename directory
+$ cd openbabel-2.4.1                                                                     # Go to installation directory
+$ cmake .                                                                                # Preparing build (requires that cmake and g++ are installed)
+$ make                                                                                   # Compilation
+```
 
 ### Checkmol descriptor
 
