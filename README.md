@@ -290,7 +290,7 @@ To do so, the ```$OPT_LIBS``` variable must point to a folder containing :
 To install OpenBabel, you should compile <a href='https://github.com/openbabel/openbabel/releases/tag/openbabel-2-4-1'> 
 the sources </a> using the <a 
 href='https://open-babel.readthedocs.io/en/latest/Installation/install.html#compiling-open-babel'>
-official instructions</a>.
+official instructions</a> (**Local build** section).
 
 ### Checkmol descriptor
 
