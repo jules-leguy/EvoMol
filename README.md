@@ -290,13 +290,13 @@ To do so, the ```$OPT_LIBS``` variable must point to a folder containing :
 You can install Open Babel by following these instructions
 
 ```shell script
-$ mkdir obabel; cd obabel                                                                # Create and move to installation directory
+$ mkdir obabel & cd obabel                                                               # Create and move to installation directory
 $ wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz   # Download sources
 $ tar zxf openbabel-openbabel-2-4-1.tar.gz                                               # Extract sources
 $ mv openbabel-openbabel-2-4-1 openbabel-2.4.1                                           # Rename directory
 $ cd openbabel-2.4.1                                                                     # Go to installation directory
 $ cmake .                                                                                # Preparing build (requires that cmake and g++ are installed)
-$ make                                                                                   # Compilation
+$ make & make install                                                                    # Compilation and installation
 ```
 
 ### Checkmol descriptor
