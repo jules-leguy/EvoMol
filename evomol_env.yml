@@ -21,7 +21,7 @@ dependencies:
   - wheel=0.34.2
   - pillow=7.1.2
   - ipython
-  - rdkit=2018.09.1
+  - rdkit=2020.09.1
   - pygraphviz=1.5
   - pip:
     - babel==2.8.0
