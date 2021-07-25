@@ -62,7 +62,7 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
  "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
  "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
  "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see 
+ "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo", "isomer_formula" (see 
  <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", 
  "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, 
  respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, 
@@ -103,6 +103,7 @@ The ```"action_space_parameters"``` attribute can be set with a dictionary conta
 * ```"move_group"```: whether to use *move group* action (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
+* ```"sulfur_valence"```: valence of sulfur atoms (**6**)
 
 ### Optimization parameters
 

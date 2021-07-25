@@ -15,7 +15,7 @@ from PIL import Image
 
 class MolGraph:
 
-    def __init__(self, init_state=None, sanitize_mol=False, mutability=True):
+    def __init__(self, init_state=None, sanitize_mol=False, mutability=True, sulfur_valence=6):
         """
         Constructor of the QuMolGraph class.
         If a rdchem.Mol object is given, it becomes the initial state of the molecular graph
@@ -41,6 +41,8 @@ class MolGraph:
         # Setting mutability of initial state
         for id in range(self.get_n_atoms()):
             self.set_atom_mutability(id, mutability)
+
+        self.sulfur_valence = sulfur_valence
 
     def get_atom_mutability(self, id):
         """
@@ -99,7 +101,7 @@ class MolGraph:
         Returning a deep copy of the current instance
         :return:
         """
-        new_qumol_graph = MolGraph(sanitize_mol=self.sanitize_mol)
+        new_qumol_graph = MolGraph(sanitize_mol=self.sanitize_mol, sulfur_valence=self.sulfur_valence)
         new_qumol_graph.mol_graph = RWMol(self.mol_graph, True)
         new_qumol_graph._update_mol_representation()
         return new_qumol_graph
@@ -330,8 +332,7 @@ class MolGraph:
 
         return self.mol_graph.GetAtomWithIdx(at_idx).GetFormalCharge()
 
-    @staticmethod
-    def get_max_valence(atom_type):
+    def get_max_valence(self, atom_type):
         """
         Returning max. valence for atom of given type
         :param atom_type:
@@ -339,7 +340,7 @@ class MolGraph:
         """
 
         if atom_type == "S":
-            return 6
+            return self.sulfur_valence
         else:
             return GetPeriodicTable().GetDefaultValence(GetPeriodicTable().GetAtomicNumber(atom_type))
 

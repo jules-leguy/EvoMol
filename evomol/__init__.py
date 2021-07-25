@@ -4,7 +4,8 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     NormalizedSAScoreEvaluationStrategy, CLScoreEvaluationStrategy, SAScoreEvaluationStrategy, \
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
-    GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy
+    GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
+    IsomerGuacaMolEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
@@ -44,7 +45,7 @@ def _is_describing_implemented_function(param_eval):
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo",
                           "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
-           or param_eval.startswith("guacamol")
+           or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
 def _build_evaluation_strategy_from_custom_function(obj_fun_param):
@@ -111,6 +112,10 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     # Parameter is a GuacaMol evaluation so the evaluation strategy is undefined for now
     elif param_eval.startswith("guacamol"):
         strat = UndefinedGuacaMolEvaluationStrategy(name=param_eval)
+
+    elif param_eval.startswith("isomer"):
+        formula = param_eval.split("_")[1]
+        strat = IsomerGuacaMolEvaluationStrategy(formula)
 
     return strat
 
@@ -227,7 +232,8 @@ def _parse_action_space(parameters_dict):
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
-            "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False}
+            "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
+        "sulfur_valence": input_param_action_space["sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
     symbols_list = explicit_action_space_parameters["atoms"].split(",")
 
@@ -368,7 +374,7 @@ def _read_smiles_list_from_file(smiles_list_path):
 
 
 def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strategy, explicit_search_parameters_dict,
-                    explicit_IO_parameters_dict):
+                    explicit_IO_parameters_dict, explicit_action_space_parameters):
     """
     Building PopAlg instance
     :param evaluation_strategy: EvaluationStrategy instance
@@ -376,11 +382,11 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
     :param stop_criterion_strategy: MultipleStopCriterionsStrategy instance
     :param explicit_search_parameters_dict: dictionary of search parameters
     :param explicit_IO_parameters_dict: dictionary of IO parameters
+    :param explicit_action_space_parameters: dictionary of action space parameters
     :return:
     """
 
     pop_alg = PopAlg(
-
         evaluation_strategy=evaluation_strategy,
         mutation_strategy=mutation_strategy,
         stop_criterion_strategy=stop_criterion_strategy,
@@ -395,8 +401,8 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
         record_all_generated_individuals=explicit_IO_parameters_dict["record_all_generated_individuals"],
         shuffle_init_pop=explicit_search_parameters_dict["shuffle_init_pop"],
         external_tabu_list=explicit_IO_parameters_dict["external_tabu_list"],
-        evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"]
-
+        evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"],
+        sulfur_valence=explicit_action_space_parameters["sulfur_valence"]
     )
 
     # Setting the instance for the stop criterion
@@ -459,7 +465,8 @@ def run_model(parameters_dict):
                               mutation_strategy=mutation_strategy,
                               stop_criterion_strategy=stop_criterion_strategy,
                               explicit_search_parameters_dict=explicit_search_parameters_dict,
-                              explicit_IO_parameters_dict=explicit_IO_parameters_dict)
+                              explicit_IO_parameters_dict=explicit_IO_parameters_dict,
+                              explicit_action_space_parameters=explicit_action_space_parameters)
 
     # GuacaMol special case
     if is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy):

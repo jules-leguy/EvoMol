@@ -56,6 +56,7 @@ class GeneratedIndividualsRecorder:
     def get_success_obj_computation_vect(self):
         return self.success_obj_computation
 
+
 class PopAlg:
     """
     Class running the population algorithm defined by the given strategies.
@@ -80,15 +81,15 @@ class PopAlg:
             problem_type=self.problem_type,
             selection=self.selection,
             kth_score_to_record_key=self.kth_score_to_record_key,
-            shuffle_init_pop=self.shuffle_init_pop
-
+            shuffle_init_pop=self.shuffle_init_pop,
+            sulfur_valence=self.sulfur_valence
         )
 
     def __init__(self, evaluation_strategy, mutation_strategy, stop_criterion_strategy,
                  output_folder_path="EvoMol_model/", pop_max_size=1000, k_to_replace=10, save_n_steps=100,
                  print_n_steps=1, kth_score_to_record=1, record_history=False, problem_type="max", selection="best",
                  kth_score_to_record_key="total", shuffle_init_pop=False, external_tabu_list=None,
-                 record_all_generated_individuals=False, evaluation_strategy_parameters=None):
+                 record_all_generated_individuals=False, evaluation_strategy_parameters=None, sulfur_valence=6):
         """
         :param evaluation_strategy: EvaluationStrategy instance to evaluate individuals
         :param mutation_strategy: MutationStrategy instance to mutate solutions and find improvers
@@ -111,6 +112,7 @@ class PopAlg:
         that failed the objective computation
         :param evaluation_strategy_parameters: allows to set evaluation_strategy parameters depending on context.
         Available contexts are "evaluate_new_solution" and "evaluate_init_pop"
+        :param sulfur_valence: maximum valence of sulfur atoms (default : 6)
         """
 
         # Loading problem type
@@ -180,6 +182,8 @@ class PopAlg:
             "evaluate_new_solution": {},
             "evaluate_init_pop": {}
         } if evaluation_strategy_parameters is None else evaluation_strategy_parameters
+
+        self.sulfur_valence = sulfur_valence
 
     def initialize(self):
         """
@@ -267,7 +271,8 @@ class PopAlg:
         for i, smi in enumerate(smiles_list):
 
             # Loading QuMolGraph object
-            self.pop[i] = MolGraph(MolFromSmiles(smi), sanitize_mol=True, mutability=atom_mutability)
+            self.pop[i] = MolGraph(MolFromSmiles(smi), sanitize_mol=True, mutability=atom_mutability,
+                                   sulfur_valence=self.sulfur_valence)
 
             # Saving smiles in the tabu dictionary and in action history initialization
             self.pop_tabu_list[i] = self.pop[i].to_aromatic_smiles()
