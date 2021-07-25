@@ -5,6 +5,7 @@ from math import exp
 from os.path import join
 
 import networkx as nx
+from guacamol.common_scoring_functions import IsomerScoringFunction
 from scipy.stats import norm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem
@@ -432,6 +433,30 @@ class NormalizedSAScoreEvaluationStrategy(EvaluationStrategy):
             unnormalized_sascore, _ = self.sascore_evaluation.evaluate_individual(individual)
             score = 1 - (unnormalized_sascore - 1) / 9
 
+            return score, [score]
+
+
+class IsomerGuacaMolEvaluationStrategy(EvaluationStrategy):
+    """
+    Isomer score based on the implementation of GuacaMol
+    Nathan Brown et al., “GuacaMol: Benchmarking Models for de Novo Molecular Design,” Journal of Chemical Information
+    and Modeling 59, no. 3 (March 25, 2019): 1096–1108, https://doi.org/10.1021/acs.jcim.8b00839.
+    """
+
+    def __init__(self, formula):
+        super().__init__()
+        self.formula = formula
+        self.guacamol_scorer = IsomerScoringFunction(formula)
+
+    def keys(self):
+        return ["isomer_"+self.formula]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        if individual is None:
+            return None, [None]
+        else:
+            score = self.guacamol_scorer.score(individual.to_aromatic_smiles())
             return score, [score]
 
 
