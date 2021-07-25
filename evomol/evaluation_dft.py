@@ -63,7 +63,7 @@ def obabel_mmff94_xyz(smiles, **kwargs):
         # Converting SMILES to XYZ after computing MM (Obabel MMFF94)
         command_obabel = join(os.getenv("OPT_LIBS"),
                               "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
-                               + " -oxyz -O " + xyz_path + " --gen3d"
+                         + " -oxyz -O " + xyz_path + " --gen3d"
         os.system(command_obabel + " > /dev/null 2> /dev/null")
 
         # Reading XYZ string
@@ -224,6 +224,21 @@ def write_input_file(opt_input_path, xyz_path, smi, n_jobs):
         inp.write(position + "\n\n\n")
 
 
+class SharedLastComputation:
+    """
+    Object that can be shared by several OPTEvaluationStrategy instances and that contains the values of the last
+    DFT computation. It allows to only perform one calculation in case of the evaluation of a combination of
+    OPTEvaluationStrategy instances.
+    """
+
+    def __init__(self):
+        self.smiles = None
+        self.homo = None
+        self.lumo = None
+        self.gap = None
+        self.homo_m1 = None
+
+
 class OPTEvaluationStrategy(EvaluationStrategy):
     """
     Evaluation strategy running a DFT optimization using Gaussian 09 to assess HOMO or LUMO energies.
@@ -246,7 +261,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
     """
 
     def __init__(self, prop, n_jobs=2, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
-                 cache_behaviour="retrieve_OPT_data", remove_chk_file=True):
+                 cache_behaviour="retrieve_OPT_data", remove_chk_file=True, shared_last_computation=None):
         """
         Initialization of the DFT evaluation strategy
         :param prop: key of the property to be assessed. Can be "homo", "lumo", "gap" or "homo-1"
@@ -259,6 +274,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         "compute_again_delete_files": DFT computation are made for all molecules but DFT files are removed for molecules
         that are already in cache.
         :param remove_chk_file: whether the G09 CHK file is removed after DFT computation (default:True)
+        :param shared_last_computation: SharedLastComputation instance to share the values of the last computation
+        values with several OPTEvaluationStrategy instances
         """
 
         super().__init__()
@@ -269,6 +286,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         self.lumos = None
         self.gaps = None
         self.homos_m1 = None
+        self.shared_last_computation = shared_last_computation
 
         self.MM_program = MM_program
 
@@ -435,6 +453,32 @@ class OPTEvaluationStrategy(EvaluationStrategy):
             else:
                 return score, scores
 
+        # Case in which the computation has just been performed by another OPTEvaluationStrategy instance that
+        # shares the same SharedLastComputation instance
+        elif self.shared_last_computation is not None and individual.to_aromatic_smiles() == self.shared_last_computation.smiles:
+
+            # Returning score
+            if self.prop == "homo":
+                return self.shared_last_computation.homo, [self.shared_last_computation.homo,
+                                                           self.shared_last_computation.lumo,
+                                                           self.shared_last_computation.gap,
+                                                           self.shared_last_computation.homo_m1]
+            elif self.prop == "lumo":
+                return self.shared_last_computation.lumo, [self.shared_last_computation.lumo,
+                                                           self.shared_last_computation.homo,
+                                                           self.shared_last_computation.gap,
+                                                           self.shared_last_computation.homo_m1]
+            elif self.prop == "gap":
+                return self.shared_last_computation.gap, [self.shared_last_computation.gap,
+                                                          self.shared_last_computation.homo,
+                                                          self.shared_last_computation.lumo,
+                                                          self.shared_last_computation.homo_m1]
+            elif self.prop == "homo-1":
+                return self.shared_last_computation.homo_m1, [self.shared_last_computation.homo_m1,
+                                                              self.shared_last_computation.homo,
+                                                              self.shared_last_computation.lumo,
+                                                              self.shared_last_computation.gap]
+
         # If score never computed or cache behaviour is set to "compute_again_delete_files", starting DFT
         else:
 
@@ -507,6 +551,14 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                                 # Removing files
                                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path,
                                                              opt_log_path, is_in_cache=ind_is_in_cache)
+
+                                # Saving values in SharedLastComputation instance if defined
+                                if self.shared_last_computation is not None:
+                                    self.shared_last_computation.smiles = individual.to_aromatic_smiles()
+                                    self.shared_last_computation.homo = homo
+                                    self.shared_last_computation.lumo = lumo
+                                    self.shared_last_computation.gap = gap
+                                    self.shared_last_computation.homo_m1 = homo_m1
 
                                 # Returning score
                                 if self.prop == "homo":
@@ -599,5 +651,5 @@ class OPTEvaluationStrategy(EvaluationStrategy):
             return self.scores, np.array([self.scores, self.homos, self.gaps, self.homos_m1])
         elif self.prop == "gap":
             return self.scores, np.array([self.scores, self.homos, self.lumos, self.homos_m1])
-        elif self.prop == "homos-1":
+        elif self.prop == "homo-1":
             return self.scores, np.array([self.scores, self.homos, self.lumos, self.gaps])
