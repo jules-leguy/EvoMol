@@ -29,9 +29,15 @@ s_total = LinearCombinationEvaluationStrategy(
 run_model(
     {
         "obj_function": s_total,
+        "action_space_parameters":{
+            "atoms": "C,N,O,F,S",
+            "max_heavy_atoms": 10,
+            "sulfur_valence": 2
+        },
         "io_parameters": {
             "model_path": "22_test_shared_values",
-            "save_n_steps": 1
+            "save_n_steps": 1,
+            "record_all_generated_individuals": True
         }
     }
 )

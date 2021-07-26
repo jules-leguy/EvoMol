@@ -254,10 +254,6 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
     The $OPT_LIBS environment variable must also contain a script named $OPT_LIBS/dft.sh, starting a Gaussian
     optimization of the input file in parameter.
-
-    Note to maintainers : This class is a leaf of the Composite pattern used to manage evaluation strategies. However,
-    due to computation times, this class always returns HOMO, LUMO and GAP values.
-    Some methods of evomol.evaluation.EvaluationStrategy are thus overrode to take this specificity into account.
     """
 
     def __init__(self, prop, n_jobs=2, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
@@ -282,10 +278,6 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         self.prop = prop
         self.n_jobs = n_jobs
         self.scores = None
-        self.homos = None
-        self.lumos = None
-        self.gaps = None
-        self.homos_m1 = None
         self.shared_last_computation = shared_last_computation
 
         self.MM_program = MM_program
@@ -321,17 +313,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         print(str(len(self.cache.keys())) + " molecules in cache")
 
     def keys(self):
-        if self.prop == "homo":
-            return ["homo", "lumo", "gap", "homo-1"]
-
-        if self.prop == "homo-1":
-            return ["homo-1", "homo", "lumo", "gap"]
-
-        if self.prop == "lumo":
-            return ["lumo", "homo", "gap", "homo-1"]
-
-        if self.prop == "gap":
-            return ["gap", "homo", "lumo", "homo-1"]
+        return [self.prop]
 
     def is_in_cache(self, smi):
         return smi in self.cache
@@ -434,19 +416,19 @@ class OPTEvaluationStrategy(EvaluationStrategy):
             if self.prop == "gap":
                 success = success_homo_cache and success_lumo_cache and success_gap_cache
                 score = gap_cache
-                scores = [gap_cache, homo_cache, lumo_cache, homo_m1_cache]
+                scores = [gap_cache]
             elif self.prop == "homo":
                 success = success_homo_cache
                 score = homo_cache
-                scores = [homo_cache, lumo_cache, gap_cache, homo_m1_cache]
+                scores = [homo_cache]
             elif self.prop == "homo-1":
                 success = success_homo_m1_cache
                 score = homo_m1_cache
-                scores = [homo_m1_cache, homo_cache, lumo_cache, gap_cache]
+                scores = [homo_m1_cache]
             elif self.prop == "lumo":
                 success = success_lumo_cache
                 score = lumo_cache
-                scores = [lumo_cache, homo_cache, gap_cache, homo_m1_cache]
+                scores = [lumo_cache]
 
             if not success:
                 raise EvaluationError("DFT failure in cache for " + smi)
@@ -459,25 +441,13 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
             # Returning score
             if self.prop == "homo":
-                return self.shared_last_computation.homo, [self.shared_last_computation.homo,
-                                                           self.shared_last_computation.lumo,
-                                                           self.shared_last_computation.gap,
-                                                           self.shared_last_computation.homo_m1]
+                return self.shared_last_computation.homo, [self.shared_last_computation.homo]
             elif self.prop == "lumo":
-                return self.shared_last_computation.lumo, [self.shared_last_computation.lumo,
-                                                           self.shared_last_computation.homo,
-                                                           self.shared_last_computation.gap,
-                                                           self.shared_last_computation.homo_m1]
+                return self.shared_last_computation.lumo, [self.shared_last_computation.lumo]
             elif self.prop == "gap":
-                return self.shared_last_computation.gap, [self.shared_last_computation.gap,
-                                                          self.shared_last_computation.homo,
-                                                          self.shared_last_computation.lumo,
-                                                          self.shared_last_computation.homo_m1]
+                return self.shared_last_computation.gap, [self.shared_last_computation.gap]
             elif self.prop == "homo-1":
-                return self.shared_last_computation.homo_m1, [self.shared_last_computation.homo_m1,
-                                                              self.shared_last_computation.homo,
-                                                              self.shared_last_computation.lumo,
-                                                              self.shared_last_computation.gap]
+                return self.shared_last_computation.homo_m1, [self.shared_last_computation.homo_m1]
 
         # If score never computed or cache behaviour is set to "compute_again_delete_files", starting DFT
         else:
@@ -562,13 +532,13 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
                                 # Returning score
                                 if self.prop == "homo":
-                                    return homo, [homo, lumo, gap, homo_m1]
+                                    return homo, [homo]
                                 elif self.prop == "lumo":
-                                    return lumo, [lumo, homo, gap, homo_m1]
+                                    return lumo, [lumo]
                                 elif self.prop == "gap":
-                                    return gap, [gap, homo, lumo, homo_m1]
+                                    return gap, [gap]
                                 elif self.prop == "homo-1":
-                                    return homo_m1, [homo_m1, homo, lumo, gap]
+                                    return homo_m1, [homo_m1]
 
                             else:
                                 raise EvaluationError("DFT error : |homos| > 1 for " + smi)
@@ -591,65 +561,19 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
     def compute_record_scores_init_pop(self, population):
         self.scores = []
-        self.homos = []
-        self.lumos = []
-        self.gaps = []
-        self.homos_m1 = []
 
         for idx, ind in enumerate(population):
             if ind is not None:
-
-                score, scores = self.evaluate_individual(ind)
-
-                if self.prop == "homo":
-                    homo, lumo, gap, homo_m1 = scores
-                    self.scores.append(homo)
-                elif self.prop == "lumo":
-                    lumo, homo, gap, homo_m1 = scores
-                    self.scores.append(lumo)
-                elif self.prop == "gap":
-                    gap, homo, lumo, homo_m1 = scores
-                    self.scores.append(gap)
-                elif self.prop == "homo-1":
-                    homo_m1, homo, lumo, gap = scores
-                    self.scores.append(homo_m1)
-
-                self.homos.append(homo)
-                self.lumos.append(lumo)
-                self.gaps.append(gap)
-                self.homos_m1.append(homo_m1)
+                score, _ = self.evaluate_individual(ind)
+                self.scores.append(score)
 
     def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
 
-        if self.prop == "homo":
-            homo, lumo, gap, homo_m1 = new_scores
-        elif self.prop == "lumo":
-            lumo, homo, gap, homo_m1 = new_scores
-        elif self.prop == "gap":
-            gap, homo, lumo, homo_m1 = new_scores
-        elif self.prop == "homo-1":
-            homo_m1, homo, lumo, gap = new_scores
-
         if idx == len(self.scores):
             self.scores.append(None)
-            self.homos.append(None)
-            self.lumos.append(None)
-            self.gaps.append(None)
-            self.homos_m1.append(None)
 
         self.scores[idx] = new_total_score
-        self.homos[idx] = homo
-        self.lumos[idx] = lumo
-        self.gaps[idx] = gap
-        self.homos_m1[idx] = homo_m1
 
     def get_population_scores(self):
 
-        if self.prop == "homo":
-            return self.scores, np.array([self.scores, self.lumos, self.gaps, self.homos_m1])
-        elif self.prop == "lumo":
-            return self.scores, np.array([self.scores, self.homos, self.gaps, self.homos_m1])
-        elif self.prop == "gap":
-            return self.scores, np.array([self.scores, self.homos, self.lumos, self.homos_m1])
-        elif self.prop == "homo-1":
-            return self.scores, np.array([self.scores, self.homos, self.lumos, self.gaps])
+        return self.scores, np.array([self.scores])
