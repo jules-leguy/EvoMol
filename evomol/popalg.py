@@ -495,24 +495,33 @@ class PopAlg:
         Returning the k best individuals of the population that are not in the given tabu list of SMILES (if specified).
         :param k_best: number of individuals to return
         :param tabu_list: list of SMILES that cannot be returned
-        :return: list of SMILES
+        :return: list of SMILES, list of scores, list of sub-scores
         """
 
-        best_solutions_ind = np.array(self.pop)[np.argsort(self.curr_total_scores)]
+        scores_sort = np.argsort(self.curr_total_scores)
 
         if self.problem_type == "max":
-            best_solutions_ind = best_solutions_ind[::-1]
+            scores_sort = scores_sort[::-1]
+
+        best_solutions_ind = np.array(self.pop)[scores_sort]
+        best_solutions_scores = self.curr_total_scores[scores_sort]
+        best_solutions_sub_scores = self.curr_scores.T[scores_sort]
 
         returned_smiles = []
+        returned_scores = []
+        returned_sub_scores = []
         i = 0
         # Computing the list of k_best best individuals that are not in the tabu list
         while len(returned_smiles) < k_best and i < len(best_solutions_ind):
             curr_sol_smiles = best_solutions_ind[i].to_aromatic_smiles()
             if tabu_list is None or curr_sol_smiles not in tabu_list:
                 returned_smiles.append(curr_sol_smiles)
+                returned_scores.append(best_solutions_scores[i])
+                returned_sub_scores.append(best_solutions_sub_scores[i])
+
             i += 1
 
-        return returned_smiles
+        return returned_smiles, returned_scores, returned_sub_scores
 
     def run(self):
         """

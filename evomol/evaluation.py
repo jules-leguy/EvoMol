@@ -131,6 +131,18 @@ class EvaluationStrategyComposant(ABC):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @abstractmethod
+    def call_method_on_leaves(self, method_name, args_dict):
+        """
+        Calling the method specified by the given name with the given arguments on all leaves.
+        If the method does not exist then the leaf is ignored.
+        It allows using subclasses of EvaluationStrategy (leaves) with additional methods in an
+        EvaluationStrategyComposant architecture (e.g. Merit class in BBOMol).
+        :param method_name: name of the method to be called on the leaves
+        :param args_dict: dictionary of arguments to be given to the method
+        :return:
+        """
+
 
 class EvaluationStrategy(EvaluationStrategyComposant, ABC):
     """
@@ -164,6 +176,10 @@ class EvaluationStrategy(EvaluationStrategyComposant, ABC):
 
     def get_additional_population_scores(self):
         return super().get_additional_population_scores()
+
+    def call_method_on_leaves(self, method_name, args_dict):
+        if hasattr(self, method_name):
+            self.__getattribute__(method_name)(**args_dict)
 
 
 class GenericFunctionEvaluationStrategy(EvaluationStrategy):
@@ -675,6 +691,10 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
     @abstractmethod
     def _compute_total_score(self, strat_scores):
         pass
+
+    def call_method_on_leaves(self, method_name, args_dict):
+        for strategy in self.evaluation_strategies:
+            strategy.call_method_on_leaves(method_name, args_dict)
 
 
 class LinearCombinationEvaluationStrategy(EvaluationStrategyComposite):
