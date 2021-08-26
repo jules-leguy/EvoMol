@@ -166,7 +166,7 @@ class EvaluationStrategy(EvaluationStrategyComposant, ABC):
         self.scores[idx] = new_total_score
 
     def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+        return np.array(self.scores), np.array([self.scores])
 
     def end_step_population(self, pop):
         pass
