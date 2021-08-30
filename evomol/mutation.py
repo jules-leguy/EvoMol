@@ -119,6 +119,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     except Exception as e:
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=None,
+                                                                 scores=np.full((len(self.evaluation_strategy.keys(), )), None),
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=False,
                                                                  improver=False)
@@ -129,6 +130,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     if self.is_improver(curr_total_score, mutated_total_score):
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
+                                                                 scores=mutated_scores,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=True,
                                                                  improver=True)
@@ -136,6 +138,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     else:
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
+                                                                 scores=mutated_scores,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=True,
                                                                  improver=False)

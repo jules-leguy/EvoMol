@@ -19,7 +19,7 @@ class NoMoreIndToMutate(Exception):
 
 class GeneratedIndividualsRecorder:
 
-    def __init__(self, curr_step):
+    def __init__(self, curr_step, evaluation_strategy):
         """
         Object used to record all generated solutions (even if not inserted) during a step
         """
@@ -27,13 +27,16 @@ class GeneratedIndividualsRecorder:
         self.curr_step = curr_step
         self.smiles = []
         self.total_scores = []
+        self.scores = []
         self.objective_calls = []
         self.success_obj_computation = []
         self.improver = []
+        self.evaluation_strategy = evaluation_strategy
 
-    def record_individual(self, individual, total_score, objective_calls, improver, success_obj_computation):
+    def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation):
         self.smiles.append(individual.to_aromatic_smiles())
         self.total_scores.append(total_score)
+        self.scores.append(scores)
         self.objective_calls.append(objective_calls)
         self.improver.append(improver)
         self.success_obj_computation.append(success_obj_computation)
@@ -43,6 +46,9 @@ class GeneratedIndividualsRecorder:
 
     def get_total_scores_vect(self):
         return self.total_scores
+
+    def get_scores_array(self):
+        return np.array(self.scores).reshape(len(self.smiles), len(self.evaluation_strategy.keys()))
 
     def get_objective_calls_vect(self):
         return self.objective_calls
@@ -161,6 +167,7 @@ class PopAlg:
         self.all_generated_individuals_n_obj_calls = None
         self.all_generated_individuals_step = None
         self.all_generated_individuals_obj_value = None
+        self.all_generated_individuals_scores = None
         self.all_generated_individuals_improver = None
         self.all_generated_individuals_success_obj_computation = None
         self.pop_tabu_list = None
@@ -205,6 +212,7 @@ class PopAlg:
         self.all_generated_individuals_n_obj_calls = []
         self.all_generated_individuals_step = []
         self.all_generated_individuals_obj_value = []
+        self.all_generated_individuals_scores = np.array([]).reshape(0, len(self.evaluation_strategy.keys()))
         self.all_generated_individuals_improver = []
         self.all_generated_individuals_success_obj_computation = []
 
@@ -235,6 +243,7 @@ class PopAlg:
 
         # Initialization of errors list
         self.errors = []
+
         self.curr_total_scores = None
         self.curr_scores = None
         self.timestamp_start = None
@@ -318,6 +327,11 @@ class PopAlg:
                              ["obj_value"] + self.all_generated_individuals_obj_value,
                              ["improver"] + self.all_generated_individuals_improver,
                              ["success_obj_computation"] + self.all_generated_individuals_success_obj_computation]
+
+                for i, key in enumerate(self.evaluation_strategy.keys()):
+                    csv_array.append(
+                        [key] + self.all_generated_individuals_scores.T[i].tolist()
+                    )
 
                 with open(join(self.output_folder_path, "all_generated.csv"), "w") as f:
                     writer = csv.writer(f)
@@ -562,7 +576,7 @@ class PopAlg:
                     print("best : " + str(self.pop[np.argmin(self.curr_total_scores)]))
 
                 # Initialization of the object storing all generated individuals during the step
-                step_gen_ind_recorder = GeneratedIndividualsRecorder(self.curr_step_id)
+                step_gen_ind_recorder = GeneratedIndividualsRecorder(self.curr_step_id, self.evaluation_strategy)
 
                 try:
 
@@ -671,6 +685,10 @@ class PopAlg:
                     self.all_generated_individuals_n_obj_calls.extend(step_gen_ind_recorder.get_objective_calls_vect())
                     self.all_generated_individuals_step.extend(step_gen_ind_recorder.get_step_vect())
                     self.all_generated_individuals_obj_value.extend(step_gen_ind_recorder.get_total_scores_vect())
+                    self.all_generated_individuals_scores = np.concatenate([
+                        self.all_generated_individuals_scores,
+                        step_gen_ind_recorder.get_scores_array()
+                    ])
                     self.all_generated_individuals_improver.extend(step_gen_ind_recorder.get_improver_vect())
                     self.all_generated_individuals_success_obj_computation.extend(
                         step_gen_ind_recorder.get_success_obj_computation_vect())
