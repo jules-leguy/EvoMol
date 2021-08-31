@@ -142,8 +142,8 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 entire execution (even if they fail the objective function computation or if they are not inserted in the population as
 they are not improvers). Also recording the step number and the total number of calls to the objective function at the 
 time of generation.
-* ```"save_n_steps"``` : frequency (steps) of saving the data (**100**).
-* ```"print_n_steps"``` : frequency (steps) of printing current population statistics (**1**).
+* ```"save_n_steps"``` : period (steps) of saving the data (**100**).
+* ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 * ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
