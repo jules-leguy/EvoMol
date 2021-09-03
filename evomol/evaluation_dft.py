@@ -256,7 +256,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
     optimization of the input file in parameter.
     """
 
-    def __init__(self, prop, n_jobs=2, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
+    def __init__(self, prop, n_jobs=1, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
                  cache_behaviour="retrieve_OPT_data", remove_chk_file=True, shared_last_computation=None):
         """
         Initialization of the DFT evaluation strategy
