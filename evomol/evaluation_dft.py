@@ -239,6 +239,17 @@ class SharedLastComputation:
         self.homo_m1 = None
 
 
+def compress_log_file(log_path):
+    """
+    Using Gzip to compress the log output file
+    :param log_path: path to the log file
+    :return:
+    """
+
+    cmd = "gzip " + log_path
+    os.system(cmd)
+
+
 class OPTEvaluationStrategy(EvaluationStrategy):
     """
     Evaluation strategy running a DFT optimization using Gaussian 09 to assess HOMO or LUMO energies.
@@ -522,6 +533,9 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path,
                                                              opt_log_path, is_in_cache=ind_is_in_cache)
 
+                                # Compressing log file
+                                compress_log_file(opt_log_path)
+
                                 # Saving values in SharedLastComputation instance if defined
                                 if self.shared_last_computation is not None:
                                     self.shared_last_computation.smiles = individual.to_aromatic_smiles()
@@ -556,6 +570,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 # Removing files
                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path, opt_log_path,
                                              is_in_cache=ind_is_in_cache)
+
+                compress_log_file(opt_log_path)
 
                 raise EvaluationError("DFT caused exception " + str(e))
 
