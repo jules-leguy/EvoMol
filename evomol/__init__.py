@@ -68,7 +68,6 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     """
     Building a proper EvaluationStrategy from a string description of an implemented function
     :param param_eval:
-    :param kwargs:
     :return:
     """
 
@@ -84,12 +83,8 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
         strat = ZincNormalizedPLogPEvaluationStrategy()
     elif param_eval == "clscore":
         strat = CLScoreEvaluationStrategy()
-    elif param_eval == "homo":
-        strat = OPTEvaluationStrategy("homo",
-                                      working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
-                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"])
-    elif param_eval == "lumo":
-        strat = OPTEvaluationStrategy("lumo",
+    elif param_eval == "homo" or param_eval == "lumo" or param_eval == "gap" or param_eval == "homo-1":
+        strat = OPTEvaluationStrategy(param_eval,
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
                                       cache_files=explicit_IO_parameters_dict["dft_cache_files"])
     elif param_eval == "entropy_ifg":
@@ -233,7 +228,8 @@ def _parse_action_space(parameters_dict):
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
             "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
-        "sulfur_valence": input_param_action_space["sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
+        "sulfur_valence": input_param_action_space[
+            "sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
     symbols_list = explicit_action_space_parameters["atoms"].split(",")
 
