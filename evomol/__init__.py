@@ -6,7 +6,7 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
     IsomerGuacaMolEvaluationStrategy
-from .evaluation_dft import OPTEvaluationStrategy
+from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
@@ -64,10 +64,11 @@ def _build_evaluation_strategy_from_custom_function(obj_fun_param):
 
 
 def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO_parameters_dict,
-                                                         explicit_search_parameters_dict):
+                                                         explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from a string description of an implemented function
-    :param param_eval:
+    :param shared_last_DFT_computation: evomol.evaluation_dft.SharedLastComputation instance to be given to
+    evomol.evaluation_dft.OPTEvaluationStrategy instances.
     :return:
     """
 
@@ -86,7 +87,8 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     elif param_eval == "homo" or param_eval == "lumo" or param_eval == "gap" or param_eval == "homo-1":
         strat = OPTEvaluationStrategy(param_eval,
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
-                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"])
+                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"],
+                                      shared_last_computation=shared_last_DFT_computation)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
                                                  pop_size_max=explicit_search_parameters_dict["pop_max_size"],
@@ -116,7 +118,7 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
 
 
 def _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_parameters_dict,
-                                                     explicit_search_parameters_dict):
+                                                     explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from an evaluation parameter describing a single objective function
     :param param_eval:
@@ -134,15 +136,17 @@ def _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_par
     # Parameter describes an implemented function
     elif _is_describing_implemented_function(param_eval):
         return _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO_parameters_dict,
-                                                                    explicit_search_parameters_dict)
+                                                                    explicit_search_parameters_dict,
+                                                                    shared_last_DFT_computation)
 
 
 def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_parameters_dict,
-                                                    explicit_search_parameters_dict):
+                                                    explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from an evaluation parameter describing a multi-objective function
     :param param_eval:
-    :param obj_fun_kwargs:
+    :param shared_last_DFT_computation: evomol.evaluation_dft.SharedLastComputation instance to be given to
+    evomol.evaluation_dft.OPTEvaluationStrategy instances.
     :return:
     """
 
@@ -154,13 +158,17 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         for function_desc in functions_desc:
 
             if _is_describing_multi_objective_function(function_desc):
-                evaluation_strategies.append(_build_evaluation_strategy_from_multi_objective(function_desc,
-                                                                                             explicit_IO_parameters_dict,
-                                                                                             explicit_search_parameters_dict))
+                evaluation_strategies.append(
+                    _build_evaluation_strategy_from_multi_objective(function_desc,
+                                                                    explicit_IO_parameters_dict,
+                                                                    explicit_search_parameters_dict,
+                                                                    shared_last_DFT_computation))
             else:
-                evaluation_strategies.append(_build_evaluation_strategy_from_single_objective(function_desc,
-                                                                                              explicit_IO_parameters_dict,
-                                                                                              explicit_search_parameters_dict))
+                evaluation_strategies.append(
+                    _build_evaluation_strategy_from_single_objective(function_desc,
+                                                                     explicit_IO_parameters_dict,
+                                                                     explicit_search_parameters_dict,
+                                                                     shared_last_DFT_computation))
 
         if param_eval["type"] == "linear_combination":
             return LinearCombinationEvaluationStrategy(evaluation_strategies, coefs=param_eval["coef"])
@@ -190,6 +198,9 @@ def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_d
     # Extracting objective function parameters
     param_eval = parameters_dict["obj_function"]
 
+    # Creation of an evomol.evaluation_dft.SharedLastComputation instance if any OPTEvaluationStrategy in the objective
+    shared_last_DFT_computation = SharedLastComputation()
+
     # Parameter is an already defined EvaluationStrategy
     if isinstance(param_eval, EvaluationStrategyComposant):
         eval_strat = param_eval
@@ -197,12 +208,14 @@ def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_d
     # Parameter is a multi-objective function
     elif _is_describing_multi_objective_function(param_eval):
         eval_strat = _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_parameters_dict,
-                                                                     explicit_search_parameters_dict)
+                                                                     explicit_search_parameters_dict,
+                                                                     shared_last_DFT_computation)
 
     # Parameter is a single objective function
     else:
         eval_strat = _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_parameters_dict,
-                                                                      explicit_search_parameters_dict)
+                                                                      explicit_search_parameters_dict,
+                                                                      shared_last_DFT_computation)
 
     return eval_strat
 
