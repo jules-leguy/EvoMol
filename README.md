@@ -47,10 +47,10 @@ run_model({
 })
 ```
 
-## Model parametrization
+## Settings
 
-To run a model, you need to pass a dictionary describing the run to the run_model function. This dictionary can have up 
-to 4 entries that are described in this section.
+A dictionary can be given to evomol.run_model to describe the experiment to be performed. This dictionary can contain up 
+to 4 entries, that are described in this section.
 
 **Default values** are represented in bold.
 
@@ -89,6 +89,7 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
     * Specific to the use of Gaussian functions
         * ```mu```: μ parameter of the Gaussian
         * ```sigma```: σ parameter of the Gaussian
+* An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.
 
@@ -96,7 +97,7 @@ GuacaMol</a> benchmarks.
 ### Search space
 
 The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
-* ```"atoms"``` : text list of available heavy atoms (**"C,N,O,F,P,S,Cl,Br"**).
+* ```"atoms"``` : text list of available <ins>heavy</ins> atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
@@ -109,9 +110,9 @@ quality filter before inserting the mutated individuals in the population (**Fal
 
 The ```"optimization_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"pop_max_size"``` : maximum population size (**1000**).
-* ```"max_steps"``` : number of steps to be run before stopping EvoMol(**1500**).
+* ```"max_steps"``` : number of steps to be run before stopping EvoMol (**1500**).
 * ```"max_obj_calls""```: number of calls to the objective functions before stopping EvoMol (**float("inf")**).
-* ```"k_to_replace"``` : number of individuals replaced at each step (**2**).
+* ```"k_to_replace"``` : number of individuals replaced at each step (**10**).
 * ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
  ("random").
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
