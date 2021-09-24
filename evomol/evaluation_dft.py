@@ -321,6 +321,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         self.cache_behaviour = cache_behaviour
         self.remove_chk_file = remove_chk_file
 
+        print("DFT MM " + str(self.MM_program))
         print(str(len(self.cache.keys())) + " molecules in cache")
 
     def keys(self):

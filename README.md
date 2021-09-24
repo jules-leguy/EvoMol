@@ -130,7 +130,7 @@ GuacaMol benchmarks (**False**). The list of SMILES must be given as initial pop
 can be branched but their atoms and bonds cannot be modified (**True**).
 * ```"n_max_desc"```: max number of descriptors to be possibly handled when using an evaluator relying on a vector of 
 descriptors such as entropy contribution (**3.000.000**).
-* ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization
+* ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization (**False**).
 
 ### Input/Output parameters
 
@@ -151,6 +151,8 @@ time of generation.
 * ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
+* ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
+**"obabel"** for OpenBabel or "rdkit" for RDKit.
 * ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
 parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
  "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 
