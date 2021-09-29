@@ -146,7 +146,7 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 * ```"record_all_generated_individuals"``` : whether to record a list of all individuals that are generated during the 
 entire execution (even if they fail the objective function computation or if they are not inserted in the population as
 they are not improvers). Also recording the step number and the total number of calls to the objective function at the 
-time of generation.
+time of generation (**False**).
 * ```"save_n_steps"``` : period (steps) of saving the data (**100**).
 * ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
