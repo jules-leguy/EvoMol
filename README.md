@@ -108,6 +108,9 @@ The ```"action_space_parameters"``` attribute can be set with a dictionary conta
 * ```"move_group"```: whether to use *move group* action (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
+* ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
+fingerprint of the solutions with respect to a reference dataset (see IO parameters). If the proportion is above the
+threshold, the solutions will be discarded and thus will not be inserted in the population (**1**).
 * ```"sulfur_valence"```: valence of sulfur atoms (**6**)
 
 ### Optimization parameters
@@ -153,6 +156,9 @@ time of generation (**False**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 * ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
 **"obabel"** for OpenBabel or "rdkit" for RDKit.
+* ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
+ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 
+```"sillywalks_threshold"``` parameter.
 * ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
 parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
  "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 

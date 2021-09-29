@@ -242,6 +242,8 @@ def _parse_action_space(parameters_dict):
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
             "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
+        "sillywalks_threshold": input_param_action_space[
+            "sillywalks_threshold"] if "sillywalks_threshold" in input_param_action_space else 1,
         "sulfur_valence": input_param_action_space[
             "sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
@@ -262,7 +264,7 @@ def _parse_action_space(parameters_dict):
 
 
 def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, action_spaces,
-                               action_spaces_parameters, search_space_parameters):
+                               action_spaces_parameters, search_space_parameters, explicit_IO_parameters):
     """
     Parsing mutation parameters
     :param parameters_dict:
@@ -278,7 +280,11 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  problem_type=explicit_search_parameters[
                                                                      "problem_type"],
                                                                  quality_filter=search_space_parameters[
-                                                                     "use_rd_filters"])
+                                                                     "use_rd_filters"],
+                                                                 silly_molecules_fp_threshold=search_space_parameters[
+                                                                     "sillywalks_threshold"],
+                                                                 silly_molecules_db=explicit_IO_parameters[
+                                                                     "silly_molecules_reference_db_path"])
 
     return mutation_strategy
 
@@ -347,7 +353,10 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,
         "evaluation_strategy_parameters": input_IO_parameters[
-            "evaluation_strategy_parameters"] if "evaluation_strategy_parameters" in input_IO_parameters else None}
+            "evaluation_strategy_parameters"] if "evaluation_strategy_parameters" in input_IO_parameters else None,
+        "silly_molecules_reference_db_path": input_IO_parameters[
+            "silly_molecules_reference_db_path"] if "silly_molecules_reference_db_path" in input_IO_parameters else None
+    }
 
     for parameter in input_IO_parameters:
         if parameter not in explicit_IO_parameters:
@@ -464,7 +473,8 @@ def run_model(parameters_dict):
                                                    evaluation_strategy=evaluation_strategy,
                                                    action_spaces=action_spaces,
                                                    action_spaces_parameters=action_spaces_parameters,
-                                                   search_space_parameters=explicit_action_space_parameters)
+                                                   search_space_parameters=explicit_action_space_parameters,
+                                                   explicit_IO_parameters=explicit_IO_parameters_dict)
 
     # Building stop criterion strategy
     stop_criterion_strategy = _parse_stop_criterion_strategy(

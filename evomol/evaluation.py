@@ -5,6 +5,7 @@ from math import exp
 from os.path import join
 
 import networkx as nx
+import tqdm
 from guacamol.common_scoring_functions import IsomerScoringFunction
 from scipy.stats import norm
 from rdkit import Chem
@@ -500,6 +501,64 @@ class QEDEvaluationStrategy(EvaluationStrategy):
             mol_graph = MolFromSmiles(individual.to_aromatic_smiles())
             score = qed(mol_graph)
             return score, [score]
+
+
+class SillyWalksEvaluationStrategy(EvaluationStrategy):
+    """
+    Counting the proportion of bits in the ECFP4 fingerprint that never appear in the ChemBL.
+    Based on the work of Patrick Walters (https://github.com/PatWalters/silly_walks)
+
+    MIT License
+
+    Copyright (c) 2020 Patrick Walters
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+    """
+
+    def __init__(self, path_to_db):
+        """
+        :param path_to_db: path to the file that contains the reference dictionary of ECFP4 fingerprints keys
+        """
+        super().__init__()
+
+        # Reading reference data
+        with open(path_to_db, "r") as f:
+            self.count_dict = json.load(f)
+
+    def keys(self):
+        return ["silly_walks"]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        mol = MolFromSmiles(individual.to_aromatic_smiles())
+
+        if mol:
+            fp = AllChem.GetMorganFingerprint(mol, 2)
+            on_bits = fp.GetNonzeroElements().keys()
+
+            silly_bits = [x for x in [self.count_dict.get(str(x)) for x in on_bits] if x is None]
+            score = len(silly_bits) / len(on_bits) if len(on_bits) > 0 else 0
+
+        else:
+            score = 1
+        return score, [score]
 
 
 class RDFiltersEvaluationStrategy(EvaluationStrategy):
