@@ -80,9 +80,10 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * "product" (product of properties)
         * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)
         * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
+        * "mean" (mean of the properties)
         * "gaussian" (passing the value of a unique objective function through a Gaussian function)
         * "opposite" (computing the opposite value of a unique objective function)
-        * "mean" (mean of the properties)
+        * "one_minus" (computing 1-x of a unique objective function x)
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
     multi-objective functions).
     * Specific to the linear combination.

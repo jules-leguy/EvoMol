@@ -839,6 +839,18 @@ class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return -strat_scores[0]
 
 
+class OneMinusWrapperEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Wrapper that returns 1-x of the contained EvaluationStrategy x
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return 1 - strat_scores[0]
+
+
 class MeanEvaluationStrategy(EvaluationStrategyComposite):
     """
     Wrapper that computes the mean between of contained EvaluationStrategy instances
