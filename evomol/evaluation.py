@@ -802,18 +802,29 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
     Evaluation strategy passing the value of the evaluator through a Gaussian function specified by the user
     """
 
-    def __init__(self, evaluation_strategies, mu, sigma):
+    def __init__(self, evaluation_strategies, mu, sigma, normalize=False):
         """
         Setting of the Gaussian function
         :param mu: mu parameter
         :param sigma: sigma parameter
+        :param normalize: whether to normalize the function (i.e. f(mu) = 1)
         """
         super().__init__(evaluation_strategies)
         self.mu = mu
         self.sigma = sigma
+        self.normalize = normalize
+
+        # Computing the value at the peak of the Gaussian
+        self.max_value = 1/(np.sqrt(np.pi * 2) * sigma)
 
     def _compute_total_score(self, strat_scores):
-        return norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
+        value = norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
+
+        # Normalizing value if required
+        if self.normalize:
+            value = value / self.max_value
+
+        return value
 
 
 class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):

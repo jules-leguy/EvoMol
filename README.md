@@ -91,8 +91,9 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
     * Specific to the use of Gaussian functions
-        * ```mu```: μ parameter of the Gaussian
-        * ```sigma```: σ parameter of the Gaussian
+        * ```"mu"```: μ parameter of the Gaussian
+        * ```"sigma"```: σ parameter of the Gaussian
+        * ```"normalize""```: whether to normalize the function so that the maximum value is exactly 1 (**False**)
 * An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.

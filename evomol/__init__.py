@@ -183,7 +183,8 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
                                                     l=param_eval["lambda"])
         elif param_eval["type"] == "gaussian":
             return GaussianWrapperEvaluationStrategy(evaluation_strategies, mu=param_eval["mu"],
-                                                     sigma=param_eval["sigma"])
+                                                     sigma=param_eval["sigma"],
+                                                     normalize=param_eval["normalize"] if "normalize" in param_eval else False)
         elif param_eval["type"] == "opposite":
             return OppositeWrapperEvaluationStrategy(evaluation_strategies)
 
