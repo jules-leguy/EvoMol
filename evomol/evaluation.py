@@ -466,7 +466,7 @@ class IsomerGuacaMolEvaluationStrategy(EvaluationStrategy):
         self.guacamol_scorer = IsomerScoringFunction(formula)
 
     def keys(self):
-        return ["isomer_"+self.formula]
+        return ["isomer_" + self.formula]
 
     def evaluate_individual(self, individual, to_replace_idx=None):
 
@@ -815,7 +815,7 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
         self.normalize = normalize
 
         # Computing the value at the peak of the Gaussian
-        self.max_value = 1/(np.sqrt(np.pi * 2) * sigma)
+        self.max_value = 1 / (np.sqrt(np.pi * 2) * sigma)
 
     def _compute_total_score(self, strat_scores):
         value = norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
@@ -837,6 +837,18 @@ class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
 
     def _compute_total_score(self, strat_scores):
         return -strat_scores[0]
+
+
+class MeanEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Wrapper that computes the mean between of contained EvaluationStrategy instances
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return np.mean(strat_scores)
 
 
 class ProductSigmLinEvaluationStrategy(EvaluationStrategyComposite):

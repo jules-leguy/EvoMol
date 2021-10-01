@@ -5,7 +5,7 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
-    IsomerGuacaMolEvaluationStrategy
+    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
@@ -187,6 +187,8 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
                                                      normalize=param_eval["normalize"] if "normalize" in param_eval else False)
         elif param_eval["type"] == "opposite":
             return OppositeWrapperEvaluationStrategy(evaluation_strategies)
+        elif param_eval["type"] == "mean":
+            return MeanEvaluationStrategy(evaluation_strategies)
 
 
 def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_dict, explicit_search_parameters_dict):
