@@ -12,7 +12,7 @@ from .molgraphops.default_actionspaces import generic_action_space
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
 from .popalg import PopAlg
 from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy, \
-    KObjFunCallsFunctionStopCriterion
+    KObjFunCallsFunctionStopCriterion, KthScoreMaxValue
 from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
 from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
     GuacamolEvaluationStrategy, UndefinedGuacaMolEvaluationStrategy, get_GuacaMol_benchmark_parameter
@@ -307,6 +307,8 @@ def _extract_explicit_search_parameters(parameters_dict):
         "max_steps": input_search_parameters["max_steps"] if "max_steps" in input_search_parameters else 1500,
         "max_obj_calls": input_search_parameters[
             "max_obj_calls"] if "max_obj_calls" in input_search_parameters else float("inf"),
+        "stop_kth_score_value": input_search_parameters[
+            "stop_kth_score_value"] if "stop_kth_score_value" in input_search_parameters else None,
         "mutable_init_pop": input_search_parameters[
             "mutable_init_pop"] if "mutable_init_pop" in input_search_parameters else True,
         "guacamol_init_top_100": input_search_parameters[
@@ -348,7 +350,8 @@ def _extract_explicit_IO_parameters(parameters_dict):
             "dft_working_dir"] if "dft_working_dir" in input_IO_parameters else "/tmp/",
         "dft_cache_files": input_IO_parameters[
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
-        "dft_MM_program": input_IO_parameters["dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
+        "dft_MM_program": input_IO_parameters[
+            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,
@@ -373,10 +376,17 @@ def _parse_stop_criterion_strategy(explicit_search_parameters_dict, explicit_IO_
     :return:
     """
 
-    stop_criterion_strategy = MultipleStopCriterionsStrategy(
-        [KStepsStopCriterionStrategy(explicit_search_parameters_dict["max_steps"]),
-         KObjFunCallsFunctionStopCriterion(explicit_search_parameters_dict["max_obj_calls"]),
-         FileStopCriterion(join(explicit_IO_parameters_dict["model_path"], "stop_execution"))])
+    # Systematic criteria
+    criteria = [KStepsStopCriterionStrategy(explicit_search_parameters_dict["max_steps"]),
+                KObjFunCallsFunctionStopCriterion(explicit_search_parameters_dict["max_obj_calls"]),
+                FileStopCriterion(join(explicit_IO_parameters_dict["model_path"], "stop_execution"))]
+
+    # If Kth score max value criterion selected
+    if explicit_search_parameters_dict["stop_kth_score_value"] is not None:
+        max_value, rounded = explicit_search_parameters_dict["stop_kth_score_value"]
+        criteria.append(KthScoreMaxValue(max_value, rounded))
+
+    stop_criterion_strategy = MultipleStopCriterionsStrategy(criteria)
 
     return stop_criterion_strategy
 
