@@ -383,7 +383,7 @@ def _parse_stop_criterion_strategy(explicit_search_parameters_dict, explicit_IO_
 
     # If Kth score max value criterion selected
     if explicit_search_parameters_dict["stop_kth_score_value"] is not None:
-        max_value, rounded = explicit_search_parameters_dict["stop_kth_score_value"]
+        _, max_value, rounded = explicit_search_parameters_dict["stop_kth_score_value"]
         criteria.append(KthScoreMaxValue(max_value, rounded))
 
     stop_criterion_strategy = MultipleStopCriterionsStrategy(criteria)
@@ -432,7 +432,9 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
         shuffle_init_pop=explicit_search_parameters_dict["shuffle_init_pop"],
         external_tabu_list=explicit_IO_parameters_dict["external_tabu_list"],
         evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"],
-        sulfur_valence=explicit_action_space_parameters["sulfur_valence"]
+        sulfur_valence=explicit_action_space_parameters["sulfur_valence"],
+        kth_score_to_record=explicit_search_parameters_dict["stop_kth_score_value"][0] if \
+            explicit_search_parameters_dict["stop_kth_score_value"] is not None else 1
     )
 
     # Setting the instance for the stop criterion

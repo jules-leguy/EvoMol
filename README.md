@@ -120,7 +120,7 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"max_steps"``` : number of steps to be run before stopping EvoMol (**1500**).
 * ```"max_obj_calls""```: number of calls to the objective functions before stopping EvoMol (**float("inf")**).
 * ```"stop_kth_score_value"```: stopping the search if the kth score in descendant value order has reached the given 
-value with given precision. Accepts a tuple (score, precision) or **None** to disable.
+value with given precision. Accepts a tuple (k, score, precision) or **None** to disable.
 * ```"k_to_replace"``` : number of individuals replaced at each step (**10**).
 * ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
  ("random").
