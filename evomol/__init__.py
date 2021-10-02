@@ -43,8 +43,8 @@ def _is_describing_implemented_function(param_eval):
     :return:
     """
 
-    return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo",
-                          "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
+    return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
+                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
