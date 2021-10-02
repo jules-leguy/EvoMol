@@ -151,7 +151,8 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
     :return:
     """
 
-    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite"]:
+    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite",
+                              "mean", "one_minus"]:
 
         # Building evaluation strategies
         functions_desc = param_eval["functions"]
