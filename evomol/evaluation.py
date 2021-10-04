@@ -685,7 +685,7 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
             composite_key += eval_strat.keys()[0]
 
             if i < len(self.evaluation_strategies) - 1:
-                composite_key += ", "
+                composite_key += "; "
 
         composite_key += ")"
 

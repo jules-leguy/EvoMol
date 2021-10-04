@@ -36,7 +36,7 @@ eval_strat.record_ind_score(1, eval2[0], eval2[1], ind2)
 print(eval_strat.get_population_scores())
 eval_strat.record_ind_score(2, eval3[0], eval3[1], ind2)
 print(eval_strat.get_population_scores())
-#
-# run_model({
-#     "obj_function": eval_strat
-# })
+
+run_model({
+    "obj_function": eval_strat
+})
