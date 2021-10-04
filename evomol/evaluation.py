@@ -662,8 +662,37 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
 
         return d
 
+    @abstractmethod
+    def key(self):
+        """
+        Returning the key that specifies the action of the composite instance
+        :return:
+        """
+        pass
+
+    def compute_composite_key_subtree(self):
+        """
+        Computing the key that specifies the action of composite instance, based on the generic key assigned to the
+        class (self.key()) and the keys of the contained strategies.
+        :return:
+        """
+
+        # Prefix
+        composite_key = self.key() + "("
+
+        # Enumerating all contained evaluation strategies
+        for i, eval_strat in enumerate(self.evaluation_strategies):
+            composite_key += eval_strat.keys()[0]
+
+            if i < len(self.evaluation_strategies) - 1:
+                composite_key += ", "
+
+        composite_key += ")"
+
+        return composite_key
+
     def keys(self):
-        strat_keys = []
+        strat_keys = [self.compute_composite_key_subtree()]
 
         for strat in self.evaluation_strategies:
             strat_keys.extend(strat.keys())
@@ -696,17 +725,19 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
                 for i in range(len(curr_strategy.evaluation_strategies) - 1, -1, -1):
                     stack.append(curr_strategy.evaluation_strategies[i])
 
-        # Saving ordered list of leaf strategies
-        for strategy in ordered_strategies:
-            if not isinstance(strategy, EvaluationStrategyComposite):
-                ordered_leaf_strategies.append(strategy)
-
-        # Recording sub-score values to corresponding leaf strategies (based on the number of keys they declare)
         i = 0
-        for ordered_leaf_strategy in ordered_leaf_strategies:
-            n_keys = len(ordered_leaf_strategy.keys())
-            ordered_leaf_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
-            i += n_keys
+        # Recording sub-score values to corresponding leaf strategies (based on the number of keys they declare)
+        for ordered_strategy in ordered_strategies:
+
+            if isinstance(ordered_strategy, EvaluationStrategyComposite):
+                # Skipping the current score as it is the result of a composite evaluation strategy that is assumed to
+                # be cheap and that will be recomputed dynamically at the next call to get_population_scores
+                i += 1
+
+            else:
+                n_keys = len(ordered_strategy.keys())
+                ordered_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
+                i += n_keys
 
     def get_population_scores(self):
 
@@ -727,7 +758,7 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
         for curr_ind_scores in scores.T:
             total_scores.append(self._compute_total_score(curr_ind_scores))
 
-        return np.array(total_scores), np.array(sub_scores)
+        return np.array(total_scores), np.concatenate([np.array([total_scores]), np.array(sub_scores)])
 
     def evaluate_individual(self, individual, to_replace_idx=None):
 
@@ -745,7 +776,7 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
         total_score = self._compute_total_score(np.array(total_scores))
 
         # Returning the product of scores
-        return total_score, np.array(sub_scores)
+        return total_score, np.array([total_score] + sub_scores)
 
     @abstractmethod
     def _compute_total_score(self, strat_scores):
@@ -762,6 +793,9 @@ class LinearCombinationEvaluationStrategy(EvaluationStrategyComposite):
     The coefficients are given in a list of same size as the number of strategies.
     """
 
+    def key(self):
+        return "LinComb"
+
     def __init__(self, evaluation_strategies, coefs):
         super().__init__(evaluation_strategies)
         self.coefs = np.array(coefs)
@@ -775,6 +809,9 @@ class ProductEvaluationStrategy(EvaluationStrategyComposite):
     Computing the product of the internal evaluation strategies as total score
     """
 
+    def key(self):
+        return "×"
+
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
 
@@ -786,6 +823,9 @@ class SigmLinWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Passing the wrapped evaluator through a linear function and a sigmoid. Warning : can only wrap a single objective.
     """
+
+    def key(self):
+        return "SigmLin"
 
     def __init__(self, evaluation_strategies, a, b, l):
         super().__init__(evaluation_strategies)
@@ -801,6 +841,9 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Evaluation strategy passing the value of the evaluator through a Gaussian function specified by the user
     """
+
+    def key(self):
+        return "Gaussian"
 
     def __init__(self, evaluation_strategies, mu, sigma, normalize=False):
         """
@@ -832,6 +875,9 @@ class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
     Wrapper that returns the opposite of the value of the single contained EvaluationStrategy
     """
 
+    def key(self):
+        return "-"
+
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
 
@@ -844,6 +890,9 @@ class OneMinusWrapperEvaluationStrategy(EvaluationStrategyComposite):
     Wrapper that returns 1-x of the contained EvaluationStrategy x
     """
 
+    def key(self):
+        return "1-"
+
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
 
@@ -851,10 +900,13 @@ class OneMinusWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return 1 - strat_scores[0]
 
 
-class MeanEvaluationStrategy(EvaluationStrategyComposite):
+class MeanEvaluationStrategyComposite(EvaluationStrategyComposite):
     """
     Wrapper that computes the mean between of contained EvaluationStrategy instances
     """
+
+    def key(self):
+        return "X̅"
 
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
@@ -869,6 +921,9 @@ class ProductSigmLinEvaluationStrategy(EvaluationStrategyComposite):
     a sigmoid function.
     Each score for an individual x is computed as sigm(lin(x)), with specified coefficient.
     """
+
+    def key(self):
+        return "×SigmLin"
 
     def __init__(self, evaluation_strategies, a, b, l):
         """
