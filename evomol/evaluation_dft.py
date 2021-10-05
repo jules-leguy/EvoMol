@@ -63,7 +63,7 @@ def obabel_mmff94_xyz(smiles, **kwargs):
         # Converting SMILES to XYZ after computing MM (Obabel MMFF94)
         command_obabel = join(os.getenv("OPT_LIBS"),
                               "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
-                               + " -oxyz -O " + xyz_path + " --gen3d"
+                         + " -oxyz -O " + xyz_path + " --gen3d"
         os.system(command_obabel + " > /dev/null 2> /dev/null")
 
         # Reading XYZ string
@@ -224,6 +224,32 @@ def write_input_file(opt_input_path, xyz_path, smi, n_jobs):
         inp.write(position + "\n\n\n")
 
 
+class SharedLastComputation:
+    """
+    Object that can be shared by several OPTEvaluationStrategy instances and that contains the values of the last
+    DFT computation. It allows to only perform one calculation in case of the evaluation of a combination of
+    OPTEvaluationStrategy instances.
+    """
+
+    def __init__(self):
+        self.smiles = None
+        self.homo = None
+        self.lumo = None
+        self.gap = None
+        self.homo_m1 = None
+
+
+def compress_log_file(log_path):
+    """
+    Using Gzip to compress the log output file
+    :param log_path: path to the log file
+    :return:
+    """
+
+    cmd = "gzip " + log_path
+    os.system(cmd)
+
+
 class OPTEvaluationStrategy(EvaluationStrategy):
     """
     Evaluation strategy running a DFT optimization using Gaussian 09 to assess HOMO or LUMO energies.
@@ -239,17 +265,13 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
     The $OPT_LIBS environment variable must also contain a script named $OPT_LIBS/dft.sh, starting a Gaussian
     optimization of the input file in parameter.
-
-    Note to maintainers : This class is a leaf of the Composite pattern used to manage evaluation strategies. However,
-    due to computation times, this class always returns HOMO, LUMO and GAP values.
-    Some methods of evomol.evaluation.EvaluationStrategy are thus overrode to take this specificity into account.
     """
 
-    def __init__(self, prop, n_jobs=2, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
-                 cache_behaviour="retrieve_OPT_data", remove_chk_file=True):
+    def __init__(self, prop, n_jobs=1, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
+                 cache_behaviour="retrieve_OPT_data", remove_chk_file=True, shared_last_computation=None):
         """
         Initialization of the DFT evaluation strategy
-        :param prop: key of the property to be assessed. Can be "homo" or "lumo"
+        :param prop: key of the property to be assessed. Can be "homo", "lumo", "gap" or "homo-1"
         :param n_jobs: number of jobs for gaussian optimization
         :param working_dir_path: directory in which computation files will be stored
         :param cache_files: list of JSON file containing a cache of former computations
@@ -259,15 +281,15 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         "compute_again_delete_files": DFT computation are made for all molecules but DFT files are removed for molecules
         that are already in cache.
         :param remove_chk_file: whether the G09 CHK file is removed after DFT computation (default:True)
+        :param shared_last_computation: SharedLastComputation instance to share the values of the last computation
+        values with several OPTEvaluationStrategy instances
         """
 
         super().__init__()
         self.prop = prop
         self.n_jobs = n_jobs
         self.scores = None
-        self.homos = None
-        self.lumos = None
-        self.gaps = None
+        self.shared_last_computation = shared_last_computation
 
         self.MM_program = MM_program
 
@@ -299,17 +321,11 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         self.cache_behaviour = cache_behaviour
         self.remove_chk_file = remove_chk_file
 
+        print("DFT MM " + str(self.MM_program))
         print(str(len(self.cache.keys())) + " molecules in cache")
 
     def keys(self):
-        if self.prop == "homo":
-            return ["homo", "lumo", "gap"]
-
-        if self.prop == "lumo":
-            return ["lumo", "homo", "gap"]
-
-        if self.prop == "gap":
-            return ["gap", "homo", "lumo"]
+        return [self.prop]
 
     def is_in_cache(self, smi):
         return smi in self.cache
@@ -405,26 +421,45 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         if ind_is_in_cache and self.cache_behaviour == "retrieve_OPT_data":
 
             homo_cache, success_homo_cache = self.get_cache_value("homo", smi)
+            homo_m1_cache, success_homo_m1_cache = self.get_cache_value("homo-1", smi)
             lumo_cache, success_lumo_cache = self.get_cache_value("lumo", smi)
             gap_cache, success_gap_cache = self.get_cache_value("gap", smi)
 
             if self.prop == "gap":
                 success = success_homo_cache and success_lumo_cache and success_gap_cache
                 score = gap_cache
-                scores = [gap_cache, homo_cache, lumo_cache]
+                scores = [gap_cache]
             elif self.prop == "homo":
                 success = success_homo_cache
                 score = homo_cache
-                scores = [homo_cache, lumo_cache, gap_cache]
+                scores = [homo_cache]
+            elif self.prop == "homo-1":
+                success = success_homo_m1_cache
+                score = homo_m1_cache
+                scores = [homo_m1_cache]
             elif self.prop == "lumo":
                 success = success_lumo_cache
-                scores = lumo_cache
-                scores = [lumo_cache, homo_cache, gap_cache]
+                score = lumo_cache
+                scores = [lumo_cache]
 
             if not success:
                 raise EvaluationError("DFT failure in cache for " + smi)
             else:
                 return score, scores
+
+        # Case in which the computation has just been performed by another OPTEvaluationStrategy instance that
+        # shares the same SharedLastComputation instance
+        elif self.shared_last_computation is not None and individual.to_aromatic_smiles() == self.shared_last_computation.smiles:
+
+            # Returning score
+            if self.prop == "homo":
+                return self.shared_last_computation.homo, [self.shared_last_computation.homo]
+            elif self.prop == "lumo":
+                return self.shared_last_computation.lumo, [self.shared_last_computation.lumo]
+            elif self.prop == "gap":
+                return self.shared_last_computation.gap, [self.shared_last_computation.gap]
+            elif self.prop == "homo-1":
+                return self.shared_last_computation.homo_m1, [self.shared_last_computation.homo_m1]
 
         # If score never computed or cache behaviour is set to "compute_again_delete_files", starting DFT
         else:
@@ -492,19 +527,33 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
                                 homo = energies[0][homos[0]]
                                 lumo = energies[0][homos[0] + 1]
+                                homo_m1 = energies[0][homos[0] - 1]
                                 gap = abs(homo - lumo)
 
                                 # Removing files
                                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path,
                                                              opt_log_path, is_in_cache=ind_is_in_cache)
 
+                                # Compressing log file
+                                compress_log_file(opt_log_path)
+
+                                # Saving values in SharedLastComputation instance if defined
+                                if self.shared_last_computation is not None:
+                                    self.shared_last_computation.smiles = individual.to_aromatic_smiles()
+                                    self.shared_last_computation.homo = homo
+                                    self.shared_last_computation.lumo = lumo
+                                    self.shared_last_computation.gap = gap
+                                    self.shared_last_computation.homo_m1 = homo_m1
+
                                 # Returning score
                                 if self.prop == "homo":
-                                    return homo, [homo, lumo, gap]
+                                    return homo, [homo]
                                 elif self.prop == "lumo":
-                                    return lumo, [lumo, homo, gap]
+                                    return lumo, [lumo]
                                 elif self.prop == "gap":
-                                    return gap, [gap, homo, lumo]
+                                    return gap, [gap]
+                                elif self.prop == "homo-1":
+                                    return homo_m1, [homo_m1]
 
                             else:
                                 raise EvaluationError("DFT error : |homos| > 1 for " + smi)
@@ -523,58 +572,25 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path, opt_log_path,
                                              is_in_cache=ind_is_in_cache)
 
+                compress_log_file(opt_log_path)
+
                 raise EvaluationError("DFT caused exception " + str(e))
 
     def compute_record_scores_init_pop(self, population):
         self.scores = []
-        self.homos = []
-        self.lumos = []
-        self.gaps = []
 
         for idx, ind in enumerate(population):
             if ind is not None:
-
-                score, scores = self.evaluate_individual(ind)
-
-                if self.prop == "homo":
-                    homo, lumo, gap = scores
-                    self.scores.append(homo)
-                elif self.prop == "lumo":
-                    lumo, homo, gap = scores
-                    self.scores.append(lumo)
-                elif self.prop == "gap":
-                    gap, homo, lumo = scores
-                    self.scores.append(gap)
-
-                self.homos.append(homo)
-                self.lumos.append(lumo)
-                self.gaps.append(gap)
+                score, _ = self.evaluate_individual(ind)
+                self.scores.append(score)
 
     def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
 
-        if self.prop == "homo":
-            homo, lumo, gap = new_scores
-        elif self.prop == "lumo":
-            lumo, homo, gap = new_scores
-        elif self.prop == "gap":
-            gap, homo, lumo = new_scores
-
         if idx == len(self.scores):
             self.scores.append(None)
-            self.homos.append(None)
-            self.lumos.append(None)
-            self.gaps.append(None)
 
         self.scores[idx] = new_total_score
-        self.homos[idx] = homo
-        self.lumos[idx] = lumo
-        self.gaps[idx] = gap
 
     def get_population_scores(self):
 
-        if self.prop == "homo":
-            return self.scores, np.array([self.scores, self.lumos, self.gaps])
-        elif self.prop == "lumo":
-            return self.scores, np.array([self.scores, self.homos, self.gaps])
-        elif self.prop == "gap":
-            return self.scores, np.array([self.scores, self.homos, self.lumos])
+        return self.scores, np.array([self.scores])

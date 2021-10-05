@@ -19,7 +19,7 @@ class NoMoreIndToMutate(Exception):
 
 class GeneratedIndividualsRecorder:
 
-    def __init__(self, curr_step):
+    def __init__(self, curr_step, evaluation_strategy):
         """
         Object used to record all generated solutions (even if not inserted) during a step
         """
@@ -27,13 +27,16 @@ class GeneratedIndividualsRecorder:
         self.curr_step = curr_step
         self.smiles = []
         self.total_scores = []
+        self.scores = []
         self.objective_calls = []
         self.success_obj_computation = []
         self.improver = []
+        self.evaluation_strategy = evaluation_strategy
 
-    def record_individual(self, individual, total_score, objective_calls, improver, success_obj_computation):
+    def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation):
         self.smiles.append(individual.to_aromatic_smiles())
         self.total_scores.append(total_score)
+        self.scores.append(scores)
         self.objective_calls.append(objective_calls)
         self.improver.append(improver)
         self.success_obj_computation.append(success_obj_computation)
@@ -43,6 +46,9 @@ class GeneratedIndividualsRecorder:
 
     def get_total_scores_vect(self):
         return self.total_scores
+
+    def get_scores_array(self):
+        return np.array(self.scores).reshape(len(self.smiles), len(self.evaluation_strategy.keys()))
 
     def get_objective_calls_vect(self):
         return self.objective_calls
@@ -55,6 +61,7 @@ class GeneratedIndividualsRecorder:
 
     def get_success_obj_computation_vect(self):
         return self.success_obj_computation
+
 
 class PopAlg:
     """
@@ -80,15 +87,15 @@ class PopAlg:
             problem_type=self.problem_type,
             selection=self.selection,
             kth_score_to_record_key=self.kth_score_to_record_key,
-            shuffle_init_pop=self.shuffle_init_pop
-
+            shuffle_init_pop=self.shuffle_init_pop,
+            sulfur_valence=self.sulfur_valence
         )
 
     def __init__(self, evaluation_strategy, mutation_strategy, stop_criterion_strategy,
                  output_folder_path="EvoMol_model/", pop_max_size=1000, k_to_replace=10, save_n_steps=100,
                  print_n_steps=1, kth_score_to_record=1, record_history=False, problem_type="max", selection="best",
                  kth_score_to_record_key="total", shuffle_init_pop=False, external_tabu_list=None,
-                 record_all_generated_individuals=False, evaluation_strategy_parameters=None):
+                 record_all_generated_individuals=False, evaluation_strategy_parameters=None, sulfur_valence=6):
         """
         :param evaluation_strategy: EvaluationStrategy instance to evaluate individuals
         :param mutation_strategy: MutationStrategy instance to mutate solutions and find improvers
@@ -111,6 +118,7 @@ class PopAlg:
         that failed the objective computation
         :param evaluation_strategy_parameters: allows to set evaluation_strategy parameters depending on context.
         Available contexts are "evaluate_new_solution" and "evaluate_init_pop"
+        :param sulfur_valence: maximum valence of sulfur atoms (default : 6)
         """
 
         # Loading problem type
@@ -159,6 +167,7 @@ class PopAlg:
         self.all_generated_individuals_n_obj_calls = None
         self.all_generated_individuals_step = None
         self.all_generated_individuals_obj_value = None
+        self.all_generated_individuals_scores = None
         self.all_generated_individuals_improver = None
         self.all_generated_individuals_success_obj_computation = None
         self.pop_tabu_list = None
@@ -181,6 +190,8 @@ class PopAlg:
             "evaluate_init_pop": {}
         } if evaluation_strategy_parameters is None else evaluation_strategy_parameters
 
+        self.sulfur_valence = sulfur_valence
+
     def initialize(self):
         """
         Initialization of EvoMol with starting values.
@@ -201,6 +212,7 @@ class PopAlg:
         self.all_generated_individuals_n_obj_calls = []
         self.all_generated_individuals_step = []
         self.all_generated_individuals_obj_value = []
+        self.all_generated_individuals_scores = np.array([]).reshape(0, len(self.evaluation_strategy.keys()))
         self.all_generated_individuals_improver = []
         self.all_generated_individuals_success_obj_computation = []
 
@@ -231,6 +243,7 @@ class PopAlg:
 
         # Initialization of errors list
         self.errors = []
+
         self.curr_total_scores = None
         self.curr_scores = None
         self.timestamp_start = None
@@ -267,7 +280,8 @@ class PopAlg:
         for i, smi in enumerate(smiles_list):
 
             # Loading QuMolGraph object
-            self.pop[i] = MolGraph(MolFromSmiles(smi), sanitize_mol=True, mutability=atom_mutability)
+            self.pop[i] = MolGraph(MolFromSmiles(smi), sanitize_mol=True, mutability=atom_mutability,
+                                   sulfur_valence=self.sulfur_valence)
 
             # Saving smiles in the tabu dictionary and in action history initialization
             self.pop_tabu_list[i] = self.pop[i].to_aromatic_smiles()
@@ -313,6 +327,11 @@ class PopAlg:
                              ["obj_value"] + self.all_generated_individuals_obj_value,
                              ["improver"] + self.all_generated_individuals_improver,
                              ["success_obj_computation"] + self.all_generated_individuals_success_obj_computation]
+
+                for i, key in enumerate(self.evaluation_strategy.keys()):
+                    csv_array.append(
+                        [key] + self.all_generated_individuals_scores.T[i].tolist()
+                    )
 
                 with open(join(self.output_folder_path, "all_generated.csv"), "w") as f:
                     writer = csv.writer(f)
@@ -490,24 +509,33 @@ class PopAlg:
         Returning the k best individuals of the population that are not in the given tabu list of SMILES (if specified).
         :param k_best: number of individuals to return
         :param tabu_list: list of SMILES that cannot be returned
-        :return: list of SMILES
+        :return: list of SMILES, list of scores, list of sub-scores
         """
 
-        best_solutions_ind = np.array(self.pop)[np.argsort(self.curr_total_scores)]
+        scores_sort = np.argsort(self.curr_total_scores)
 
         if self.problem_type == "max":
-            best_solutions_ind = best_solutions_ind[::-1]
+            scores_sort = scores_sort[::-1]
+
+        best_solutions_ind = np.array(self.pop)[scores_sort]
+        best_solutions_scores = self.curr_total_scores[scores_sort]
+        best_solutions_sub_scores = self.curr_scores.T[scores_sort]
 
         returned_smiles = []
+        returned_scores = []
+        returned_sub_scores = []
         i = 0
         # Computing the list of k_best best individuals that are not in the tabu list
         while len(returned_smiles) < k_best and i < len(best_solutions_ind):
             curr_sol_smiles = best_solutions_ind[i].to_aromatic_smiles()
             if tabu_list is None or curr_sol_smiles not in tabu_list:
                 returned_smiles.append(curr_sol_smiles)
+                returned_scores.append(best_solutions_scores[i])
+                returned_sub_scores.append(best_solutions_sub_scores[i])
+
             i += 1
 
-        return returned_smiles
+        return returned_smiles, returned_scores, returned_sub_scores
 
     def run(self):
         """
@@ -548,7 +576,7 @@ class PopAlg:
                     print("best : " + str(self.pop[np.argmin(self.curr_total_scores)]))
 
                 # Initialization of the object storing all generated individuals during the step
-                step_gen_ind_recorder = GeneratedIndividualsRecorder(self.curr_step_id)
+                step_gen_ind_recorder = GeneratedIndividualsRecorder(self.curr_step_id, self.evaluation_strategy)
 
                 try:
 
@@ -657,6 +685,10 @@ class PopAlg:
                     self.all_generated_individuals_n_obj_calls.extend(step_gen_ind_recorder.get_objective_calls_vect())
                     self.all_generated_individuals_step.extend(step_gen_ind_recorder.get_step_vect())
                     self.all_generated_individuals_obj_value.extend(step_gen_ind_recorder.get_total_scores_vect())
+                    self.all_generated_individuals_scores = np.concatenate([
+                        self.all_generated_individuals_scores,
+                        step_gen_ind_recorder.get_scores_array()
+                    ])
                     self.all_generated_individuals_improver.extend(step_gen_ind_recorder.get_improver_vect())
                     self.all_generated_individuals_success_obj_computation.extend(
                         step_gen_ind_recorder.get_success_obj_computation_vect())

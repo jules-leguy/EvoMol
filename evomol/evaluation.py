@@ -5,6 +5,8 @@ from math import exp
 from os.path import join
 
 import networkx as nx
+import tqdm
+from guacamol.common_scoring_functions import IsomerScoringFunction
 from scipy.stats import norm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem
@@ -130,6 +132,18 @@ class EvaluationStrategyComposant(ABC):
         for k, v in kwargs.items():
             self.__setattr__(k, v)
 
+    @abstractmethod
+    def call_method_on_leaves(self, method_name, args_dict):
+        """
+        Calling the method specified by the given name with the given arguments on all leaves.
+        If the method does not exist then the leaf is ignored.
+        It allows using subclasses of EvaluationStrategy (leaves) with additional methods in an
+        EvaluationStrategyComposant architecture (e.g. Merit class in BBOMol).
+        :param method_name: name of the method to be called on the leaves
+        :param args_dict: dictionary of arguments to be given to the method
+        :return:
+        """
+
 
 class EvaluationStrategy(EvaluationStrategyComposant, ABC):
     """
@@ -153,7 +167,7 @@ class EvaluationStrategy(EvaluationStrategyComposant, ABC):
         self.scores[idx] = new_total_score
 
     def get_population_scores(self):
-        return self.scores, np.array([self.scores])
+        return np.array(self.scores), np.array([self.scores])
 
     def end_step_population(self, pop):
         pass
@@ -163,6 +177,10 @@ class EvaluationStrategy(EvaluationStrategyComposant, ABC):
 
     def get_additional_population_scores(self):
         return super().get_additional_population_scores()
+
+    def call_method_on_leaves(self, method_name, args_dict):
+        if hasattr(self, method_name):
+            self.__getattribute__(method_name)(**args_dict)
 
 
 class GenericFunctionEvaluationStrategy(EvaluationStrategy):
@@ -435,6 +453,30 @@ class NormalizedSAScoreEvaluationStrategy(EvaluationStrategy):
             return score, [score]
 
 
+class IsomerGuacaMolEvaluationStrategy(EvaluationStrategy):
+    """
+    Isomer score based on the implementation of GuacaMol
+    Nathan Brown et al., “GuacaMol: Benchmarking Models for de Novo Molecular Design,” Journal of Chemical Information
+    and Modeling 59, no. 3 (March 25, 2019): 1096–1108, https://doi.org/10.1021/acs.jcim.8b00839.
+    """
+
+    def __init__(self, formula):
+        super().__init__()
+        self.formula = formula
+        self.guacamol_scorer = IsomerScoringFunction(formula)
+
+    def keys(self):
+        return ["isomer_" + self.formula]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        if individual is None:
+            return None, [None]
+        else:
+            score = self.guacamol_scorer.score(individual.to_aromatic_smiles())
+            return score, [score]
+
+
 class QEDEvaluationStrategy(EvaluationStrategy):
     """
     Evaluation of population with QED score using RDKit implementation.
@@ -459,6 +501,64 @@ class QEDEvaluationStrategy(EvaluationStrategy):
             mol_graph = MolFromSmiles(individual.to_aromatic_smiles())
             score = qed(mol_graph)
             return score, [score]
+
+
+class SillyWalksEvaluationStrategy(EvaluationStrategy):
+    """
+    Counting the proportion of bits in the ECFP4 fingerprint that never appear in the ChemBL.
+    Based on the work of Patrick Walters (https://github.com/PatWalters/silly_walks)
+
+    MIT License
+
+    Copyright (c) 2020 Patrick Walters
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+    """
+
+    def __init__(self, path_to_db):
+        """
+        :param path_to_db: path to the file that contains the reference dictionary of ECFP4 fingerprints keys
+        """
+        super().__init__()
+
+        # Reading reference data
+        with open(path_to_db, "r") as f:
+            self.count_dict = json.load(f)
+
+    def keys(self):
+        return ["silly_walks"]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        mol = MolFromSmiles(individual.to_aromatic_smiles())
+
+        if mol:
+            fp = AllChem.GetMorganFingerprint(mol, 2)
+            on_bits = fp.GetNonzeroElements().keys()
+
+            silly_bits = [x for x in [self.count_dict.get(str(x)) for x in on_bits] if x is None]
+            score = len(silly_bits) / len(on_bits) if len(on_bits) > 0 else 0
+
+        else:
+            score = 1
+        return score, [score]
 
 
 class RDFiltersEvaluationStrategy(EvaluationStrategy):
@@ -562,8 +662,37 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
 
         return d
 
+    @abstractmethod
+    def key(self):
+        """
+        Returning the key that specifies the action of the composite instance
+        :return:
+        """
+        pass
+
+    def compute_composite_key_subtree(self):
+        """
+        Computing the key that specifies the action of composite instance, based on the generic key assigned to the
+        class (self.key()) and the keys of the contained strategies.
+        :return:
+        """
+
+        # Prefix
+        composite_key = self.key() + "("
+
+        # Enumerating all contained evaluation strategies
+        for i, eval_strat in enumerate(self.evaluation_strategies):
+            composite_key += eval_strat.keys()[0]
+
+            if i < len(self.evaluation_strategies) - 1:
+                composite_key += "; "
+
+        composite_key += ")"
+
+        return composite_key
+
     def keys(self):
-        strat_keys = []
+        strat_keys = [self.compute_composite_key_subtree()]
 
         for strat in self.evaluation_strategies:
             strat_keys.extend(strat.keys())
@@ -596,17 +725,19 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
                 for i in range(len(curr_strategy.evaluation_strategies) - 1, -1, -1):
                     stack.append(curr_strategy.evaluation_strategies[i])
 
-        # Saving ordered list of leaf strategies
-        for strategy in ordered_strategies:
-            if not isinstance(strategy, EvaluationStrategyComposite):
-                ordered_leaf_strategies.append(strategy)
-
-        # Recording sub-score values to corresponding leaf strategies (based on the number of keys they declare)
         i = 0
-        for ordered_leaf_strategy in ordered_leaf_strategies:
-            n_keys = len(ordered_leaf_strategy.keys())
-            ordered_leaf_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
-            i += n_keys
+        # Recording sub-score values to corresponding leaf strategies (based on the number of keys they declare)
+        for ordered_strategy in ordered_strategies:
+
+            if isinstance(ordered_strategy, EvaluationStrategyComposite):
+                # Skipping the current score as it is the result of a composite evaluation strategy that is assumed to
+                # be cheap and that will be recomputed dynamically at the next call to get_population_scores
+                i += 1
+
+            else:
+                n_keys = len(ordered_strategy.keys())
+                ordered_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
+                i += n_keys
 
     def get_population_scores(self):
 
@@ -627,7 +758,7 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
         for curr_ind_scores in scores.T:
             total_scores.append(self._compute_total_score(curr_ind_scores))
 
-        return np.array(total_scores), np.array(sub_scores)
+        return np.array(total_scores), np.concatenate([np.array([total_scores]), np.array(sub_scores)])
 
     def evaluate_individual(self, individual, to_replace_idx=None):
 
@@ -645,11 +776,15 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
         total_score = self._compute_total_score(np.array(total_scores))
 
         # Returning the product of scores
-        return total_score, np.array(sub_scores)
+        return total_score, np.array([total_score] + sub_scores)
 
     @abstractmethod
     def _compute_total_score(self, strat_scores):
         pass
+
+    def call_method_on_leaves(self, method_name, args_dict):
+        for strategy in self.evaluation_strategies:
+            strategy.call_method_on_leaves(method_name, args_dict)
 
 
 class LinearCombinationEvaluationStrategy(EvaluationStrategyComposite):
@@ -657,6 +792,9 @@ class LinearCombinationEvaluationStrategy(EvaluationStrategyComposite):
     Evaluation of the population with a linear combination of given evaluation strategies.
     The coefficients are given in a list of same size as the number of strategies.
     """
+
+    def key(self):
+        return "LinComb"
 
     def __init__(self, evaluation_strategies, coefs):
         super().__init__(evaluation_strategies)
@@ -671,6 +809,9 @@ class ProductEvaluationStrategy(EvaluationStrategyComposite):
     Computing the product of the internal evaluation strategies as total score
     """
 
+    def key(self):
+        return "×"
+
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
 
@@ -682,6 +823,9 @@ class SigmLinWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Passing the wrapped evaluator through a linear function and a sigmoid. Warning : can only wrap a single objective.
     """
+
+    def key(self):
+        return "SigmLin"
 
     def __init__(self, evaluation_strategies, a, b, l):
         super().__init__(evaluation_strategies)
@@ -698,24 +842,41 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
     Evaluation strategy passing the value of the evaluator through a Gaussian function specified by the user
     """
 
-    def __init__(self, evaluation_strategies, mu, sigma):
+    def key(self):
+        return "Gaussian"
+
+    def __init__(self, evaluation_strategies, mu, sigma, normalize=False):
         """
         Setting of the Gaussian function
         :param mu: mu parameter
         :param sigma: sigma parameter
+        :param normalize: whether to normalize the function (i.e. f(mu) = 1)
         """
         super().__init__(evaluation_strategies)
         self.mu = mu
         self.sigma = sigma
+        self.normalize = normalize
+
+        # Computing the value at the peak of the Gaussian
+        self.max_value = 1 / (np.sqrt(np.pi * 2) * sigma)
 
     def _compute_total_score(self, strat_scores):
-        return norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
+        value = norm.pdf(strat_scores[0], loc=self.mu, scale=self.sigma)
+
+        # Normalizing value if required
+        if self.normalize:
+            value = value / self.max_value
+
+        return value
 
 
 class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Wrapper that returns the opposite of the value of the single contained EvaluationStrategy
     """
+
+    def key(self):
+        return "-"
 
     def __init__(self, evaluation_strategies):
         super().__init__(evaluation_strategies)
@@ -724,12 +885,45 @@ class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return -strat_scores[0]
 
 
+class OneMinusWrapperEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Wrapper that returns 1-x of the contained EvaluationStrategy x
+    """
+
+    def key(self):
+        return "1-"
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return 1 - strat_scores[0]
+
+
+class MeanEvaluationStrategyComposite(EvaluationStrategyComposite):
+    """
+    Wrapper that computes the mean between of contained EvaluationStrategy instances
+    """
+
+    def key(self):
+        return "X̅"
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def _compute_total_score(self, strat_scores):
+        return np.mean(strat_scores)
+
+
 class ProductSigmLinEvaluationStrategy(EvaluationStrategyComposite):
     """
     Evaluation strategy returning the product of multiple scores after passing them through a linear function and
     a sigmoid function.
     Each score for an individual x is computed as sigm(lin(x)), with specified coefficient.
     """
+
+    def key(self):
+        return "×SigmLin"
 
     def __init__(self, evaluation_strategies, a, b, l):
         """

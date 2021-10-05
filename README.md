@@ -47,28 +47,32 @@ run_model({
 })
 ```
 
-## Model parametrization
+## Settings
 
-To run a model, you need to pass a dictionary describing the run to the run_model function. This dictionary can have up 
-to 4 entries that are described in this section.
+A dictionary can be given to evomol.run_model to describe the experiment to be performed. This dictionary can contain up 
+to 4 entries, that are described in this section.
 
 **Default values** are represented in bold.
 
 ### Objective function
 
 The ```"obj_function"``` attribute can take the following values. Multi-objective functions can be nested to any depth. 
-* Implemented functions: "<a href="https://www.nature.com/articles/nchem.1243">qed</a>", 
+* Implemented functions: 
+  * "<a href="https://www.nature.com/articles/nchem.1243">qed</a>", 
  "<a href="https://arxiv.org/abs/1610.02415v2">plogp</a>", 
  "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
  "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
  "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "homo", "lumo" (see 
- <a href=https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z>EvoMol article<a/>). "entropy_ifg", 
- "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy of descriptors, 
- respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, 
- <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
- <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
- <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
+ "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "isomer_formula".
+
+  * "homo", "lumo", "gap", "homo-1"
+
+  * "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy 
+  of descriptors, 
+   respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, 
+   <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
+   <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
+   <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function containing the following entries.
     * ```"type"``` : 
@@ -76,8 +80,10 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * "product" (product of properties)
         * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)
         * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
+        * "mean" (mean of the properties)
         * "gaussian" (passing the value of a unique objective function through a Gaussian function)
         * "opposite" (computing the opposite value of a unique objective function)
+        * "one_minus" (computing 1-x of a unique objective function x)
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
     multi-objective functions).
     * Specific to the linear combination.
@@ -87,8 +93,10 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
     * Specific to the use of Gaussian functions
-        * ```mu```: μ parameter of the Gaussian
-        * ```sigma```: σ parameter of the Gaussian
+        * ```"mu"```: μ parameter of the Gaussian
+        * ```"sigma"```: σ parameter of the Gaussian
+        * ```"normalize""```: whether to normalize the function so that the maximum value is exactly 1 (**False**)
+* An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.
 
@@ -96,21 +104,27 @@ GuacaMol</a> benchmarks.
 ### Search space
 
 The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
-* ```"atoms"``` : text list of available heavy atoms (**"C,N,O,F,P,S,Cl,Br"**).
+* ```"atoms"``` : text list of available <ins>heavy</ins> atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
+* ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
+fingerprint of the solutions with respect to a reference dataset (see IO parameters). If the proportion is above the
+threshold, the solutions will be discarded and thus will not be inserted in the population (**1**).
+* ```"sulfur_valence"```: valence of sulfur atoms (**6**)
 
 ### Optimization parameters
 
 The ```"optimization_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"pop_max_size"``` : maximum population size (**1000**).
-* ```"max_steps"``` : number of steps to be run before stopping EvoMol(**1500**).
+* ```"max_steps"``` : number of steps to be run before stopping EvoMol (**1500**).
 * ```"max_obj_calls""```: number of calls to the objective functions before stopping EvoMol (**float("inf")**).
-* ```"k_to_replace"``` : number of individuals replaced at each step (**2**).
+* ```"stop_kth_score_value"```: stopping the search if the kth score in descendant value order has reached the given 
+value with given precision. Accepts a tuple (k, score, precision) or **None** to disable.
+* ```"k_to_replace"``` : number of individuals replaced at each step (**10**).
 * ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
  ("random").
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
@@ -124,7 +138,7 @@ GuacaMol benchmarks (**False**). The list of SMILES must be given as initial pop
 can be branched but their atoms and bonds cannot be modified (**True**).
 * ```"n_max_desc"```: max number of descriptors to be possibly handled when using an evaluator relying on a vector of 
 descriptors such as entropy contribution (**3.000.000**).
-* ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization
+* ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization (**False**).
 
 ### Input/Output parameters
 
@@ -140,11 +154,16 @@ The ```"io_parameters"``` attribute can be set with a dictionary containing the 
 * ```"record_all_generated_individuals"``` : whether to record a list of all individuals that are generated during the 
 entire execution (even if they fail the objective function computation or if they are not inserted in the population as
 they are not improvers). Also recording the step number and the total number of calls to the objective function at the 
-time of generation.
-* ```"save_n_steps"``` : frequency (steps) of saving the data (**100**).
-* ```"print_n_steps"``` : frequency (steps) of printing current population statistics (**1**).
+time of generation (**False**).
+* ```"save_n_steps"``` : period (steps) of saving the data (**100**).
+* ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
+* ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
+**"obabel"** for OpenBabel or "rdkit" for RDKit.
+* ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
+ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 
+```"sillywalks_threshold"``` parameter.
 * ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
 parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
  "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 

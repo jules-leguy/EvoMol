@@ -1,7 +1,8 @@
+import os
 from abc import ABC, abstractmethod
 
 import numpy as np
-from .evaluation import EvaluationError, RDFiltersEvaluationStrategy
+from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy
 from .molgraphops.molgraph import MolGraphBuilder
 from .molgraphops.exploration import random_neighbour
 
@@ -50,7 +51,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
     """
 
     def __init__(self, k, max_n_try, evaluation_strategy, action_spaces, action_spaces_parameters, problem_type="max",
-                 quality_filter=False):
+                 quality_filter=False, silly_molecules_fp_threshold=1, silly_molecules_db=None):
         """
 
         :param k: max number of successive graph operations
@@ -60,7 +61,10 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         :param action_spaces_parameters: instance of ActionSpace.ActionSpaceParameters
         :param problem_type: Whether it is a maximization ("max") or a minimization ("min") problem
         :param quality_filter: Whether to prevent molecules that do not pass the quality filter to be considered as
-        valid improvers
+        valid improvers (using https://github.com/PatWalters/rd_filters filters)
+        :param silly_molecules_fp_threshold: Using Patrick Walters's silly walk program to count the proportion of
+        bits in the ECFP4 fingerprint that do not exist in the ChemBL. The molecules with a proportion that is higher
+        than the given threshold are discarded (https://github.com/PatWalters/silly_walks).
         """
         self.k = k
         self.max_n_try = max_n_try
@@ -69,9 +73,13 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         self.actionspace_parameters = action_spaces_parameters
         self.problem_type = problem_type
         self.quality_filter = quality_filter
+        self.silly_molecules_fp_threshold = silly_molecules_fp_threshold
 
         if self.quality_filter:
             self.rd_filter_eval_strat = RDFiltersEvaluationStrategy()
+
+        if self.silly_molecules_fp_threshold < 1:
+            self.silly_walks_eval_strat = SillyWalksEvaluationStrategy(silly_molecules_db)
 
     def is_improver(self, curr_total_score, mutated_total_score):
 
@@ -105,7 +113,9 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
             # Only evaluating the neighbour if it has not been encountered yet in the population and if it is valid
             # if the filter is on
             if not mutated_ind.to_aromatic_smiles() in pop_tabu_list and \
-                    (not self.quality_filter or self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 1):
+                    (not self.quality_filter or self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 1) and \
+                    (self.silly_molecules_fp_threshold == 1 or self.silly_walks_eval_strat.evaluate_individual(mutated_ind)[0] <= self.silly_molecules_fp_threshold):
+
 
                 # Discarding solution if in the external tabu list
                 if external_tabu_list is None or mutated_ind.to_aromatic_smiles() not in external_tabu_list:
@@ -119,6 +129,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     except Exception as e:
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=None,
+                                                                 scores=np.full((len(self.evaluation_strategy.keys(), )), None),
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=False,
                                                                  improver=False)
@@ -129,6 +140,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     if self.is_improver(curr_total_score, mutated_total_score):
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
+                                                                 scores=mutated_scores,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=True,
                                                                  improver=True)
@@ -136,6 +148,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     else:
                         generated_ind_recorder.record_individual(individual=mutated_ind,
                                                                  total_score=mutated_total_score,
+                                                                 scores=mutated_scores,
                                                                  objective_calls=self.evaluation_strategy.n_calls,
                                                                  success_obj_computation=True,
                                                                  improver=False)

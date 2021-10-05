@@ -4,14 +4,15 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     NormalizedSAScoreEvaluationStrategy, CLScoreEvaluationStrategy, SAScoreEvaluationStrategy, \
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
-    GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy
-from .evaluation_dft import OPTEvaluationStrategy
+    GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
+    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy
+from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
 from .popalg import PopAlg
 from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy, \
-    KObjFunCallsFunctionStopCriterion
+    KObjFunCallsFunctionStopCriterion, KthScoreMaxValue
 from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
 from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
     GuacamolEvaluationStrategy, UndefinedGuacaMolEvaluationStrategy, get_GuacaMol_benchmark_parameter
@@ -42,9 +43,9 @@ def _is_describing_implemented_function(param_eval):
     :return:
     """
 
-    return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo",
-                          "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
-           or param_eval.startswith("guacamol")
+    return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
+                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
+           or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
 def _build_evaluation_strategy_from_custom_function(obj_fun_param):
@@ -63,11 +64,11 @@ def _build_evaluation_strategy_from_custom_function(obj_fun_param):
 
 
 def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO_parameters_dict,
-                                                         explicit_search_parameters_dict):
+                                                         explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from a string description of an implemented function
-    :param param_eval:
-    :param kwargs:
+    :param shared_last_DFT_computation: evomol.evaluation_dft.SharedLastComputation instance to be given to
+    evomol.evaluation_dft.OPTEvaluationStrategy instances.
     :return:
     """
 
@@ -83,14 +84,12 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
         strat = ZincNormalizedPLogPEvaluationStrategy()
     elif param_eval == "clscore":
         strat = CLScoreEvaluationStrategy()
-    elif param_eval == "homo":
-        strat = OPTEvaluationStrategy("homo",
+    elif param_eval == "homo" or param_eval == "lumo" or param_eval == "gap" or param_eval == "homo-1":
+        strat = OPTEvaluationStrategy(param_eval,
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
-                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"])
-    elif param_eval == "lumo":
-        strat = OPTEvaluationStrategy("lumo",
-                                      working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
-                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"])
+                                      cache_files=explicit_IO_parameters_dict["dft_cache_files"],
+                                      MM_program=explicit_IO_parameters_dict["dft_MM_program"],
+                                      shared_last_computation=shared_last_DFT_computation)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
                                                  pop_size_max=explicit_search_parameters_dict["pop_max_size"],
@@ -112,11 +111,15 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     elif param_eval.startswith("guacamol"):
         strat = UndefinedGuacaMolEvaluationStrategy(name=param_eval)
 
+    elif param_eval.startswith("isomer"):
+        formula = param_eval.split("_")[1]
+        strat = IsomerGuacaMolEvaluationStrategy(formula)
+
     return strat
 
 
 def _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_parameters_dict,
-                                                     explicit_search_parameters_dict):
+                                                     explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from an evaluation parameter describing a single objective function
     :param param_eval:
@@ -134,19 +137,22 @@ def _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_par
     # Parameter describes an implemented function
     elif _is_describing_implemented_function(param_eval):
         return _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO_parameters_dict,
-                                                                    explicit_search_parameters_dict)
+                                                                    explicit_search_parameters_dict,
+                                                                    shared_last_DFT_computation)
 
 
 def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_parameters_dict,
-                                                    explicit_search_parameters_dict):
+                                                    explicit_search_parameters_dict, shared_last_DFT_computation):
     """
     Building a proper EvaluationStrategy from an evaluation parameter describing a multi-objective function
     :param param_eval:
-    :param obj_fun_kwargs:
+    :param shared_last_DFT_computation: evomol.evaluation_dft.SharedLastComputation instance to be given to
+    evomol.evaluation_dft.OPTEvaluationStrategy instances.
     :return:
     """
 
-    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite"]:
+    if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite",
+                              "mean", "one_minus"]:
 
         # Building evaluation strategies
         functions_desc = param_eval["functions"]
@@ -154,13 +160,17 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         for function_desc in functions_desc:
 
             if _is_describing_multi_objective_function(function_desc):
-                evaluation_strategies.append(_build_evaluation_strategy_from_multi_objective(function_desc,
-                                                                                             explicit_IO_parameters_dict,
-                                                                                             explicit_search_parameters_dict))
+                evaluation_strategies.append(
+                    _build_evaluation_strategy_from_multi_objective(function_desc,
+                                                                    explicit_IO_parameters_dict,
+                                                                    explicit_search_parameters_dict,
+                                                                    shared_last_DFT_computation))
             else:
-                evaluation_strategies.append(_build_evaluation_strategy_from_single_objective(function_desc,
-                                                                                              explicit_IO_parameters_dict,
-                                                                                              explicit_search_parameters_dict))
+                evaluation_strategies.append(
+                    _build_evaluation_strategy_from_single_objective(function_desc,
+                                                                     explicit_IO_parameters_dict,
+                                                                     explicit_search_parameters_dict,
+                                                                     shared_last_DFT_computation))
 
         if param_eval["type"] == "linear_combination":
             return LinearCombinationEvaluationStrategy(evaluation_strategies, coefs=param_eval["coef"])
@@ -174,9 +184,14 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
                                                     l=param_eval["lambda"])
         elif param_eval["type"] == "gaussian":
             return GaussianWrapperEvaluationStrategy(evaluation_strategies, mu=param_eval["mu"],
-                                                     sigma=param_eval["sigma"])
+                                                     sigma=param_eval["sigma"],
+                                                     normalize=param_eval["normalize"] if "normalize" in param_eval else False)
         elif param_eval["type"] == "opposite":
             return OppositeWrapperEvaluationStrategy(evaluation_strategies)
+        elif param_eval["type"] == "mean":
+            return MeanEvaluationStrategyComposite(evaluation_strategies)
+        elif param_eval["type"] == "one_minus":
+            return OneMinusWrapperEvaluationStrategy(evaluation_strategies)
 
 
 def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_dict, explicit_search_parameters_dict):
@@ -190,6 +205,9 @@ def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_d
     # Extracting objective function parameters
     param_eval = parameters_dict["obj_function"]
 
+    # Creation of an evomol.evaluation_dft.SharedLastComputation instance if any OPTEvaluationStrategy in the objective
+    shared_last_DFT_computation = SharedLastComputation()
+
     # Parameter is an already defined EvaluationStrategy
     if isinstance(param_eval, EvaluationStrategyComposant):
         eval_strat = param_eval
@@ -197,12 +215,14 @@ def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_d
     # Parameter is a multi-objective function
     elif _is_describing_multi_objective_function(param_eval):
         eval_strat = _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_parameters_dict,
-                                                                     explicit_search_parameters_dict)
+                                                                     explicit_search_parameters_dict,
+                                                                     shared_last_DFT_computation)
 
     # Parameter is a single objective function
     else:
         eval_strat = _build_evaluation_strategy_from_single_objective(param_eval, explicit_IO_parameters_dict,
-                                                                      explicit_search_parameters_dict)
+                                                                      explicit_search_parameters_dict,
+                                                                      shared_last_DFT_computation)
 
     return eval_strat
 
@@ -227,7 +247,11 @@ def _parse_action_space(parameters_dict):
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
-            "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False}
+            "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
+        "sillywalks_threshold": input_param_action_space[
+            "sillywalks_threshold"] if "sillywalks_threshold" in input_param_action_space else 1,
+        "sulfur_valence": input_param_action_space[
+            "sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
     symbols_list = explicit_action_space_parameters["atoms"].split(",")
 
@@ -246,7 +270,7 @@ def _parse_action_space(parameters_dict):
 
 
 def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, action_spaces,
-                               action_spaces_parameters, search_space_parameters):
+                               action_spaces_parameters, search_space_parameters, explicit_IO_parameters):
     """
     Parsing mutation parameters
     :param parameters_dict:
@@ -262,7 +286,11 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  problem_type=explicit_search_parameters[
                                                                      "problem_type"],
                                                                  quality_filter=search_space_parameters[
-                                                                     "use_rd_filters"])
+                                                                     "use_rd_filters"],
+                                                                 silly_molecules_fp_threshold=search_space_parameters[
+                                                                     "sillywalks_threshold"],
+                                                                 silly_molecules_db=explicit_IO_parameters[
+                                                                     "silly_molecules_reference_db_path"])
 
     return mutation_strategy
 
@@ -285,6 +313,8 @@ def _extract_explicit_search_parameters(parameters_dict):
         "max_steps": input_search_parameters["max_steps"] if "max_steps" in input_search_parameters else 1500,
         "max_obj_calls": input_search_parameters[
             "max_obj_calls"] if "max_obj_calls" in input_search_parameters else float("inf"),
+        "stop_kth_score_value": input_search_parameters[
+            "stop_kth_score_value"] if "stop_kth_score_value" in input_search_parameters else None,
         "mutable_init_pop": input_search_parameters[
             "mutable_init_pop"] if "mutable_init_pop" in input_search_parameters else True,
         "guacamol_init_top_100": input_search_parameters[
@@ -326,11 +356,16 @@ def _extract_explicit_IO_parameters(parameters_dict):
             "dft_working_dir"] if "dft_working_dir" in input_IO_parameters else "/tmp/",
         "dft_cache_files": input_IO_parameters[
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
+        "dft_MM_program": input_IO_parameters[
+            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,
         "evaluation_strategy_parameters": input_IO_parameters[
-            "evaluation_strategy_parameters"] if "evaluation_strategy_parameters" in input_IO_parameters else None}
+            "evaluation_strategy_parameters"] if "evaluation_strategy_parameters" in input_IO_parameters else None,
+        "silly_molecules_reference_db_path": input_IO_parameters[
+            "silly_molecules_reference_db_path"] if "silly_molecules_reference_db_path" in input_IO_parameters else None
+    }
 
     for parameter in input_IO_parameters:
         if parameter not in explicit_IO_parameters:
@@ -347,10 +382,17 @@ def _parse_stop_criterion_strategy(explicit_search_parameters_dict, explicit_IO_
     :return:
     """
 
-    stop_criterion_strategy = MultipleStopCriterionsStrategy(
-        [KStepsStopCriterionStrategy(explicit_search_parameters_dict["max_steps"]),
-         KObjFunCallsFunctionStopCriterion(explicit_search_parameters_dict["max_obj_calls"]),
-         FileStopCriterion(join(explicit_IO_parameters_dict["model_path"], "stop_execution"))])
+    # Systematic criteria
+    criteria = [KStepsStopCriterionStrategy(explicit_search_parameters_dict["max_steps"]),
+                KObjFunCallsFunctionStopCriterion(explicit_search_parameters_dict["max_obj_calls"]),
+                FileStopCriterion(join(explicit_IO_parameters_dict["model_path"], "stop_execution"))]
+
+    # If Kth score max value criterion selected
+    if explicit_search_parameters_dict["stop_kth_score_value"] is not None:
+        _, max_value, rounded = explicit_search_parameters_dict["stop_kth_score_value"]
+        criteria.append(KthScoreMaxValue(max_value, rounded))
+
+    stop_criterion_strategy = MultipleStopCriterionsStrategy(criteria)
 
     return stop_criterion_strategy
 
@@ -368,7 +410,7 @@ def _read_smiles_list_from_file(smiles_list_path):
 
 
 def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strategy, explicit_search_parameters_dict,
-                    explicit_IO_parameters_dict):
+                    explicit_IO_parameters_dict, explicit_action_space_parameters):
     """
     Building PopAlg instance
     :param evaluation_strategy: EvaluationStrategy instance
@@ -376,11 +418,11 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
     :param stop_criterion_strategy: MultipleStopCriterionsStrategy instance
     :param explicit_search_parameters_dict: dictionary of search parameters
     :param explicit_IO_parameters_dict: dictionary of IO parameters
+    :param explicit_action_space_parameters: dictionary of action space parameters
     :return:
     """
 
     pop_alg = PopAlg(
-
         evaluation_strategy=evaluation_strategy,
         mutation_strategy=mutation_strategy,
         stop_criterion_strategy=stop_criterion_strategy,
@@ -395,8 +437,10 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
         record_all_generated_individuals=explicit_IO_parameters_dict["record_all_generated_individuals"],
         shuffle_init_pop=explicit_search_parameters_dict["shuffle_init_pop"],
         external_tabu_list=explicit_IO_parameters_dict["external_tabu_list"],
-        evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"]
-
+        evaluation_strategy_parameters=explicit_IO_parameters_dict["evaluation_strategy_parameters"],
+        sulfur_valence=explicit_action_space_parameters["sulfur_valence"],
+        kth_score_to_record=explicit_search_parameters_dict["stop_kth_score_value"][0] if \
+            explicit_search_parameters_dict["stop_kth_score_value"] is not None else 1
     )
 
     # Setting the instance for the stop criterion
@@ -447,7 +491,8 @@ def run_model(parameters_dict):
                                                    evaluation_strategy=evaluation_strategy,
                                                    action_spaces=action_spaces,
                                                    action_spaces_parameters=action_spaces_parameters,
-                                                   search_space_parameters=explicit_action_space_parameters)
+                                                   search_space_parameters=explicit_action_space_parameters,
+                                                   explicit_IO_parameters=explicit_IO_parameters_dict)
 
     # Building stop criterion strategy
     stop_criterion_strategy = _parse_stop_criterion_strategy(
@@ -459,7 +504,8 @@ def run_model(parameters_dict):
                               mutation_strategy=mutation_strategy,
                               stop_criterion_strategy=stop_criterion_strategy,
                               explicit_search_parameters_dict=explicit_search_parameters_dict,
-                              explicit_IO_parameters_dict=explicit_IO_parameters_dict)
+                              explicit_IO_parameters_dict=explicit_IO_parameters_dict,
+                              explicit_action_space_parameters=explicit_action_space_parameters)
 
     # GuacaMol special case
     if is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy):
