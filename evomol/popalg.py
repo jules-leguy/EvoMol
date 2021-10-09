@@ -295,6 +295,27 @@ class PopAlg:
         self.evaluation_strategy.enable_calls_count()
         self.evaluation_strategy.set_params(**self.evaluation_strategy_parameters["evaluate_new_solution"])
 
+        # Recording the scores of the initial population in the all_generated.csv file.
+        # The file is thus badly named indeed. But it will stay that way for compatibility reasons.
+        if self.record_all_generated_individuals:
+            scores, all_scores = self.evaluation_strategy.get_population_scores()
+
+            # Iterating over all individuals of the initial population
+            for i in range(len(scores)):
+                self.all_generated_individuals_smiles.append(self.pop[i].to_aromatic_smiles())
+                self.all_generated_individuals_improver.append(None)
+                self.all_generated_individuals_step.append(-1)
+                self.all_generated_individuals_n_obj_calls.append(0)
+                self.all_generated_individuals_success_obj_computation.append(True)
+                self.all_generated_individuals_obj_value.append(scores[i])
+
+                all_scores_vect = []
+                for j in range(len(self.evaluation_strategy.keys())):
+                    all_scores_vect.append(all_scores[j][i])
+                print(all_scores_vect)
+                self.all_generated_individuals_scores = np.concatenate([self.all_generated_individuals_scores,
+                                                                        np.array(all_scores_vect).reshape(1, -1)])
+
     def save(self):
         """
         Saving the data to the files
