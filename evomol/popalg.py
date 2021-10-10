@@ -88,7 +88,9 @@ class PopAlg:
             selection=self.selection,
             kth_score_to_record_key=self.kth_score_to_record_key,
             shuffle_init_pop=self.shuffle_init_pop,
-            sulfur_valence=self.sulfur_valence
+            sulfur_valence=self.sulfur_valence,
+            external_tabu_list=self.external_tabu_list,
+            record_all_generated_individuals=self.record_all_generated_individuals
         )
 
     def __init__(self, evaluation_strategy, mutation_strategy, stop_criterion_strategy,
