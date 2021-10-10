@@ -66,7 +66,8 @@ def define_GuacaMol_evaluation_strategies(evaluation_strategy, defined_evaluatio
             if isinstance(evaluation_strategy.evaluation_strategies[i], UndefinedGuacaMolEvaluationStrategy):
                 evaluation_strategy.evaluation_strategies[i] = defined_evaluation_strategy
             elif isinstance(evaluation_strategy.evaluation_strategies[i], EvaluationStrategyComposite):
-                define_GuacaMol_evaluation_strategies(evaluation_strategy.evaluation_strategies[i], defined_evaluation_strategy)
+                define_GuacaMol_evaluation_strategies(evaluation_strategy.evaluation_strategies[i],
+                                                      defined_evaluation_strategy)
 
 
 def is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy):
@@ -100,7 +101,6 @@ def get_GuacaMol_benchmark_parameter(evaluation_strategy):
                 return retrieved_value
 
     return None
-
 
 
 class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
@@ -137,8 +137,8 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         return benchmark_names_list[curr_benchmark_id]
 
-    def _generate_optimized_molecules(self, scoring_function: ScoringFunction, number_molecules: int,  name: str,
-                                     starting_population: Optional[List[str]] = None) -> List[str]:
+    def _generate_optimized_molecules(self, scoring_function: ScoringFunction, number_molecules: int, name: str,
+                                      starting_population: Optional[List[str]] = None) -> List[str]:
         """
         Identical to self.generate_optimized_molecules but when using the modified GuacaMol version that allows for
         parallel optimization of objectives.
@@ -155,8 +155,7 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
         instance.output_folder_path = join(self.output_save_path, name)
 
         # Extracting GuacaMol evaluation function
-        # guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
-        guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, curr_benchmark_name)
+        guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
 
         # Merging the evaluation strategy of the PopAlg instance to the GuacaMol objective
         if isinstance(instance.evaluation_strategy, UndefinedGuacaMolEvaluationStrategy):
@@ -225,10 +224,8 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         # Setting folder to save the results
         instance.output_folder_path = join(self.output_save_path, curr_benchmark_name)
-        # instance.output_folder_path = join(self.output_save_path, name)
 
         # Extracting GuacaMol evaluation function
-        # guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
         guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, curr_benchmark_name)
 
         # Merging the evaluation strategy of the PopAlg instance to the GuacaMol objective
