@@ -114,7 +114,9 @@ quality filter before inserting the mutated individuals in the population (**Fal
 * ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
 fingerprint of the solutions with respect to a reference dataset (see IO parameters). If the proportion is above the
 threshold, the solutions will be discarded and thus will not be inserted in the population (**1**).
-* ```"sulfur_valence"```: valence of sulfur atoms (**6**)
+* ```"sascore_threshold"``` if the solutions have a [SAScore](https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)
+value above this threshold, they will be discarded and thus will not be inserted in the population (**float("inf")**).
+* ```"sulfur_valence"```: valence of sulfur atoms (**6**).
 
 ### Optimization parameters
 

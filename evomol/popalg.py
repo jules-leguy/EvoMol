@@ -31,36 +31,41 @@ class GeneratedIndividualsRecorder:
         self.objective_calls = []
         self.success_obj_computation = []
         self.improver = []
+        self.failed_any_filter = []
+        self.failed_any_quality_filter = []
+        self.failed_tabu_pop = []
+        self.failed_tabu_external = []
+        self.failed_rdfilters = []
+        self.failed_sillywalks = []
+        self.failed_sascore = []
         self.evaluation_strategy = evaluation_strategy
 
-    def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation):
+    def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation,
+                          failed_tabu_pop=False, failed_tabu_external=False, failed_rdfilters=False,
+                          failed_sillywalks=False, failed_sascore=False):
         self.smiles.append(individual.to_aromatic_smiles())
         self.total_scores.append(total_score)
         self.scores.append(scores)
         self.objective_calls.append(objective_calls)
         self.improver.append(improver)
         self.success_obj_computation.append(success_obj_computation)
-
-    def get_smiles_vect(self):
-        return self.smiles
-
-    def get_total_scores_vect(self):
-        return self.total_scores
+        failed_any_quality_filter = failed_rdfilters or failed_sillywalks or failed_sascore
+        self.failed_any_quality_filter.append(failed_any_quality_filter)
+        self.failed_any_filter.append(failed_any_quality_filter or failed_tabu_pop or failed_tabu_external)
+        self.failed_tabu_pop.append(failed_tabu_pop)
+        self.failed_tabu_external.append(failed_tabu_external)
+        self.failed_rdfilters.append(failed_rdfilters)
+        self.failed_sillywalks.append(failed_sillywalks)
+        self.failed_sascore.append(failed_sascore)
 
     def get_scores_array(self):
         return np.array(self.scores).reshape(len(self.smiles), len(self.evaluation_strategy.keys()))
 
-    def get_objective_calls_vect(self):
-        return self.objective_calls
-
     def get_step_vect(self):
         return list(np.full((len(self.smiles),), self.curr_step))
 
-    def get_improver_vect(self):
-        return self.improver
-
-    def get_success_obj_computation_vect(self):
-        return self.success_obj_computation
+    def get_passed_filters_mask(self):
+        return np.logical_not(self.failed_any_filter)
 
 
 class PopAlg:
@@ -220,14 +225,22 @@ class PopAlg:
 
         # Insuring the SMILES of the external tabu list are canonical
         if self.external_tabu_list is not None:
-            self.external_tabu_list = [MolGraph(MolFromSmiles(smi)).to_aromatic_smiles() for smi in self.external_tabu_list]
+            self.external_tabu_list = [MolGraph(MolFromSmiles(smi)).to_aromatic_smiles() for smi in
+                                       self.external_tabu_list]
 
         # Initialization of the dictionary containing the traces of steps of the algorithm
         self.step_traces = {
             'scores': {},
             'n_replaced': [],
             'additional_values': {},
-            'timestamps': []
+            'timestamps': [],
+            'n_failed_obj_computation': [],
+            'n_not_improvers_among_success_obj_computation': [],
+            'n_discarded_tabu': [],
+            'n_discarded_filters': [],
+            'n_discarded_rdfilters': [],
+            'n_discarded_sillywalks': [],
+            'n_discarded_sascore': []
         }
 
         # Initialization of keys in the self.step_traces dict declared by the evaluation strategy instance
@@ -280,7 +293,6 @@ class PopAlg:
 
         # Iterating over all the given smiles
         for i, smi in enumerate(smiles_list):
-
             # Loading QuMolGraph object
             self.pop[i] = MolGraph(MolFromSmiles(smi), sanitize_mol=True, mutability=atom_mutability,
                                    sulfur_valence=self.sulfur_valence)
@@ -336,6 +348,14 @@ class PopAlg:
                 csv_array.append([k] + v)
             csv_array.append(["n_replaced"] + self.step_traces["n_replaced"])
             csv_array.append(["timestamps"] + self.step_traces["timestamps"])
+            csv_array.append(["n_failed_obj_computation"] + self.step_traces["n_failed_obj_computation"])
+            csv_array.append(["n_not_improvers_among_success_obj_computation"] +
+                             self.step_traces["n_not_improvers_among_success_obj_computation"])
+            csv_array.append(["n_discarded_tabu"] + self.step_traces["n_discarded_tabu"])
+            csv_array.append(["n_discarded_filters"] + self.step_traces["n_discarded_filters"])
+            csv_array.append(["n_discarded_rdfilters"] + self.step_traces["n_discarded_rdfilters"])
+            csv_array.append(["n_discarded_sillywalks"] + self.step_traces["n_discarded_sillywalks"])
+            csv_array.append(["n_discarded_sascore"] + self.step_traces["n_discarded_sascore"])
 
             with open(join(self.output_folder_path, 'steps.csv'), "w", newline='') as f:
                 writer = csv.writer(f)
@@ -418,7 +438,12 @@ class PopAlg:
                 for error in self.errors:
                     writer.writerow(error)
 
-    def record_step_data(self):
+    def record_step_data(self, step_gen_ind_recorder):
+        """
+        :param step_gen_ind_recorder: GeneratedIndividualsRecorder instance to retrieve information about discarded
+        solutions
+        :return:
+        """
 
         # Extracting scores dictionary containing the scores for each objective
         step_scores_dict = scores_to_scores_dict(self.curr_total_scores, self.curr_scores,
@@ -449,7 +474,34 @@ class PopAlg:
         for k, v in self.evaluation_strategy.get_additional_population_scores().items():
             self.step_traces["additional_values"][k].append(v)
 
-    def evaluate_pop_record_step_data(self, n_replaced, record_step_data=True):
+        # Saving information about discarded solutions during the step
+        if step_gen_ind_recorder is not None:
+            self.step_traces["n_failed_obj_computation"].append(np.sum(
+                np.logical_not(np.array(step_gen_ind_recorder.success_obj_computation)[
+                                   step_gen_ind_recorder.get_passed_filters_mask()])))
+            self.step_traces["n_not_improvers_among_success_obj_computation"].append(np.sum(
+                np.logical_not(step_gen_ind_recorder.improver)[np.logical_and(
+                    np.array(step_gen_ind_recorder.success_obj_computation),
+                    step_gen_ind_recorder.get_passed_filters_mask())]
+            ))
+            self.step_traces["n_discarded_tabu"].append(np.sum(np.logical_or(
+                step_gen_ind_recorder.failed_tabu_pop,
+                step_gen_ind_recorder.failed_tabu_external
+            )))
+            self.step_traces["n_discarded_filters"].append(np.sum(step_gen_ind_recorder.failed_any_quality_filter))
+            self.step_traces["n_discarded_rdfilters"].append(np.sum(step_gen_ind_recorder.failed_rdfilters))
+            self.step_traces["n_discarded_sillywalks"].append(np.sum(step_gen_ind_recorder.failed_sillywalks))
+            self.step_traces["n_discarded_sascore"].append(np.sum(step_gen_ind_recorder.failed_sascore))
+        else:
+            self.step_traces["n_failed_obj_computation"].append(0)
+            self.step_traces["n_not_improvers_among_success_obj_computation"].append(0)
+            self.step_traces["n_discarded_tabu"].append(0)
+            self.step_traces["n_discarded_filters"].append(0)
+            self.step_traces["n_discarded_rdfilters"].append(0)
+            self.step_traces["n_discarded_sillywalks"].append(0)
+            self.step_traces["n_discarded_sascore"].append(0)
+
+    def evaluate_pop_record_step_data(self, n_replaced, record_step_data=True, step_gen_ind_recorder=None):
 
         # Population evaluation
         self.curr_total_scores, self.curr_scores = self.evaluation_strategy.get_population_scores()
@@ -462,14 +514,15 @@ class PopAlg:
 
         # Updating the history of the kth score
         if len(scores_vector_kth_score_to_be_recorded) >= self.kth_score_to_record:
-            kth_score = np.partition(scores_vector_kth_score_to_be_recorded, -self.kth_score_to_record)[-self.kth_score_to_record]
+            kth_score = np.partition(scores_vector_kth_score_to_be_recorded, -self.kth_score_to_record)[
+                -self.kth_score_to_record]
             self.kth_score_history.appendleft(kth_score)
         else:
             self.kth_score_history.appendleft(np.nan)
 
         if record_step_data:
             # Recording step data
-            self.record_step_data()
+            self.record_step_data(step_gen_ind_recorder)
 
             # Saving step timestamp
             self.step_traces["timestamps"].append(time.time() - self.timestamp_start)
@@ -663,7 +716,8 @@ class PopAlg:
                                     self.n_fail_mut[curr_to_be_replaced_idx] = 0
 
                                     # Updating score
-                                    self.evaluation_strategy.record_ind_score(curr_to_be_replaced_idx, mutated_total_score,
+                                    self.evaluation_strategy.record_ind_score(curr_to_be_replaced_idx,
+                                                                              mutated_total_score,
                                                                               mutated_scores, mutated_ind)
 
                                     # Recording success
@@ -694,33 +748,38 @@ class PopAlg:
 
                     # Saving information if no individual was replaced during step
                     if len(replaced_during_step) == 0:
-
                         print("No replacement occurred")
                         self.errors.append([self.curr_step_id, "No replacement occured"])
 
                 # Recording the number of replaced individuals for the step
                 n_replaced = len(replaced_during_step)
 
-                # Recording all individuals generated during the step if necessary
+                # Recording all individuals generated during the step that passed the filters (tabu and quality),
+                # if necessary
                 if self.record_all_generated_individuals:
-
-                    self.all_generated_individuals_smiles.extend(step_gen_ind_recorder.get_smiles_vect())
-                    self.all_generated_individuals_n_obj_calls.extend(step_gen_ind_recorder.get_objective_calls_vect())
-                    self.all_generated_individuals_step.extend(step_gen_ind_recorder.get_step_vect())
-                    self.all_generated_individuals_obj_value.extend(step_gen_ind_recorder.get_total_scores_vect())
+                    self.all_generated_individuals_smiles.extend(np.array(step_gen_ind_recorder.smiles)[
+                                                                     step_gen_ind_recorder.get_passed_filters_mask()])
+                    self.all_generated_individuals_n_obj_calls.extend(np.array(step_gen_ind_recorder.objective_calls)[
+                                                                    step_gen_ind_recorder.get_passed_filters_mask()])
+                    self.all_generated_individuals_step.extend(np.array(step_gen_ind_recorder.get_step_vect())[
+                                                                   step_gen_ind_recorder.get_passed_filters_mask()])
+                    self.all_generated_individuals_obj_value.extend(np.array(step_gen_ind_recorder.total_scores)[
+                                                                    step_gen_ind_recorder.get_passed_filters_mask()])
                     self.all_generated_individuals_scores = np.concatenate([
                         self.all_generated_individuals_scores,
-                        step_gen_ind_recorder.get_scores_array()
+                        step_gen_ind_recorder.get_scores_array()[step_gen_ind_recorder.get_passed_filters_mask()]
                     ])
-                    self.all_generated_individuals_improver.extend(step_gen_ind_recorder.get_improver_vect())
+                    self.all_generated_individuals_improver.extend(np.array(step_gen_ind_recorder.improver)[
+                                                                       step_gen_ind_recorder.get_passed_filters_mask()])
                     self.all_generated_individuals_success_obj_computation.extend(
-                        step_gen_ind_recorder.get_success_obj_computation_vect())
+                        np.array(step_gen_ind_recorder.success_obj_computation)[
+                            step_gen_ind_recorder.get_passed_filters_mask()])
 
                 # Informing the evaluator that the step has reached its end
                 self.evaluation_strategy.end_step_population(self.pop)
 
                 # Evaluation of new population and recording step data
-                self.evaluate_pop_record_step_data(n_replaced=n_replaced)
+                self.evaluate_pop_record_step_data(n_replaced=n_replaced, step_gen_ind_recorder=step_gen_ind_recorder)
 
                 if self.curr_step_id % self.save_n_steps == 0:
                     self.save()

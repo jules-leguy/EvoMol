@@ -2,7 +2,8 @@ import os
 from abc import ABC, abstractmethod
 
 import numpy as np
-from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy
+from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy, \
+    SAScoreEvaluationStrategy
 from .molgraphops.molgraph import MolGraphBuilder
 from .molgraphops.exploration import random_neighbour
 
@@ -51,7 +52,8 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
     """
 
     def __init__(self, k, max_n_try, evaluation_strategy, action_spaces, action_spaces_parameters, problem_type="max",
-                 quality_filter=False, silly_molecules_fp_threshold=1, silly_molecules_db=None):
+                 quality_filter=False, silly_molecules_fp_threshold=1, silly_molecules_db=None,
+                 sascore_threshold=float("inf")):
         """
 
         :param k: max number of successive graph operations
@@ -65,6 +67,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         :param silly_molecules_fp_threshold: Using Patrick Walters's silly walk program to count the proportion of
         bits in the ECFP4 fingerprint that do not exist in the ChemBL. The molecules with a proportion that is higher
         than the given threshold are discarded (https://github.com/PatWalters/silly_walks).
+        :param sascore_threshold : discarding solutions that have a SAScore value above the given threshold
         """
         self.k = k
         self.max_n_try = max_n_try
@@ -74,12 +77,16 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         self.problem_type = problem_type
         self.quality_filter = quality_filter
         self.silly_molecules_fp_threshold = silly_molecules_fp_threshold
+        self.sascore_threshold = sascore_threshold
 
         if self.quality_filter:
             self.rd_filter_eval_strat = RDFiltersEvaluationStrategy()
 
         if self.silly_molecules_fp_threshold < 1:
             self.silly_walks_eval_strat = SillyWalksEvaluationStrategy(silly_molecules_db)
+
+        if self.sascore_threshold < float("inf"):
+            self.sascore_eval_strat = SAScoreEvaluationStrategy()
 
     def is_improver(self, curr_total_score, mutated_total_score):
 
@@ -110,48 +117,70 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                 print(e)
                 raise MutationError(individual.to_aromatic_smiles()) from e
 
+            # Computing boolean filter values
+            failed_tabu_pop = mutated_ind.to_aromatic_smiles() in pop_tabu_list
+            failed_tabu_external = external_tabu_list is not None and \
+                mutated_ind.to_aromatic_smiles() in external_tabu_list
+            failed_quality_filter = self.quality_filter and \
+                self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 0
+            failed_sillywalks_filter = self.silly_molecules_fp_threshold < 1 and \
+                self.silly_walks_eval_strat.evaluate_individual(mutated_ind)[0] > self.silly_molecules_fp_threshold
+
+            try:
+                failed_sascore_filter = self.sascore_threshold < float("inf") and \
+                    self.sascore_eval_strat.evaluate_individual(mutated_ind)[0] > self.sascore_threshold
+            except ZeroDivisionError:
+                failed_sascore_filter = True
+
             # Only evaluating the neighbour if it has not been encountered yet in the population and if it is valid
-            # if the filter is on
-            if not mutated_ind.to_aromatic_smiles() in pop_tabu_list and \
-                    (not self.quality_filter or self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 1) and \
-                    (self.silly_molecules_fp_threshold == 1 or self.silly_walks_eval_strat.evaluate_individual(mutated_ind)[0] <= self.silly_molecules_fp_threshold):
+            # if the filters are enabled and if it is not in the external tabu list
+            if not failed_tabu_pop and not failed_tabu_external and not failed_quality_filter and \
+                    not failed_sillywalks_filter and not failed_sascore_filter:
 
+                try:
 
-                # Discarding solution if in the external tabu list
-                if external_tabu_list is None or mutated_ind.to_aromatic_smiles() not in external_tabu_list:
+                    # Computing score
+                    mutated_total_score, mutated_scores = \
+                        self.evaluation_strategy.evaluate_individual(mutated_ind, to_replace_idx=ind_to_replace_idx)
 
-                    try:
+                except Exception as e:
+                    generated_ind_recorder.record_individual(individual=mutated_ind,
+                                                             total_score=None,
+                                                             scores=np.full((len(self.evaluation_strategy.keys(), )), None),
+                                                             objective_calls=self.evaluation_strategy.n_calls,
+                                                             success_obj_computation=False,
+                                                             improver=False)
 
-                        # Computing score
-                        mutated_total_score, mutated_scores = self.evaluation_strategy.evaluate_individual(mutated_ind,
-                                                                                                           to_replace_idx=ind_to_replace_idx)
+                    raise EvaluationError(str(e) + individual.to_aromatic_smiles() + " " + desc) from e
 
-                    except Exception as e:
-                        generated_ind_recorder.record_individual(individual=mutated_ind,
-                                                                 total_score=None,
-                                                                 scores=np.full((len(self.evaluation_strategy.keys(), )), None),
-                                                                 objective_calls=self.evaluation_strategy.n_calls,
-                                                                 success_obj_computation=False,
-                                                                 improver=False)
+                # Checking if the mutated individual is an improver
+                is_improver = self.is_improver(curr_total_score, mutated_total_score)
 
-                        raise EvaluationError(str(e) + individual.to_aromatic_smiles() + " " + desc) from e
+                # Recording the mutated individual
+                generated_ind_recorder.record_individual(individual=mutated_ind,
+                                                         total_score=mutated_total_score,
+                                                         scores=mutated_scores,
+                                                         objective_calls=self.evaluation_strategy.n_calls,
+                                                         success_obj_computation=True,
+                                                         improver=is_improver)
 
-                    # Recording the mutated individual and returning it if it is an improver
-                    if self.is_improver(curr_total_score, mutated_total_score):
-                        generated_ind_recorder.record_individual(individual=mutated_ind,
-                                                                 total_score=mutated_total_score,
-                                                                 scores=mutated_scores,
-                                                                 objective_calls=self.evaluation_strategy.n_calls,
-                                                                 success_obj_computation=True,
-                                                                 improver=True)
-                        return mutated_ind, desc, mutated_total_score, mutated_scores
-                    else:
-                        generated_ind_recorder.record_individual(individual=mutated_ind,
-                                                                 total_score=mutated_total_score,
-                                                                 scores=mutated_scores,
-                                                                 objective_calls=self.evaluation_strategy.n_calls,
-                                                                 success_obj_computation=True,
-                                                                 improver=False)
+                # Returning the mutated solution if it is an improver
+                if is_improver:
+                    return mutated_ind, desc, mutated_total_score, mutated_scores
+
+            # The mutated solution did not pass the filters
+            else:
+                generated_ind_recorder.record_individual(individual=mutated_ind,
+                                                         total_score=None,
+                                                         scores=np.full((len(self.evaluation_strategy.keys(), )), None),
+                                                         objective_calls=self.evaluation_strategy.n_calls,
+                                                         success_obj_computation=False,
+                                                         improver=False,
+                                                         failed_tabu_pop=failed_tabu_pop,
+                                                         failed_tabu_external=failed_tabu_external,
+                                                         failed_rdfilters=failed_quality_filter,
+                                                         failed_sillywalks=failed_sillywalks_filter,
+                                                         failed_sascore=failed_sascore_filter)
 
         # Raising error if no improver was found
         raise NoImproverError("No improver found")
