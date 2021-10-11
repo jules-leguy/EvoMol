@@ -235,7 +235,6 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         # Setting additional stop criterion, stopping the execution when best possible score is obtained
         instance.kth_score_to_record_key = curr_benchmark_name
-        # instance.kth_score_to_record_key = name
         additional_stop_criterion = KthScoreMaxValue(1, round=3)
         instance.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
         instance.stop_criterion_strategy.set_pop_alg_instance(instance)
