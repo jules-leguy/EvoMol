@@ -20,6 +20,8 @@ from rdkit.Chem import RDConfig
 import os
 import sys
 
+from evomol.molgraphops.molgraph import MolGraph
+
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 import sascorer
 import numpy as np
@@ -72,6 +74,14 @@ class EvaluationStrategyComposant(ABC):
         """
         if self.do_count_calls:
             self.n_calls += 1
+
+    def eval_smi(self, smiles):
+        """
+        Evaluating a SMILES
+        :param smiles:
+        :return:
+        """
+        return self.evaluate_individual(MolGraph(MolFromSmiles(smiles)))[0]
 
     @abstractmethod
     def compute_record_scores_init_pop(self, population):
