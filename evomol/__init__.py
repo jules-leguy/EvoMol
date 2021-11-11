@@ -89,6 +89,7 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
                                       cache_files=explicit_IO_parameters_dict["dft_cache_files"],
                                       MM_program=explicit_IO_parameters_dict["dft_MM_program"],
+                                      dft_base=explicit_IO_parameters_dict["dft_base"],
                                       shared_last_computation=shared_last_DFT_computation)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
@@ -362,6 +363,7 @@ def _extract_explicit_IO_parameters(parameters_dict):
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
         "dft_MM_program": input_IO_parameters[
             "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
+        "dft_base": input_IO_parameters["dft_base"] if "dft_base" in input_IO_parameters else "3-21G*",
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,

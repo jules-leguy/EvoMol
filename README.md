@@ -163,6 +163,7 @@ time of generation (**False**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 * ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
 **"obabel"** for OpenBabel or "rdkit" for RDKit.
+* ```"dft_base"```: DFT calculations base (__"3-21G*"__).
 * ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
 ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 
 ```"sillywalks_threshold"``` parameter.
