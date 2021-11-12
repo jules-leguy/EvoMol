@@ -365,7 +365,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         :param is_in_cache: whether the molecule is known in the cache
         """
 
-        remove_files([post_opt_smi_path, xyz_path])#, opt_input_path])
+        remove_files([post_opt_smi_path, xyz_path, opt_input_path])
 
         # Removing CHK file if self.remove_chk_file is set to True
         if self.remove_chk_file:
