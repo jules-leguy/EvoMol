@@ -245,6 +245,9 @@ def _parse_action_space(parameters_dict):
             "max_heavy_atoms"] if "max_heavy_atoms" in input_param_action_space else 38,
         "substitution": input_param_action_space[
             "substitution"] if "substitution" in input_param_action_space else True,
+        "append_atom": input_param_action_space["append_atom"] if "append_atom" in input_param_action_space else True,
+        "remove_atom": input_param_action_space["remove_atom"] if "remove_atom" in input_param_action_space else True,
+        "change_bond": input_param_action_space["change_bond"] if "change_bond" in input_param_action_space else True,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
@@ -261,6 +264,9 @@ def _parse_action_space(parameters_dict):
     action_spaces, action_spaces_parameters = \
         generic_action_space(atom_symbols_list=symbols_list,
                              max_heavy_atoms=explicit_action_space_parameters["max_heavy_atoms"],
+                             append_atom=explicit_action_space_parameters["append_atom"],
+                             remove_atom=explicit_action_space_parameters["remove_atom"],
+                             change_bond=explicit_action_space_parameters["change_bond"],
                              substitution=explicit_action_space_parameters["substitution"],
                              cut_insert=explicit_action_space_parameters["cut_insert"],
                              move_group=explicit_action_space_parameters["move_group"])

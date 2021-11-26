@@ -106,6 +106,9 @@ GuacaMol</a> benchmarks.
 The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"atoms"``` : text list of available <ins>heavy</ins> atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
+* ```"append_atom"```: whether to use *append atom* action (**True**).
+* ```"remove_atom"```: whether to use *remove atom* action (**True**).
+* ```"change_bond"```: whether to use *change bond* action (**True**).
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
