@@ -669,7 +669,6 @@ class RemoveGroupActionSpace(ActionSpace):
                         valid_action_space[i][j] = True
                         valid_action_space[j][i] = True
 
-        print(valid_action_space)
         return valid_action_space.flatten()
 
     def get_action_space_size(self, parameters, qu_mol_graph):
@@ -686,10 +685,6 @@ class RemoveGroupActionSpace(ActionSpace):
         smiles_before = qu_mol_graph.to_aromatic_smiles()
 
         i, j = self._action_id_to_atoms_idx(action_id, parameters)
-
-        print(action_id)
-        print(i)
-        print(j)
 
         # Computing the indices of the atoms that are to be removed
         atoms_to_remove_indices = self._get_connected_component_after_removing_bond(qu_mol_graph, i, j)
