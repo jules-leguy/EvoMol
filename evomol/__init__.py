@@ -248,8 +248,13 @@ def _parse_action_space(parameters_dict):
         "append_atom": input_param_action_space["append_atom"] if "append_atom" in input_param_action_space else True,
         "remove_atom": input_param_action_space["remove_atom"] if "remove_atom" in input_param_action_space else True,
         "change_bond": input_param_action_space["change_bond"] if "change_bond" in input_param_action_space else True,
+        "change_bond_prevent_breaking_creating_bonds": input_param_action_space[
+            "change_bond_prevent_breaking_creating_bonds"] if "change_bond_prevent_breaking_creating_bonds" in input_param_action_space else False,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
+        "remove_group": input_param_action_space["remove_group"] if "remove_group" in input_param_action_space else False,
+        "remove_group_only_remove_smallest_group": input_param_action_space[
+            "remove_group_only_remove_smallest_group"] if "remove_group_only_remove_smallest_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
             "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
         "sillywalks_threshold": input_param_action_space[
@@ -267,9 +272,12 @@ def _parse_action_space(parameters_dict):
                              append_atom=explicit_action_space_parameters["append_atom"],
                              remove_atom=explicit_action_space_parameters["remove_atom"],
                              change_bond=explicit_action_space_parameters["change_bond"],
+                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters["change_bond_prevent_breaking_creating_bonds"],
                              substitution=explicit_action_space_parameters["substitution"],
                              cut_insert=explicit_action_space_parameters["cut_insert"],
-                             move_group=explicit_action_space_parameters["move_group"])
+                             move_group=explicit_action_space_parameters["move_group"],
+                             remove_group=explicit_action_space_parameters["remove_group"],
+                             remove_group_only_remove_smallest_group=explicit_action_space_parameters["remove_group_only_remove_smallest_group"])
 
     for parameter in input_param_action_space:
         if parameter not in explicit_action_space_parameters:

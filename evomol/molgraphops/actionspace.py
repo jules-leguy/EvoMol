@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from networkx import connected_components, nx
+from networkx import connected_components, nx, node_connected_component
 
 
 class ActionSpace(ABC):
@@ -588,14 +588,149 @@ class MoveFunctionalGroupActionSpace(ActionSpace):
         return ""
 
 
+class RemoveGroupActionSpace(ActionSpace):
+    """
+    Definition of the action space for removing a group of connected atoms from the molecular graph
+    """
+
+    def __init__(self, check_validity=True, only_remove_smallest_group=False):
+        """
+        :param check_validity:
+        :param only_remove_smallest_group: whether both parts of bridge bonds can be removed (False), or only the
+        smallest part (True)
+        """
+        super().__init__(check_validity)
+        self.only_remove_smallest_group = only_remove_smallest_group
+
+    def action_space_type_id(self):
+        return "RemoveFG"
+
+    def _action_id_to_atoms_idx(self, action_id, parameters):
+        """
+        Converting the id of action to the indices of both atoms involved
+        @return:
+        """
+        return action_id // parameters.max_heavy_atoms, action_id % parameters.max_heavy_atoms
+
+    def _get_connected_component_after_removing_bond(self, qu_mol_graph, bond_at_1, bond_at_2):
+        """
+        Returning the connected component that contains that atom of index bond_at_1 if the bond between bond_at_1 and
+        bond_at_2 was removed. The list of indices of the connected component is returned
+        :param qu_mol_graph:
+        :param bond_at_1:
+        :param bond_at_2:
+        :return:
+        """
+
+        # Computing the adjacency matrix
+        adjacency_matrix = qu_mol_graph.get_adjacency_matrix()
+
+        # Virtually removing the bond in the adjacency matrix
+        adjacency_matrix[bond_at_1][bond_at_2] = 0
+        adjacency_matrix[bond_at_2][bond_at_1] = 0
+
+        # Loading the graph as a networkx Graph
+        g = nx.from_numpy_array(adjacency_matrix)
+
+        # Returning the list of indices of the connected component that contains the bond_at_1 atom
+        return list(node_connected_component(g, bond_at_1))
+
+    def get_valid_actions_mask(self, parameters, qu_mol_graph):
+
+        # Initialization of the action space
+        valid_action_space = np.full((parameters.max_heavy_atoms, parameters.max_heavy_atoms), False)
+
+        # Extraction of the bridge matrix
+        bridge_bond_matrix = qu_mol_graph.get_bridge_bonds_matrix()
+
+        # Iterating over all bonds
+        for i in range(qu_mol_graph.get_n_atoms()):
+            for j in range(i + 1, qu_mol_graph.get_n_atoms()):
+
+                # The group can be removed only if the bond is a bridge and none of the atoms has a formal charge
+                # and at least one atom is mutable
+                if bridge_bond_matrix[i][j] and qu_mol_graph.get_formal_charge(i) == 0 and \
+                        qu_mol_graph.get_formal_charge(j) == 0 \
+                        and (qu_mol_graph.get_atom_mutability(i) or qu_mol_graph.get_atom_mutability(j)):
+
+                    # Extracting the indices of both connected components if the current bond was removed
+                    connected_component_i = self._get_connected_component_after_removing_bond(qu_mol_graph, i, j)
+                    connected_component_j = self._get_connected_component_after_removing_bond(qu_mol_graph, j, i)
+
+                    # If the self.only_remove_smallest_group option is set to True, only the smallest component can be
+                    # removed. Otherwise, both parts of the bond can be removed
+                    if self.only_remove_smallest_group:
+                        if len(connected_component_i) <= len(connected_component_j):
+                            valid_action_space[i][j] = True
+
+                        if len(connected_component_j) <= len(connected_component_i):
+                            valid_action_space[j][i] = True
+                    else:
+                        valid_action_space[i][j] = True
+                        valid_action_space[j][i] = True
+
+        print(valid_action_space)
+        return valid_action_space.flatten()
+
+    def get_action_space_size(self, parameters, qu_mol_graph):
+        """
+        The action space size is the maximum number of bonds (max_heavy_atoms*max_heavy_atoms)
+        """
+        return parameters.max_heavy_atoms * parameters.max_heavy_atoms
+
+    def get_action_expl(self, id_action, parameters, qu_mol_graph):
+        return ""
+
+    def execute_action(self, action_id, parameters, qu_mol_graph):
+
+        smiles_before = qu_mol_graph.to_aromatic_smiles()
+
+        i, j = self._action_id_to_atoms_idx(action_id, parameters)
+
+        print(action_id)
+        print(i)
+        print(j)
+
+        # Computing the indices of the atoms that are to be removed
+        atoms_to_remove_indices = self._get_connected_component_after_removing_bond(qu_mol_graph, i, j)
+
+        try:
+
+            # Iterating over all atoms to be removed
+            for at_idx in sorted(list(atoms_to_remove_indices), reverse=True):
+
+                # Removing the current atom from the molecular graph
+                qu_mol_graph.rm_atom(at_idx, False)
+
+            # Updating the state of the MolGraph object
+            qu_mol_graph.update_mol_representation()
+
+        except Exception as e:
+            print("Remove group caused error")
+            print("Smiles before : " + str(smiles_before))
+            print("Smiles after : " + str(qu_mol_graph.to_aromatic_smiles()))
+            raise e
+
+    def action_to_str(self, action_id, parameters, qu_mol_graph):
+        return ""
+
+
 class ChangeBondActionSpace(ActionSpace):
     """
     Changing a bond from any type to any type among no bond, single, double, triple.
     """
 
-    def __init__(self, check_validity=True, keep_connected=False):
+    def __init__(self, check_validity=True, keep_connected=False, prevent_removing_creating_bonds=False):
+        """
+        Changing the type of a bond
+        :param check_validity: whether to check if the action is legal before application
+        :param keep_connected: whether to make sure that actions cannot break the graph in multiple connected components
+        :param prevent_removing_bonds: whether to prevent the change of bonds from type >= 1 to type 0 (=breaking
+        existing bonds).
+        """
         super().__init__(check_validity)
         self.keep_connected = keep_connected
+        self.prevent_removing_creating_bonds = prevent_removing_creating_bonds
 
     def action_space_type_id(self):
         return "ChB"
@@ -671,21 +806,29 @@ class ChangeBondActionSpace(ActionSpace):
                     # one of the atoms is mutable
                     if delta_bond < 0:
 
+                        # Checking if the prevent breaking bonds constraint is respected if set
+                        prevent_breaking_bonds_constraint_respected = not self.prevent_removing_creating_bonds or bond_to_form > 0
+
                         if not self.keep_connected:
-                            add_bond_action_space_mask[bond_to_form][i][j] = formal_charge_ok and mutability_ok
+                            add_bond_action_space_mask[bond_to_form][i][j] = formal_charge_ok and mutability_ok and \
+                                                                             prevent_breaking_bonds_constraint_respected
                         else:
                             add_bond_action_space_mask[bond_to_form][i][j] = (not bridge_matrix[i][
                                 j] or bond_to_form > 0) \
-                                                                             and formal_charge_ok and mutability_ok
+                                                                             and formal_charge_ok and mutability_ok and \
+                                                                             prevent_breaking_bonds_constraint_respected
 
                     # Bond increment
                     # Bond can be incremented of delta if each atom involved has at least delta free electrons
                     # Bonds involving atoms with formal charges cannot be changed
                     elif delta_bond > 0:
 
+                        # Checking if the prevent creating bonds constraint is respected if set
+                        prevent_breaking_bonds_constraint_respected = not self.prevent_removing_creating_bonds or curr_bond > 0
+
                         add_bond_action_space_mask[bond_to_form][i][j] = (min(free_electons_vect[i],
                                                                               free_electons_vect[j]) >= delta_bond) \
-                                                                         and formal_charge_ok and mutability_ok
+                                                                         and formal_charge_ok and mutability_ok and prevent_breaking_bonds_constraint_respected
 
         final_action_space = []
 

@@ -109,9 +109,13 @@ The ```"action_space_parameters"``` attribute can be set with a dictionary conta
 * ```"append_atom"```: whether to use *append atom* action (**True**).
 * ```"remove_atom"```: whether to use *remove atom* action (**True**).
 * ```"change_bond"```: whether to use *change bond* action (**True**).
+* ```"change_bond_prevent_breaking_creating_bonds"```: whether to prevent the removal or creation of bonds by *change_bond* action (**False**) 
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
+* ```"remove_group"```: whether to use *remove group* action (**False**).
+* ```"remove_group_only_remove_smallest_group"```: in case remove group action is enabled, whether to be able to remove 
+* both parts of a bridge bond (False), or only the smallest part in number of atoms (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
 * ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
