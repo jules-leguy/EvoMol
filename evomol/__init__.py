@@ -5,7 +5,8 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
-    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy
+    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy, \
+    NPerturbationsEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
@@ -44,7 +45,8 @@ def _is_describing_implemented_function(param_eval):
     """
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
-                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
+                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol",
+                          "n_perturbations"]\
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
@@ -84,6 +86,8 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
         strat = ZincNormalizedPLogPEvaluationStrategy()
     elif param_eval == "clscore":
         strat = CLScoreEvaluationStrategy()
+    elif param_eval == "n_perturbations":
+        strat = NPerturbationsEvaluationStrategy()
     elif param_eval == "homo" or param_eval == "lumo" or param_eval == "gap" or param_eval == "homo-1":
         strat = OPTEvaluationStrategy(param_eval,
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],

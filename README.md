@@ -73,6 +73,8 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
    <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
    <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
    <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
+  * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during 
+the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of mutations.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function containing the following entries.
     * ```"type"``` : 
@@ -83,7 +85,7 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
         * "mean" (mean of the properties)
         * "gaussian" (passing the value of a unique objective function through a Gaussian function)
         * "opposite" (computing the opposite value of a unique objective function)
-        * "one_minus" (computing 1-x of a unique objective function x)
+        * "one_minus" (computing 1-f(x) of a unique objective function f)
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
     multi-objective functions).
     * Specific to the linear combination.

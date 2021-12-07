@@ -42,6 +42,9 @@ class MolGraph:
         for id in range(self.get_n_atoms()):
             self.set_atom_mutability(id, mutability)
 
+        # Initialization of modifications count
+        self.n_modifications = 0
+
         self.sulfur_valence = sulfur_valence
 
     def get_atom_mutability(self, id):
@@ -106,6 +109,7 @@ class MolGraph:
         :return:
         """
         new_qumol_graph = MolGraph(sanitize_mol=self.sanitize_mol, sulfur_valence=self.sulfur_valence)
+        new_qumol_graph.n_modifications = self.n_modifications
         new_qumol_graph.mol_graph = RWMol(self.mol_graph, True)
         new_qumol_graph.update_mol_representation()
         return new_qumol_graph
@@ -643,6 +647,9 @@ class MolGraphBuilder:
         return valid_actions_coordinates, valid_actions_weights
 
     def execute_action_coords(self, action_coords):
+
+        # Updating the number of modifications
+        self.qu_mol_graph.n_modifications += 1
 
         # Returning the action result
         return self._execute_action(action_coords)

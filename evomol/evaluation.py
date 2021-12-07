@@ -571,6 +571,20 @@ class SillyWalksEvaluationStrategy(EvaluationStrategy):
         return score, [score]
 
 
+class NPerturbationsEvaluationStrategy(EvaluationStrategy):
+    """
+    Strategy that computes the count of perturbations that were already applied to the solutions.
+    If the parameters of EvoMol are set such as a mutation is a single perturbation on the molecular graph, then this
+    value is equivalent to the number of previous mutations.
+    """
+
+    def keys(self):
+        return ["n_perturbations"]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        return individual.n_modifications, [individual.n_modifications]
+
+
 class RDFiltersEvaluationStrategy(EvaluationStrategy):
     """
     Adapted from https://github.com/PatWalters/rd_filters
