@@ -578,6 +578,25 @@ class PopAlg:
             np.random.shuffle(ind_valid_idx)
             to_be_mutated_in_order_mask = ind_valid_idx
 
+        # Selecting the individuals according to a random strategy with probabilities that are proportional to the value
+        elif self.selection == "random_weighted":
+
+            # If the problem is a minimization problem then computing the opposite of scores
+            if self.problem_type == "min":
+                scores_valid = -scores_valid
+
+            # If negative scores exist, shifting all values so that minimum is 0
+            if np.min(scores_valid) < 0:
+                scores_valid_shifted = scores_valid - np.min(scores_valid)
+            else:
+                scores_valid_shifted = scores_valid
+
+            # Setting all zero objective values to a small number so that probability computation can be performed
+            scores_valid_shifted[scores_valid_shifted == 0] = 1e-10
+
+            to_be_mutated_in_order_mask = np.random.choice(ind_valid_idx, len(ind_valid_idx), replace=False,
+                                                           p=scores_valid_shifted / scores_valid_shifted.sum())
+
         return to_be_mutated_in_order_mask
 
     def get_k_best_individuals_smiles(self, k_best, tabu_list=None):

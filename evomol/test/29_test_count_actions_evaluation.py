@@ -10,9 +10,10 @@ run_model({
         "coef": [1, -1]
     },
     "optimization_parameters": {
-        "max_steps": 50,
+        "max_steps": 500,
         "pop_max_size": 1000,
-        "mutation_max_depth": 1
+        "mutation_max_depth": 1,
+        "selection": "random_weighted"
     },
     "io_parameters": {
         "model_path": "28_count_actions/",

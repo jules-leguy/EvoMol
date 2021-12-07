@@ -136,8 +136,9 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"stop_kth_score_value"```: stopping the search if the kth score in descendant value order has reached the given 
 value with given precision. Accepts a tuple (k, score, precision) or **None** to disable.
 * ```"k_to_replace"``` : number of individuals replaced at each step (**10**).
-* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
- ("random").
+* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**), or they are selected 
+randomly with uniform distribution ("random"), or they are selected randomly with a probability that is proportional
+to their objective function value ("random_weighted") .
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation 
 (**2**).
