@@ -8,7 +8,7 @@ import numpy as np
 from .evaluation import EvaluationStrategy, EvaluationError
 from rdkit.Chem.rdmolops import RemoveHs, RemoveStereochemistry
 from rdkit.Chem.rdDistGeom import EmbedMolecule
-from rdkit.Chem.rdForceFieldHelpers import MMFFOptimizeMolecule
+from rdkit.Chem.rdForceFieldHelpers import MMFFOptimizeMolecule, UFFOptimizeMolecule
 from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToXYZBlock, MolToSmiles
 from rdkit.Chem.rdmolops import AddHs
 
@@ -83,6 +83,65 @@ def obabel_mmff94_xyz(smiles, **kwargs):
     return xyz_str, success
 
 
+def rdkit_mm_xyz(smiles, ff="MMFF94", **kwargs):
+    """
+    Returns the string of the XYZ file obtained performing the MMFF94 or UFF molecular mechanics optimization of the
+    given SMILES using RDKit.
+    Writing temporary files in $MM_WORKING_DIR if defined or otherwise in /tmp
+    :param smiles: input_SMILES
+    :param ff: whether to use MMFF94 force field ("MMFF94") or UFF force field ("UFF")
+    :return : XYZ string of optimized geometry, success (whether the MM optimization was successful and the smiles has
+    stayed identical after optimization)
+    """
+
+    working_dir = os.environ["MM_WORKING_DIR"] if "MM_WORKING_DIR" in os.environ else "/tmp"
+
+    # Converting the molecule to RDKit object
+    mol = MolFromSmiles(smiles)
+    smi_canon = MolToSmiles(MolFromSmiles(smiles))
+
+    # Setting paths
+    filename_smiles = str(os.getpid()) + "_" + smi_to_filename(smi_canon)
+    xyz_path = join(working_dir, filename_smiles + '.xyz')
+    post_MM_smi_path = join(working_dir, filename_smiles + '.smi')
+
+    # Computing geometry
+    try:
+
+        # Adding implicit hydrogens
+        mol = AddHs(mol)
+
+        # MM optimization
+        EmbedMolecule(mol)
+
+        if ff == "MMFF94":
+            value = MMFFOptimizeMolecule(mol, maxIters=kwargs["max_iterations"])
+        elif ff == "UFF":
+            value = UFFOptimizeMolecule(mol, maxIters=kwargs["max_iterations"])
+
+        # Success if returned value is null
+        success_RDKIT_output = value == 0
+
+        # Computing XYZ from optimized molecule
+        xyz_str = MolToXYZBlock(mol)
+
+        # Writing optimized XYZ to file
+        with open(xyz_path, "w") as f:
+            f.writelines(xyz_str)
+
+        # Success if the optimization has converged and the post MM smiles is identical the pre MM smiles
+        success = success_RDKIT_output and check_identical_geometries(xyz_path, smi_canon, post_MM_smi_path)
+
+    except Exception as e:
+        success = False
+        xyz_str = None
+    finally:
+        # Removing files
+        remove_files([post_MM_smi_path, xyz_path])
+
+    return xyz_str, success
+
+
 def rdkit_mmff94_xyz(smiles, **kwargs):
     """
     Returns the string of the XYZ file obtained performing the MMFF94 molecular mechanics optimization of the given
@@ -92,6 +151,10 @@ def rdkit_mmff94_xyz(smiles, **kwargs):
     :param max_iterations: max number of iterations (default 500)
     :return : XYZ string of optimized geometry, success (whether the MM optimization was successful and the smiles has
     stayed identical after optimization)
+
+
+    NOTE : DEPRECATED FUNCTION. Kept here for backwards compatibility. Now it is better to call rdkit_mm_xyz using
+    the ff="MMFF94" parameter.
     """
 
     working_dir = os.environ["MM_WORKING_DIR"] if "MM_WORKING_DIR" in os.environ else "/tmp"
@@ -267,7 +330,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
     optimization of the input file in parameter.
     """
 
-    def __init__(self, prop, n_jobs=1, working_dir_path="/tmp/", cache_files=None, MM_program="obabel",
+    def __init__(self, prop, n_jobs=1, working_dir_path="/tmp/", cache_files=None, MM_program="obabel_mmff94",
                  cache_behaviour="retrieve_OPT_data", remove_chk_file=True, shared_last_computation=None,
                  dft_base="3-21G*"):
         """
@@ -276,7 +339,10 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         :param n_jobs: number of jobs for gaussian optimization
         :param working_dir_path: directory in which computation files will be stored
         :param cache_files: list of JSON file containing a cache of former computations
-        :param MM_program: program used to compute MM ("obabel" or "rdkit")
+        :param MM_program: program used to compute MM. Options are :
+            - "obabel" or "obabel_mmff94" for MMFF94 optimization using OpenBabel
+            - "rdkit" or "rdkit_mmff94" for MMFF94 optimization using RDKit
+            - "rdkit_uff" for UFF optimization using RDKit
         :param cache_behaviour : configuration of the behaviour when cache files are given. "retrieve_OPT_data"
         (default): if the molecule is known in the cache, no DFT computation is made and values are retrieved.
         "compute_again_delete_files": DFT computation are made for all molecules but DFT files are removed for molecules
@@ -475,14 +541,18 @@ class OPTEvaluationStrategy(EvaluationStrategy):
             try:
 
                 # Performing Obabel MM
-                if self.MM_program == "obabel":
+                if self.MM_program == "obabel" or self.MM_program == "obabel_mmff94":
                     # Converting SMILES to XYZ after computing MM (RDKit MMFF94)
                     xyz_str, success_MM = obabel_mmff94_xyz(smi)
 
                 # Performing RDkit MM
-                elif self.MM_program == "rdkit":
+                elif self.MM_program == "rdkit" or self.MM_program == "rdkit_mmff94":
                     # Converting SMILES to XYZ after computing MM (RDKit MMFF94)
-                    xyz_str, success_MM = rdkit_mmff94_xyz(smi, max_iterations=500)
+                    xyz_str, success_MM = rdkit_mm_xyz(smi, ff="MMFF94", max_iterations=500)
+
+                elif self.MM_program == "rdkit_uff":
+                    # Converting SMILES to XYZ after computing MM (RDKit MMFF94)
+                    xyz_str, success_MM = rdkit_mm_xyz(smi, ff="UFF", max_iterations=500)
 
                 if success_MM:
 

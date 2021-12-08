@@ -171,8 +171,11 @@ time of generation (**False**).
 * ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
-* ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
-**"obabel"** for OpenBabel or "rdkit" for RDKit.
+* ```"dft_MM_program"``` : program used to compute molecular mechanics initial geometry of DFT calculations. The 
+options are :
+  * "**obabel_mmff94**"$ or "obabel" to combine OpenBabel and the MMFF94 force field.
+  * "rdkit_mmff94" to combine RDKit with the MMFF94 force field.
+  * "rdkit_uff" to combine RDKit with the UFF force field.
 * ```"dft_base"```: DFT calculations base (__"3-21G*"__).
 * ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
 ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 

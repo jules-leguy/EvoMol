@@ -380,7 +380,7 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "dft_cache_files": input_IO_parameters[
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
         "dft_MM_program": input_IO_parameters[
-            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
+            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel_mmff94",
         "dft_base": input_IO_parameters["dft_base"] if "dft_base" in input_IO_parameters else "3-21G*",
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
