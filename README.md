@@ -76,28 +76,34 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
   * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during 
 the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of mutations.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
-* A dictionary describing a multi-objective function containing the following entries.
+* A dictionary describing a multi-objective function and containing the following entries.
     * ```"type"``` : 
-        * "linear_combination" (linear combination of the properties)
-        * "product" (product of properties)
-        * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)
-        * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
-        * "mean" (mean of the properties)
-        * "gaussian" (passing the value of a unique objective function through a Gaussian function)
-        * "opposite" (computing the opposite value of a unique objective function)
-        * "one_minus" (computing 1-f(x) of a unique objective function f)
-    * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
-    multi-objective functions).
-    * Specific to the linear combination.
+      * "linear_combination" (linear combination of the properties).
+      * "product" (product of the properties).
+      * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
+      * "mean" (mean of the properties).
+    * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions,
+    multi-objective functions or wrapper functions).
+    * Specific to the linear combination
         * ```"coef"``` : list of coefficients.
     * Specific to the use of sigmoid/linear functions
         * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
-    * Specific to the use of Gaussian functions
-        * ```"mu"```: μ parameter of the Gaussian
-        * ```"sigma"```: σ parameter of the Gaussian
-        * ```"normalize""```: whether to normalize the function so that the maximum value is exactly 1 (**False**)
+* A dictionary describing a function wrapping a single property and containing the following entries.
+  * ```"type"```:
+     * "gaussian" (passing the value of a unique objective function through a Gaussian function).
+     * "opposite" (computing the opposite value of a unique objective function).
+     * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)/.
+     * "one_minus" (computing 1-f(x) of a unique objective function f).
+  * ```"function"``` the function to be wrapped (string key describing an implemented function, custom function,
+  multi_objective function or wrapper function). For compatibility reasons, it is also possible to use a 
+  ```"functions"``` attribute that contains a list of functions. In that case only the first element of the list is
+  considered.
+  * Specific to the use of a Gaussian function
+        * ```"mu"```: μ parameter of the Gaussian.
+        * ```"sigma"```: σ parameter of the Gaussian.
+        * ```"normalize"```: whether to normalize the function so that the maximum value is exactly 1 (**False**).
 * An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.

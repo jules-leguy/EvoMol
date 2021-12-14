@@ -159,8 +159,10 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
     if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite",
                               "mean", "one_minus"]:
 
-        # Building evaluation strategies
-        functions_desc = param_eval["functions"]
+        # Building evaluation strategies : reading the "functions" attribute if it is defined and not empty by default,
+        # which contains a list of functions . Otherwise, building a list that contains a single function from
+        # the "function" attribute.
+        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [param_eval["function"]]
         evaluation_strategies = []
         for function_desc in functions_desc:
 
