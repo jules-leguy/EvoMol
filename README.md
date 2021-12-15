@@ -364,8 +364,12 @@ inserted in the population, the ```$FILTER_RULES_DATA``` environment variable mu
 
 ## Citing EvoMol
 
-To reference EvoMol, please cite the following article.
+To reference EvoMol, please cite one of the following article.
 
 Leguy, J., Cauchy, T., Glavatskikh, M., Duval, B., Da Mota, B. EvoMol: a flexible and interpretable evolutionary 
 algorithm for unbiased de novo molecular generation. J Cheminform 12, 55 (2020). 
 https://doi.org/10.1186/s13321-020-00458-z
+
+Leguy, J., Glavatskikh, M., Cauchy, T. et al. Scalable estimator of the diversity for de novo molecular 
+generation resulting in a more robust QM dataset (OD9) and a more efficient molecular optimization. 
+J Cheminform 13, 76 (2021). https://doi.org/10.1186/s13321-021-00554-8
