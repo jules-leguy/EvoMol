@@ -92,7 +92,7 @@ the optimization. If the "mutation_max_depth" parameter is set to 1, then this i
   * ```"type"```:
      * "gaussian" (passing the value of a unique objective function through a Gaussian function).
      * "opposite" (computing the opposite value of a unique objective function).
-     * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)/.
+     * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function).
      * "one_minus" (computing 1-f(x) of a unique objective function f).
   * ```"function"``` the function to be wrapped (string key describing an implemented function, custom function,
   multi_objective function or wrapper function). For compatibility reasons, it is also possible to use a 
