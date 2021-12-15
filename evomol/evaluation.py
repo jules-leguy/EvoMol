@@ -20,6 +20,8 @@ from rdkit.Chem import RDConfig
 import os
 import sys
 
+from evomol.molgraphops.molgraph import MolGraph
+
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 import sascorer
 import numpy as np
@@ -72,6 +74,14 @@ class EvaluationStrategyComposant(ABC):
         """
         if self.do_count_calls:
             self.n_calls += 1
+
+    def eval_smi(self, smiles):
+        """
+        Evaluating a SMILES
+        :param smiles:
+        :return:
+        """
+        return self.evaluate_individual(MolGraph(MolFromSmiles(smiles)))[0]
 
     @abstractmethod
     def compute_record_scores_init_pop(self, population):
@@ -559,6 +569,20 @@ class SillyWalksEvaluationStrategy(EvaluationStrategy):
         else:
             score = 1
         return score, [score]
+
+
+class NPerturbationsEvaluationStrategy(EvaluationStrategy):
+    """
+    Strategy that computes the count of perturbations that were already applied to the solutions.
+    If the parameters of EvoMol are set such as a mutation is a single perturbation on the molecular graph, then this
+    value is equivalent to the number of previous mutations.
+    """
+
+    def keys(self):
+        return ["n_perturbations"]
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+        return individual.n_modifications, [individual.n_modifications]
 
 
 class RDFiltersEvaluationStrategy(EvaluationStrategy):

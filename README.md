@@ -73,29 +73,37 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
    <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
    <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
    <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
+  * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during 
+the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of mutations.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
-* A dictionary describing a multi-objective function containing the following entries.
+* A dictionary describing a multi-objective function and containing the following entries.
     * ```"type"``` : 
-        * "linear_combination" (linear combination of the properties)
-        * "product" (product of properties)
-        * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)
-        * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
-        * "mean" (mean of the properties)
-        * "gaussian" (passing the value of a unique objective function through a Gaussian function)
-        * "opposite" (computing the opposite value of a unique objective function)
-        * "one_minus" (computing 1-x of a unique objective function x)
-    * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions or 
-    multi-objective functions).
-    * Specific to the linear combination.
+      * "linear_combination" (linear combination of the properties).
+      * "product" (product of the properties).
+      * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
+      * "mean" (mean of the properties).
+    * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions,
+    multi-objective functions or wrapper functions).
+    * Specific to the linear combination
         * ```"coef"``` : list of coefficients.
     * Specific to the use of sigmoid/linear functions
         * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
         * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
         * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
-    * Specific to the use of Gaussian functions
-        * ```"mu"```: μ parameter of the Gaussian
-        * ```"sigma"```: σ parameter of the Gaussian
-        * ```"normalize""```: whether to normalize the function so that the maximum value is exactly 1 (**False**)
+* A dictionary describing a function wrapping a single property and containing the following entries.
+  * ```"type"```:
+     * "gaussian" (passing the value of a unique objective function through a Gaussian function).
+     * "opposite" (computing the opposite value of a unique objective function).
+     * "sigm_lin", (passing the value of a unique objective through a linear function and a sigmoid function)/.
+     * "one_minus" (computing 1-f(x) of a unique objective function f).
+  * ```"function"``` the function to be wrapped (string key describing an implemented function, custom function,
+  multi_objective function or wrapper function). For compatibility reasons, it is also possible to use a 
+  ```"functions"``` attribute that contains a list of functions. In that case only the first element of the list is
+  considered.
+  * Specific to the use of a Gaussian function
+        * ```"mu"```: μ parameter of the Gaussian.
+        * ```"sigma"```: σ parameter of the Gaussian.
+        * ```"normalize"```: whether to normalize the function so that the maximum value is exactly 1 (**False**).
 * An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.
@@ -106,15 +114,24 @@ GuacaMol</a> benchmarks.
 The ```"action_space_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"atoms"``` : text list of available <ins>heavy</ins> atoms (**"C,N,O,F,P,S,Cl,Br"**).
 * ```"max_heavy_atoms"```: maximum molecular size in terms of number of heavy atoms (**38**).
+* ```"append_atom"```: whether to use *append atom* action (**True**).
+* ```"remove_atom"```: whether to use *remove atom* action (**True**).
+* ```"change_bond"```: whether to use *change bond* action (**True**).
+* ```"change_bond_prevent_breaking_creating_bonds"```: whether to prevent the removal or creation of bonds by *change_bond* action (**False**) 
 * ```"substitution"```: whether to use *substitute atom type* action (**True**).
 * ```"cut_insert"```: whether to use *cut atom* and *insert carbon atom* actions (**True**).
 * ```"move_group"```: whether to use *move group* action (**True**).
+* ```"remove_group"```: whether to use *remove group* action (**False**).
+* ```"remove_group_only_remove_smallest_group"```: in case remove group action is enabled, whether to be able to remove 
+* both parts of a bridge bond (False), or only the smallest part in number of atoms (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
 * ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
 fingerprint of the solutions with respect to a reference dataset (see IO parameters). If the proportion is above the
 threshold, the solutions will be discarded and thus will not be inserted in the population (**1**).
-* ```"sulfur_valence"```: valence of sulfur atoms (**6**)
+* ```"sascore_threshold"``` if the solutions have a [SAScore](https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)
+value above this threshold, they will be discarded and thus will not be inserted in the population (**float("inf")**).
+* ```"sulfur_valence"```: valence of sulfur atoms (**6**).
 
 ### Optimization parameters
 
@@ -125,8 +142,9 @@ The ```"optimization_parameters"``` attribute can be set with a dictionary conta
 * ```"stop_kth_score_value"```: stopping the search if the kth score in descendant value order has reached the given 
 value with given precision. Accepts a tuple (k, score, precision) or **None** to disable.
 * ```"k_to_replace"``` : number of individuals replaced at each step (**10**).
-* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**) or they are selected randomly
- ("random").
+* ```"selection"``` : whether the best individuals are selected to be mutated (**"best"**), or they are selected 
+randomly with uniform distribution ("random"), or they are selected randomly with a probability that is proportional
+to their objective function value ("random_weighted") .
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation 
 (**2**).
@@ -159,8 +177,12 @@ time of generation (**False**).
 * ```"print_n_steps"``` : period (steps) of printing current population statistics (**1**).
 * ```"dft_working_dir"``` : path where to save DFT optimization related files (**"/tmp"**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
-* ```"dft_MM_program"``` : program used to compute MMFF94 initial geometry of DFT calculations. Can be either 
-**"obabel"** for OpenBabel or "rdkit" for RDKit.
+* ```"dft_MM_program"``` : program used to compute molecular mechanics initial geometry of DFT calculations. The 
+options are :
+  * "**obabel_mmff94**"$ or "obabel" to combine OpenBabel and the MMFF94 force field.
+  * "rdkit_mmff94" to combine RDKit with the MMFF94 force field.
+  * "rdkit_uff" to combine RDKit with the UFF force field.
+* ```"dft_base"```: DFT calculations base (__"3-21G*"__).
 * ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
 ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 
 ```"sillywalks_threshold"``` parameter.

@@ -66,7 +66,8 @@ def define_GuacaMol_evaluation_strategies(evaluation_strategy, defined_evaluatio
             if isinstance(evaluation_strategy.evaluation_strategies[i], UndefinedGuacaMolEvaluationStrategy):
                 evaluation_strategy.evaluation_strategies[i] = defined_evaluation_strategy
             elif isinstance(evaluation_strategy.evaluation_strategies[i], EvaluationStrategyComposite):
-                define_GuacaMol_evaluation_strategies(evaluation_strategy.evaluation_strategies[i], defined_evaluation_strategy)
+                define_GuacaMol_evaluation_strategies(evaluation_strategy.evaluation_strategies[i],
+                                                      defined_evaluation_strategy)
 
 
 def is_or_contains_undefined_GuacaMol_evaluation_strategy(evaluation_strategy):
@@ -100,7 +101,6 @@ def get_GuacaMol_benchmark_parameter(evaluation_strategy):
                 return retrieved_value
 
     return None
-
 
 
 class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
@@ -137,6 +137,76 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         return benchmark_names_list[curr_benchmark_id]
 
+    def _generate_optimized_molecules(self, scoring_function: ScoringFunction, number_molecules: int, name: str,
+                                      starting_population: Optional[List[str]] = None) -> List[str]:
+        """
+        Identical to self.generate_optimized_molecules but when using the modified GuacaMol version that allows for
+        parallel optimization of objectives.
+        """
+        instance = self.pop_alg.copy_instance_with_parameters()
+
+        # Updating benchmark id
+        self.curr_benchmark_id += 1
+
+        # Setting folder to save the results
+        instance.output_folder_path = join(self.output_save_path, name)
+
+        # Extracting GuacaMol evaluation function
+        guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
+
+        # Merging the evaluation strategy of the PopAlg instance to the GuacaMol objective
+        if isinstance(instance.evaluation_strategy, UndefinedGuacaMolEvaluationStrategy):
+            instance.evaluation_strategy = guacamol_evaluation_strategy
+        else:
+            define_GuacaMol_evaluation_strategies(instance.evaluation_strategy, guacamol_evaluation_strategy)
+
+        # Updating mutation strategy evaluator
+        instance.mutation_strategy.evaluation_strategy = instance.evaluation_strategy
+
+        # Setting additional stop criterion, stopping the execution when best possible score is obtained
+        instance.kth_score_to_record_key = name
+        additional_stop_criterion = KthScoreMaxValue(1, round=3)
+        instance.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
+        instance.stop_criterion_strategy.set_pop_alg_instance(instance)
+
+        # Setting kth score to record
+        instance.kth_score_to_record = number_molecules
+
+        # PopAlg instance initialization
+        instance.initialize()
+
+        # Population initialization
+        if self.guacamol_init_top_100:
+
+            # Extracting the top 100 SMILES for the property from ChEMBL and setting it at initial population
+            # From https://github.com/BenevolentAI/guacamol_baselines/blob/master/graph_ga/goal_directed_generation.py
+            with open(self.init_pop_path, "r") as f:
+
+                smiles_list = f.readlines()
+                scores = [scoring_function.score(s) for s in smiles_list]
+                top_100_smiles = np.array(smiles_list)[np.argsort(scores)[::-1][:100]]
+                instance.load_pop_from_smiles_list(smiles_list=top_100_smiles)
+        else:
+            instance.load_pop_from_smiles_list(smiles_list=["C"])
+
+        # Running EvoMol
+        instance.run()
+
+        # Extracting the vector containing the guacamol  objective property value for all individuals
+        if instance.kth_score_to_record_key == "total":
+            obj_prop_vector = instance.curr_total_scores
+        else:
+            obj_prop_vector = instance.curr_scores[instance.kth_score_to_record_idx]
+
+        # Extracting best individuals
+        ind_to_return_indices = np.argsort(obj_prop_vector)[::-1].flatten()[:number_molecules]
+        output_population = []
+        for ind_idx in ind_to_return_indices:
+            output_population.append(instance.pop[ind_idx].to_aromatic_smiles())
+
+        # Returning optimized population
+        return output_population
+
     def generate_optimized_molecules(self, scoring_function: ScoringFunction, number_molecules: int,
                                      starting_population: Optional[List[str]] = None) -> List[str]:
 
@@ -150,10 +220,8 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         # Setting folder to save the results
         instance.output_folder_path = join(self.output_save_path, curr_benchmark_name)
-        # instance.output_folder_path = join(self.output_save_path, name)
 
         # Extracting GuacaMol evaluation function
-        # guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, name)
         guacamol_evaluation_strategy = GuacamolEvaluationStrategy(scoring_function, curr_benchmark_name)
 
         # Merging the evaluation strategy of the PopAlg instance to the GuacaMol objective
@@ -167,7 +235,6 @@ class ChemPopAlgGoalDirectedGenerator(GoalDirectedGenerator):
 
         # Setting additional stop criterion, stopping the execution when best possible score is obtained
         instance.kth_score_to_record_key = curr_benchmark_name
-        # instance.kth_score_to_record_key = name
         additional_stop_criterion = KthScoreMaxValue(1, round=3)
         instance.stop_criterion_strategy.set_additional_strategy(additional_stop_criterion)
         instance.stop_criterion_strategy.set_pop_alg_instance(instance)

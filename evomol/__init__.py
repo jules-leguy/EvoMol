@@ -5,7 +5,8 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     PenalizedLogPEvaluationStrategy, ZincNormalizedPLogPEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
-    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy
+    IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy, \
+    NPerturbationsEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
@@ -44,7 +45,8 @@ def _is_describing_implemented_function(param_eval):
     """
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
-                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol"] \
+                          "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol",
+                          "n_perturbations"]\
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
@@ -84,11 +86,14 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
         strat = ZincNormalizedPLogPEvaluationStrategy()
     elif param_eval == "clscore":
         strat = CLScoreEvaluationStrategy()
+    elif param_eval == "n_perturbations":
+        strat = NPerturbationsEvaluationStrategy()
     elif param_eval == "homo" or param_eval == "lumo" or param_eval == "gap" or param_eval == "homo-1":
         strat = OPTEvaluationStrategy(param_eval,
                                       working_dir_path=explicit_IO_parameters_dict["dft_working_dir"],
                                       cache_files=explicit_IO_parameters_dict["dft_cache_files"],
                                       MM_program=explicit_IO_parameters_dict["dft_MM_program"],
+                                      dft_base=explicit_IO_parameters_dict["dft_base"],
                                       shared_last_computation=shared_last_DFT_computation)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
@@ -154,8 +159,10 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
     if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite",
                               "mean", "one_minus"]:
 
-        # Building evaluation strategies
-        functions_desc = param_eval["functions"]
+        # Building evaluation strategies : reading the "functions" attribute if it is defined and not empty by default,
+        # which contains a list of functions . Otherwise, building a list that contains a single function from
+        # the "function" attribute.
+        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [param_eval["function"]]
         evaluation_strategies = []
         for function_desc in functions_desc:
 
@@ -244,12 +251,22 @@ def _parse_action_space(parameters_dict):
             "max_heavy_atoms"] if "max_heavy_atoms" in input_param_action_space else 38,
         "substitution": input_param_action_space[
             "substitution"] if "substitution" in input_param_action_space else True,
+        "append_atom": input_param_action_space["append_atom"] if "append_atom" in input_param_action_space else True,
+        "remove_atom": input_param_action_space["remove_atom"] if "remove_atom" in input_param_action_space else True,
+        "change_bond": input_param_action_space["change_bond"] if "change_bond" in input_param_action_space else True,
+        "change_bond_prevent_breaking_creating_bonds": input_param_action_space[
+            "change_bond_prevent_breaking_creating_bonds"] if "change_bond_prevent_breaking_creating_bonds" in input_param_action_space else False,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
+        "remove_group": input_param_action_space["remove_group"] if "remove_group" in input_param_action_space else False,
+        "remove_group_only_remove_smallest_group": input_param_action_space[
+            "remove_group_only_remove_smallest_group"] if "remove_group_only_remove_smallest_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
             "use_rd_filters"] if "use_rd_filters" in input_param_action_space else False,
         "sillywalks_threshold": input_param_action_space[
             "sillywalks_threshold"] if "sillywalks_threshold" in input_param_action_space else 1,
+        "sascore_threshold": input_param_action_space[
+            "sascore_threshold"] if "sascore_threshold" in input_param_action_space else float("inf"),
         "sulfur_valence": input_param_action_space[
             "sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
@@ -258,9 +275,15 @@ def _parse_action_space(parameters_dict):
     action_spaces, action_spaces_parameters = \
         generic_action_space(atom_symbols_list=symbols_list,
                              max_heavy_atoms=explicit_action_space_parameters["max_heavy_atoms"],
+                             append_atom=explicit_action_space_parameters["append_atom"],
+                             remove_atom=explicit_action_space_parameters["remove_atom"],
+                             change_bond=explicit_action_space_parameters["change_bond"],
+                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters["change_bond_prevent_breaking_creating_bonds"],
                              substitution=explicit_action_space_parameters["substitution"],
                              cut_insert=explicit_action_space_parameters["cut_insert"],
-                             move_group=explicit_action_space_parameters["move_group"])
+                             move_group=explicit_action_space_parameters["move_group"],
+                             remove_group=explicit_action_space_parameters["remove_group"],
+                             remove_group_only_remove_smallest_group=explicit_action_space_parameters["remove_group_only_remove_smallest_group"])
 
     for parameter in input_param_action_space:
         if parameter not in explicit_action_space_parameters:
@@ -290,7 +313,9 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  silly_molecules_fp_threshold=search_space_parameters[
                                                                      "sillywalks_threshold"],
                                                                  silly_molecules_db=explicit_IO_parameters[
-                                                                     "silly_molecules_reference_db_path"])
+                                                                     "silly_molecules_reference_db_path"],
+                                                                 sascore_threshold=search_space_parameters[
+                                                                     "sascore_threshold"])
 
     return mutation_strategy
 
@@ -357,7 +382,8 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "dft_cache_files": input_IO_parameters[
             "dft_cache_files"] if "dft_cache_files" in input_IO_parameters else [],
         "dft_MM_program": input_IO_parameters[
-            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel",
+            "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel_mmff94",
+        "dft_base": input_IO_parameters["dft_base"] if "dft_base" in input_IO_parameters else "3-21G*",
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,

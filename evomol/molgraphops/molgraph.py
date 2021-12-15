@@ -36,11 +36,14 @@ class MolGraph:
         self.sanitize_mol = sanitize_mol
 
         # Updating the internal representation
-        self._update_mol_representation()
+        self.update_mol_representation()
 
         # Setting mutability of initial state
         for id in range(self.get_n_atoms()):
             self.set_atom_mutability(id, mutability)
+
+        # Initialization of modifications count
+        self.n_modifications = 0
 
         self.sulfur_valence = sulfur_valence
 
@@ -64,7 +67,7 @@ class MolGraph:
     def __repr__(self):
         return self.to_aromatic_smiles()
 
-    def _update_mol_representation(self):
+    def update_mol_representation(self):
         """
         Updating internal RDKIT representation of the molecular graph
         This method should be called at each action to the molecular graph
@@ -92,6 +95,10 @@ class MolGraph:
                 if bond is not None:
                     bond.SetIsAromatic(False)
 
+        # Updating the property cache of atoms
+        for i in range(self.mol_graph.GetNumAtoms()):
+            self.mol_graph.GetAtomWithIdx(i).UpdatePropertyCache()
+
         # Updating RDKit representation
         self.mol_graph.UpdatePropertyCache()
         FastFindRings(self.mol_graph)
@@ -102,8 +109,9 @@ class MolGraph:
         :return:
         """
         new_qumol_graph = MolGraph(sanitize_mol=self.sanitize_mol, sulfur_valence=self.sulfur_valence)
+        new_qumol_graph.n_modifications = self.n_modifications
         new_qumol_graph.mol_graph = RWMol(self.mol_graph, True)
-        new_qumol_graph._update_mol_representation()
+        new_qumol_graph.update_mol_representation()
         return new_qumol_graph
 
     def add_atom(self, type):
@@ -124,9 +132,9 @@ class MolGraph:
         """
 
         # Updating internal representation
-        self._update_mol_representation()
+        self.update_mol_representation()
 
-    def rm_atom(self, id):
+    def rm_atom(self, id, update_repr=True):
         """
         Removing the atom of given id from the molecule
         :param id:
@@ -134,19 +142,20 @@ class MolGraph:
         """
 
         # Extracting the list of neighbour atoms
-        neigh_at = []
-        for neigh_id in np.argwhere(self.get_adjacency_matrix()[id] == 1).reshape(-1, ):
-            neigh_at.append(self.mol_graph.GetAtomWithIdx(int(neigh_id)))
+        # neigh_at = []
+        # for neigh_id in np.argwhere(self.get_adjacency_matrix()[id] == 1).reshape(-1, ):
+        #     neigh_at.append(self.mol_graph.GetAtomWithIdx(int(neigh_id)))
 
         # Removing atom
         self.mol_graph.RemoveAtom(id)
 
-        # Updating RDKit representation of former neighbour atoms so that implicit H are updated
-        for neigh in neigh_at:
-            neigh.UpdatePropertyCache()
+        # # Updating RDKit representation of former neighbour atoms so that implicit H are updated
+        # for neigh in neigh_at:
+        #     neigh.UpdatePropertyCache()
 
         # Updating the internal representation
-        self._update_mol_representation()
+        if update_repr:
+            self.update_mol_representation()
 
     def replace_atom(self, id, new_at_type):
         """
@@ -163,7 +172,7 @@ class MolGraph:
         self.mol_graph.GetAtomWithIdx(id).SetFormalCharge(0)
 
         # Updating the internal representation
-        self._update_mol_representation()
+        self.update_mol_representation()
 
     def set_bond(self, from_at, to_at, bond_type_num, update_repr=True):
         """
@@ -191,7 +200,7 @@ class MolGraph:
 
         if update_repr:
             # Updating internal representation
-            self._update_mol_representation()
+            self.update_mol_representation()
 
     def add_bond(self, from_at, to_at, update_repr=True):
         """
@@ -224,7 +233,7 @@ class MolGraph:
 
         if update_repr:
             # Updating internal representation
-            self._update_mol_representation()
+            self.update_mol_representation()
 
     def rm_bond(self, from_at, to_at, update_repr=True):
         """
@@ -254,7 +263,7 @@ class MolGraph:
 
         if update_repr:
             # Updating internal representation
-            self._update_mol_representation()
+            self.update_mol_representation()
 
     def get_bridge_bonds_matrix(self):
         """
@@ -638,6 +647,9 @@ class MolGraphBuilder:
         return valid_actions_coordinates, valid_actions_weights
 
     def execute_action_coords(self, action_coords):
+
+        # Updating the number of modifications
+        self.qu_mol_graph.n_modifications += 1
 
         # Returning the action result
         return self._execute_action(action_coords)
