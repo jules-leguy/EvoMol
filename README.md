@@ -101,9 +101,9 @@ the optimization. If the "mutation_max_depth" parameter is set to 1, then this i
   ```"functions"``` attribute that contains a list of functions. In that case only the first element of the list is
   considered.
   * Specific to the use of a Gaussian function
-        * ```"mu"```: μ parameter of the Gaussian.
-        * ```"sigma"```: σ parameter of the Gaussian.
-        * ```"normalize"```: whether to normalize the function so that the maximum value is exactly 1 (**False**).
+    * ```"mu"```: μ parameter of the Gaussian.
+    * ```"sigma"```: σ parameter of the Gaussian.
+    * ```"normalize"```: whether to normalize the function so that the maximum value is exactly 1 (**False**).
 * An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.
