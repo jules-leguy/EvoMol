@@ -63,7 +63,8 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
  "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
  "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
  "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>", "isomer_formula".
+ "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>".
+  * "isomer_formula" (*e.g.* "isomer_C7H16").
   * "homo", "lumo", "gap", "homo-1"
   * "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy 
   of descriptors, 
@@ -74,21 +75,16 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
   * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during 
 the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of mutations.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
-* A dictionary describing a multi-objective function and containing the following entries.
+* A dictionary describing a multi-objective function and containing the following entries (see the [example section](https://github.com/jules-leguy/EvoMol#Designing-complex-objective-functions)).
     * ```"type"``` : 
       * "linear_combination" (linear combination of the properties).
       * "product" (product of the properties).
-      * "product_sigm_lin" (product of the properties after passing a linear function and a sigmoid function).
       * "mean" (mean of the properties).
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions,
     multi-objective functions or wrapper functions).
     * Specific to the linear combination
         * ```"coef"``` : list of coefficients.
-    * Specific to the use of sigmoid/linear functions
-        * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
-        * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
-        * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
-* A dictionary describing a function wrapping a single property and containing the following entries.
+* A dictionary describing a function wrapping a single property and containing the following entries (see the [example section](https://github.com/jules-leguy/EvoMol#Designing-complex-objective-functions)).
   * ```"type"```:
      * "gaussian" (passing the value of a unique objective function through a Gaussian function).
      * "opposite" (computing the opposite value of a unique objective function).
@@ -102,6 +98,10 @@ the optimization. If the "mutation_max_depth" parameter is set to 1, then this i
     * ```"mu"```: μ parameter of the Gaussian.
     * ```"sigma"```: σ parameter of the Gaussian.
     * ```"normalize"```: whether to normalize the function so that the maximum value is exactly 1 (**False**).
+  * Specific to the use of sigmoid/linear functions
+      * ```"a"``` list of *a* coefficients for the *ax+b* linear function definition.
+      * ```"b"``` list of *b* coefficients for the *ax+b* linear function definition.
+      * ```"lambda"``` list of *λ* coefficients for the sigmoid function definition.
 * An instance of evomol.evaluation.EvaluationStrategyComposant
 * ```"guacamol_v2"``` for taking the goal directed <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">
 GuacaMol</a> benchmarks.
@@ -177,7 +177,7 @@ time of generation (**False**).
 * ```"dft_cache_files"``` : list of json files containing a cache of previously computed HOMO or LUMO values (**[]**).
 * ```"dft_MM_program"``` : program used to compute molecular mechanics initial geometry of DFT calculations. The 
 options are :
-  * "**obabel_mmff94**"$ or "obabel" to combine OpenBabel and the MMFF94 force field.
+  * "**obabel_mmff94**" or "obabel" to combine OpenBabel and the MMFF94 force field.
   * "rdkit_mmff94" to combine RDKit with the MMFF94 force field.
   * "rdkit_uff" to combine RDKit with the UFF force field.
 * ```"dft_base"```: DFT calculations base (__"3-21G*"__).
@@ -190,6 +190,80 @@ parameters to the EvaluationStrategy instance in the context of the evaluation o
  optimization process. If None, both keys are set to an empty set of parameters (**None**).
 
 ## Examples
+
+### Designing complex objective functions
+
+In order to aggregate several objective functions into a single function that will be optimized by EvoMol, it is
+neccessary to use the dictionary (tree) function declaration for the ```"obj_function"``` attribute.
+
+As an example, we design here an objective function to solve a virtual problem. The problem is to find a molecule
+with a QED value of about 0.8, a CLScore value above 4, and about 70% of carbon atoms (ignoring the hydrogen atoms).
+
+First, we design a function that counts the proportion of heteroatoms. 
+
+```python
+from rdkit.Chem import Lipinski, MolFromSmiles
+
+def hetero_atoms_proportion(smiles):
+    return Lipinski.NumHeteroatoms(MolFromSmiles(smiles)) / Lipinski.HeavyAtomCount(MolFromSmiles(smiles))
+```
+
+Then, the objective function can be designed this way. We consider that the most important property here is the QED 
+value (coefficient 0.5) and that the two other properties are equally important (coefficient 0.25). The sum of the
+coefficients may be different from 1, but since all the functions range between 0 and 1 here, this allows the final
+function to also range between 0 and 1.
+
+```python
+objective_tree = {
+    # The objective function is a linear combination of three sub-functions
+    "type": "linear_combination",
+    "coef": [0.5, 0.25, 0.25],
+    "functions": [
+        { 
+            # Centering a Gaussian function on the 0.8 QED value
+            "type": "gaussian",
+            "function": "qed",
+            "mu": 0.8,
+            "sigma": 0.5, 
+            "normalize": True
+        },
+        {   
+            # The parameters of the sigmoid function are chosen so that the function value is above 0.99 when the CLScore value is above 4
+            "type": "sigm_lin",
+            "function": "clscore",
+            "a": -1,
+            "b": 3.5, 
+            "lambda": 10
+        },
+        {
+            # Centering a Gaussian function on the 0.7 proportion of hetero atoms
+            "type": "gaussian",
+            "function": {
+                # Returning 1 - (proportion of heteroatoms) to represent the proportion of carbon atoms
+                "type": "one_minus",
+                "function": (hetero_atoms_proportion, "hetero_atoms_proportion")
+            },
+            "mu": 0.7,
+            "sigma": 0.5, 
+            "normalize": True
+        },
+    ]
+}
+```
+
+The designed objective function can then be optimized by calling the run_model function of EvoMol
+
+```python
+from evomol import run_model
+
+run_model({
+    "obj_function": objective_tree,
+    "io_parameters": {
+        "model_path": "examples/multiobjective_run"
+    }
+})
+```
+
 
 ### Drawing exploration trees
 
