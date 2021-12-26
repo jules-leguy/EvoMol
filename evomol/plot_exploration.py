@@ -30,16 +30,20 @@ def extract_history_data(filepath):
                     keys.append(key)
             else:
                 scores_dict = {}
-                for j, value in enumerate(row):
-                    if keys[j] == "history_data":
-                        action_history = value
-                    elif keys[j] == "smiles":
-                        smi = value
-                    else:
-                        scores_dict[keys[j]] = float(value)
+                curr_row = list(enumerate(row))
 
-                actions_history_scores[action_history] = scores_dict
-                actions_history_smi[action_history] = smi
+                # Checking that current row is defined (= there is a non-empty action history value)
+                if curr_row[keys.index("history_data")][1] != "":
+                    for j, value in curr_row:
+                        if keys[j] == "history_data":
+                            action_history = value
+                        elif keys[j] == "smiles":
+                            smi = value
+                        else:
+                            scores_dict[keys[j]] = float(value)
+
+                    actions_history_scores[action_history] = scores_dict
+                    actions_history_smi[action_history] = smi
 
     return actions_history_scores, actions_history_smi
 
