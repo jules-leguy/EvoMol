@@ -10,6 +10,7 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .molgraphops.default_actionspaces import generic_action_space
+from .molgraphops.exploration import RandomActionTypeSelectionStrategy
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
 from .popalg import PopAlg
 from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy, \
@@ -46,7 +47,7 @@ def _is_describing_implemented_function(param_eval):
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
                           "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol",
-                          "n_perturbations"]\
+                          "n_perturbations"] \
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
@@ -162,7 +163,8 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         # Building evaluation strategies : reading the "functions" attribute if it is defined and not empty by default,
         # which contains a list of functions . Otherwise, building a list that contains a single function from
         # the "function" attribute.
-        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [param_eval["function"]]
+        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [
+            param_eval["function"]]
         evaluation_strategies = []
         for function_desc in functions_desc:
 
@@ -192,7 +194,8 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         elif param_eval["type"] == "gaussian":
             return GaussianWrapperEvaluationStrategy(evaluation_strategies, mu=param_eval["mu"],
                                                      sigma=param_eval["sigma"],
-                                                     normalize=param_eval["normalize"] if "normalize" in param_eval else False)
+                                                     normalize=param_eval[
+                                                         "normalize"] if "normalize" in param_eval else False)
         elif param_eval["type"] == "opposite":
             return OppositeWrapperEvaluationStrategy(evaluation_strategies)
         elif param_eval["type"] == "mean":
@@ -258,7 +261,8 @@ def _parse_action_space(parameters_dict):
             "change_bond_prevent_breaking_creating_bonds"] if "change_bond_prevent_breaking_creating_bonds" in input_param_action_space else False,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
-        "remove_group": input_param_action_space["remove_group"] if "remove_group" in input_param_action_space else False,
+        "remove_group": input_param_action_space[
+            "remove_group"] if "remove_group" in input_param_action_space else False,
         "remove_group_only_remove_smallest_group": input_param_action_space[
             "remove_group_only_remove_smallest_group"] if "remove_group_only_remove_smallest_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
@@ -278,12 +282,14 @@ def _parse_action_space(parameters_dict):
                              append_atom=explicit_action_space_parameters["append_atom"],
                              remove_atom=explicit_action_space_parameters["remove_atom"],
                              change_bond=explicit_action_space_parameters["change_bond"],
-                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters["change_bond_prevent_breaking_creating_bonds"],
+                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters[
+                                 "change_bond_prevent_breaking_creating_bonds"],
                              substitution=explicit_action_space_parameters["substitution"],
                              cut_insert=explicit_action_space_parameters["cut_insert"],
                              move_group=explicit_action_space_parameters["move_group"],
                              remove_group=explicit_action_space_parameters["remove_group"],
-                             remove_group_only_remove_smallest_group=explicit_action_space_parameters["remove_group_only_remove_smallest_group"])
+                             remove_group_only_remove_smallest_group=explicit_action_space_parameters[
+                                 "remove_group_only_remove_smallest_group"])
 
     for parameter in input_param_action_space:
         if parameter not in explicit_action_space_parameters:
@@ -315,7 +321,9 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  silly_molecules_db=explicit_IO_parameters[
                                                                      "silly_molecules_reference_db_path"],
                                                                  sascore_threshold=search_space_parameters[
-                                                                     "sascore_threshold"])
+                                                                     "sascore_threshold"],
+                                                                 neighbour_gen_strategy=explicit_search_parameters[
+                                                                     "neighbour_generation_strategy"])
 
     return mutation_strategy
 
@@ -350,7 +358,9 @@ def _extract_explicit_search_parameters(parameters_dict):
             "mutation_find_improver_tries"] if "mutation_find_improver_tries" in input_search_parameters else 50,
         "n_max_desc": input_search_parameters["n_max_desc"] if "n_max_desc" in input_search_parameters else 3000000,
         "shuffle_init_pop": input_search_parameters[
-            "shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False}
+            "shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False,
+        "neighbour_generation_strategy": input_search_parameters["neighbour_generation_strategy"] if \
+            "neighbour_generation_strategy" in input_search_parameters else RandomActionTypeSelectionStrategy()}
 
     for parameter in input_search_parameters:
         if parameter not in explicit_search_parameters:

@@ -5,7 +5,7 @@ import numpy as np
 from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy, \
     SAScoreEvaluationStrategy
 from .molgraphops.molgraph import MolGraphBuilder
-from .molgraphops.exploration import random_neighbour
+from .molgraphops.exploration import random_neighbour, RandomActionTypeSelectionStrategy
 
 
 class MutationError(RuntimeError):
@@ -51,9 +51,9 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
     to find an improver. If no improver is found, raising a MutationError.
     """
 
-    def __init__(self, k, max_n_try, evaluation_strategy, action_spaces, action_spaces_parameters, problem_type="max",
-                 quality_filter=False, silly_molecules_fp_threshold=1, silly_molecules_db=None,
-                 sascore_threshold=float("inf")):
+    def __init__(self, k, max_n_try, evaluation_strategy, action_spaces, action_spaces_parameters,
+                 neighbour_gen_strategy=None, problem_type="max", quality_filter=False, silly_molecules_fp_threshold=1,
+                 silly_molecules_db=None, sascore_threshold=float("inf")):
         """
 
         :param k: max number of successive graph operations
@@ -61,6 +61,8 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         :param evaluation_strategy: EvaluationStrategy instance with an evaluate_individual method
         :param action_spaces: list of ActionSpace instances
         :param action_spaces_parameters: instance of ActionSpace.ActionSpaceParameters
+        :param neighbour_gen_strategy: instance of evomol.molgraphops.exploration.NeighbourGenerationStrategy (if None,
+        then evomol.molgraphops.exploration.RandomActionTypeSelectionStrategy is used by default).
         :param problem_type: Whether it is a maximization ("max") or a minimization ("min") problem
         :param quality_filter: Whether to prevent molecules that do not pass the quality filter to be considered as
         valid improvers (using https://github.com/PatWalters/rd_filters filters)
@@ -68,6 +70,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         bits in the ECFP4 fingerprint that do not exist in the ChemBL. The molecules with a proportion that is higher
         than the given threshold are discarded (https://github.com/PatWalters/silly_walks).
         :param sascore_threshold : discarding solutions that have a SAScore value above the given threshold
+
         """
         self.k = k
         self.max_n_try = max_n_try
@@ -78,6 +81,9 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         self.quality_filter = quality_filter
         self.silly_molecules_fp_threshold = silly_molecules_fp_threshold
         self.sascore_threshold = sascore_threshold
+
+        self.neighbour_gen_strategy = neighbour_gen_strategy if neighbour_gen_strategy is not None else \
+            RandomActionTypeSelectionStrategy(preselect_action_type=True)
 
         if self.quality_filter:
             self.rd_filter_eval_strat = RDFiltersEvaluationStrategy()
@@ -110,8 +116,10 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                 qumol_builder = MolGraphBuilder(self.actionspace_parameters, self.action_spaces, individual)
 
                 # Performing mutation
-                mutated_ind, desc = random_neighbour(qumol_builder, n_actions, return_mol_graph=True,
-                                                     uniform_action_type=True)
+                mutated_ind, desc = self.neighbour_gen_strategy.generate_neighbour(qumol_builder,
+                                                                                   n_actions,
+                                                                                   evaluation_strategy=self.evaluation_strategy,
+                                                                                   return_mol_graph=True)
 
             except Exception as e:
                 print(e)
