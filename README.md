@@ -436,7 +436,7 @@ inserted in the population, the ```$FILTER_RULES_DATA``` environment variable mu
 
 ## Citing EvoMol
 
-To reference EvoMol, please cite one of the following article.
+To reference EvoMol, please cite one of the following articles.
 
 Leguy, J., Cauchy, T., Glavatskikh, M., Duval, B., Da Mota, B. EvoMol: a flexible and interpretable evolutionary 
 algorithm for unbiased de novo molecular generation. J Cheminform 12, 55 (2020). 
