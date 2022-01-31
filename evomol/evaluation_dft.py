@@ -22,8 +22,9 @@ def check_identical_geometries(xyz_path, pre_optim_smiles, post_optim_smiles_pat
     """
 
     # Converting XYZ to smi
-    command_obabel = join(os.getenv("OPT_LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ixyz " + xyz_path \
-                     + " -osmi -O " + post_optim_smiles_path
+#    command_obabel = join(os.getenv("OPT_LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " -ixyz " + xyz_path \
+#                     + " -osmi -O " + post_optim_smiles_path
+    command_obabel = "obabel -ixyz " + xyz_path + " -osmi -O " + post_optim_smiles_path
     os.system(command_obabel + " > /dev/null 2> /dev/null")
 
     # Reading post optim SMI file
@@ -61,9 +62,10 @@ def obabel_mmff94_xyz(smiles, **kwargs):
             f.write(smi_canon)
 
         # Converting SMILES to XYZ after computing MM (Obabel MMFF94)
-        command_obabel = join(os.getenv("OPT_LIBS"),
-                              "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
-                         + " -oxyz -O " + xyz_path + " --gen3d"
+#        command_obabel = join(os.getenv("OPT_LIBS"),
+#                              "obabel/openbabel-2.4.1/bin/obabel") + " -ismi " + smi_path \
+#                         + " -oxyz -O " + xyz_path + " --gen3d"
+        command_obabel = "obabel -ismi " + smi_path + " -oxyz -O " + xyz_path + " --gen3d"
         os.system(command_obabel + " > /dev/null 2> /dev/null")
 
         # Reading XYZ string
@@ -580,9 +582,10 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                     if "Normal termination" in last_line:
 
                         # Extracting the smiles from the log file
-                        command_obabel = join(os.getenv("OPT_LIBS"),
-                                              "obabel/openbabel-2.4.1/bin/obabel") + " -ilog " + opt_log_path \
-                                         + " -ocan -O " + post_opt_smi_path
+#                        command_obabel = join(os.getenv("OPT_LIBS"),
+#                                              "obabel/openbabel-2.4.1/bin/obabel") + " -ilog " + opt_log_path \
+#                                         + " -ocan -O " + post_opt_smi_path
+                        command_obabel = "obabel -ilog " + opt_log_path + " -ocan -O " + post_opt_smi_path
                         os.system(command_obabel)
 
                         post_opt_smi_rdkit = load_obabel_smi(post_opt_smi_path)

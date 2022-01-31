@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-import numpy as np
-from networkx import connected_components, nx, node_connected_component
+import networkx as nx
+from networkx import connected_components, node_connected_component
 
 
 class ActionSpace(ABC):

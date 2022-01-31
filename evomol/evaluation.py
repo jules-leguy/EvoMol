@@ -5,7 +5,6 @@ from math import exp
 from os.path import join
 
 import networkx as nx
-import tqdm
 from guacamol.common_scoring_functions import IsomerScoringFunction
 from scipy.stats import norm
 from rdkit import Chem
