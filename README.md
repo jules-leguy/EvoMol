@@ -124,7 +124,7 @@ The ```"action_space_parameters"``` attribute can be set with a dictionary conta
 * both parts of a bridge bond (False), or only the smallest part in number of atoms (**True**).
 * ```"use_rd_filters"```: whether to use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a 
 quality filter before inserting the mutated individuals in the population (**False**).
-* ```"sillywalks_threshold``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
+* ```"sillywalks_threshold"``` maximum proportion of [silly bits](https://github.com/PatWalters/silly_walks) in the ECFP4 
 fingerprint of the solutions with respect to a reference dataset (see IO parameters). If the proportion is above the
 threshold, the solutions will be discarded and thus will not be inserted in the population (**1**).
 * ```"sascore_threshold"``` if the solutions have a [SAScore](https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)
