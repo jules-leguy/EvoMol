@@ -14,8 +14,8 @@ To install EvoMol on your system, run the appropriate commands in your terminal.
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env.yml                      # Create conda environment
-$ conda activate evomolenv                                # Activate environment
+$ conda env create -f evomol_env2.yml                     # Create conda environment
+$ conda activate evomolenv2                               # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
 
@@ -24,15 +24,15 @@ $ python -m pip install .                                 # Install EvoMol
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env_windows.yml              # Create conda environment
-$ conda activate evomolenv                                # Activate environment
+$ conda env create -f evomol_env_windows2.yml             # Create conda environment
+$ conda activate evomolenv2                               # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
 
 ## Quickstart
 
 Launching a <a href="https://www.nature.com/articles/nchem.1243">QED</a> optimization for 500 steps. Beware, you need 
-to activate the evomolenv conda environment when you use EvoMol.
+to activate the evomolenv2 conda environment when you use EvoMol.
 
 ```python
 from evomol import run_model
@@ -389,27 +389,24 @@ data to be computed, EvoMol needs to be given the data location.
 To do so, the ```$SHINGLE_LIBS``` environment variable must be set to the location of the shingle_libs folder that can
 be downloaded <a href="https://github.com/reymond-group/GDBChEMBL"> here</a>.
  
-### DFT and Molecular Mechanics optimization
+### DFT optimization
 
-To perform DFT and Molecular Mechanics computation (necessary for HOMO and LUMO optimization), you need to bind 
-<a href="https://gaussian.com/glossary/g09/">Gaussian09</a> and 
-<a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-019-0372-5">OpenBabel</a> with EvoMol.
+To perform DFT computations, you need to bind <a href="https://gaussian.com/glossary/g09/">Gaussian09</a> or another 
+version of Gaussian with <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-019-0372-5">OpenBabel</a> 
+with EvoMol.
 
-To do so, the ```$OPT_LIBS``` variable must point to a folder containing : 
-* run.sh : a script launching a DFT optimization with Gaussian09 of the input filepath given as parameter.
-* obabel/openbabel-2.4.1 : directory containing an installation of OpenBabel 2.4.1. Make sure to also set OpenBabel's
-```$BABEL_DATADIR``` environment variable to ```$OPT_LIBS/obabel/openbabel-2.4.1/data```.
+To do so, the ```$OPT_LIBS``` environment variable must point to a folder containing ```run.sh```, a script launching a 
+DFT optimization with Gaussian09 of the input filepath given as parameter.
 
-You can install Open Babel by following these instructions
+Here is an example of such a file.
 
-```shell script
-$ mkdir obabel & cd obabel                                                               # Create and move to installation directory
-$ wget https://github.com/openbabel/openbabel/archive/refs/tags/openbabel-2-4-1.tar.gz   # Download sources
-$ tar zxf openbabel-openbabel-2-4-1.tar.gz                                               # Extract sources
-$ mv openbabel-openbabel-2-4-1 openbabel-2.4.1                                           # Rename directory
-$ cd openbabel-2.4.1                                                                     # Go to installation directory
-$ cmake .                                                                                # Preparing build (requires that cmake and g++ are installed)
-$ make & make install                                                                    # Compilation and installation
+```shell
+#!/usr/bin/env bash
+
+export g09root=/path/to/the/folder/that/contains/g09/installation/folder
+source g09root/g09/bsd/g09.profile
+
+g09 $1 $2
 ```
 
 ### Checkmol descriptor
