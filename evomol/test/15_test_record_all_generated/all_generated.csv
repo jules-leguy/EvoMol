@@ -1,0 +1,3 @@
+step,SMILES,obj_calls,obj_value,improver,success_obj_computation
+0,,1,,False,False
+1,CF,2,-8.5441027918495,True,True

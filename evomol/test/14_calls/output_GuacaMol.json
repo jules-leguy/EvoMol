@@ -1,0 +1,145 @@
+{
+    "guacamol_version": "0.5.0",
+    "benchmark_suite_version": "rediscovery",
+    "timestamp": "20201119-1241",
+    "results": [
+        {
+            "benchmark_name": "Celecoxib rediscovery",
+            "score": 0.3146067415730337,
+            "optimized_molecules": [
+                [
+                    "CC1=NC(S(N)(=O)=O)=[SH](=c2cc2)C(C(F)(F)F)=C1",
+                    0.3146067415730337
+                ]
+            ],
+            "execution_time": 399.76962876319885,
+            "number_scoring_function_calls": 42204,
+            "metadata": {
+                "top_1": 0.3146067415730337,
+                "internal_similarity_max": 0.0,
+                "internal_similarity_mean": 0.0,
+                "internal_similarity_histogram_density": [
+                    [
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                ],
+                "internal_similarity_histogram_bins": [
+                    [
+                        0.0,
+                        0.1,
+                        0.2,
+                        0.30000000000000004,
+                        0.4,
+                        0.5,
+                        0.6000000000000001,
+                        0.7000000000000001,
+                        0.8,
+                        0.9,
+                        1.0
+                    ]
+                ]
+            }
+        },
+        {
+            "benchmark_name": "Troglitazone rediscovery",
+            "score": 0.4791666666666667,
+            "optimized_molecules": [
+                [
+                    "Cc1c(C)c2c(O)c(C)c1CCC(C)(COc1cc1=O)O2",
+                    0.4791666666666667
+                ]
+            ],
+            "execution_time": 407.8840310573578,
+            "number_scoring_function_calls": 35155,
+            "metadata": {
+                "top_1": 0.4791666666666667,
+                "internal_similarity_max": 0.0,
+                "internal_similarity_mean": 0.0,
+                "internal_similarity_histogram_density": [
+                    [
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                ],
+                "internal_similarity_histogram_bins": [
+                    [
+                        0.0,
+                        0.1,
+                        0.2,
+                        0.30000000000000004,
+                        0.4,
+                        0.5,
+                        0.6000000000000001,
+                        0.7000000000000001,
+                        0.8,
+                        0.9,
+                        1.0
+                    ]
+                ]
+            }
+        },
+        {
+            "benchmark_name": "Thiothixene rediscovery",
+            "score": 0.44329896907216493,
+            "optimized_molecules": [
+                [
+                    "CN1CCN(CCc2cc(S(=O)(=O)N(C)C)c[nH]2)CC1",
+                    0.44329896907216493
+                ]
+            ],
+            "execution_time": 1628.6587839126587,
+            "number_scoring_function_calls": 260502,
+            "metadata": {
+                "top_1": 0.44329896907216493,
+                "internal_similarity_max": 0.0,
+                "internal_similarity_mean": 0.0,
+                "internal_similarity_histogram_density": [
+                    [
+                        10.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0
+                    ]
+                ],
+                "internal_similarity_histogram_bins": [
+                    [
+                        0.0,
+                        0.1,
+                        0.2,
+                        0.30000000000000004,
+                        0.4,
+                        0.5,
+                        0.6000000000000001,
+                        0.7000000000000001,
+                        0.8,
+                        0.9,
+                        1.0
+                    ]
+                ]
+            }
+        }
+    ]
+}

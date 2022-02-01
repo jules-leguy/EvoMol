@@ -1,0 +1,49 @@
+step,error
+0,No more individual to be mutated
+1,float division by zeroBr RmA-0 (Evaluation error)
+1,No more individual to be mutated
+3,float division by zeroC RmA-0 (Evaluation error)
+3,float division by zeroBr RmA-0 (Evaluation error)
+4,float division by zeroC RmA-0 (Evaluation error)
+4,float division by zeroCl RmA-0 (Evaluation error)
+5,float division by zeroN RmA-0 (Evaluation error)
+5,float division by zeroCl RmA-0 (Evaluation error)
+6,float division by zeroC RmA-0 (Evaluation error)
+7,float division by zeroP RmA-0 (Evaluation error)
+7,float division by zeroBr RmA-0 (Evaluation error)
+7,float division by zeroS RmA-0 (Evaluation error)
+7,float division by zeroN RmA-0 (Evaluation error)
+7,float division by zeroF RmA-0 (Evaluation error)
+7,float division by zeroCl RmA-0 (Evaluation error)
+8,float division by zeroBr RmA-0 (Evaluation error)
+8,float division by zeroS RmA-0 (Evaluation error)
+8,float division by zeroN RmA-0 (Evaluation error)
+9,float division by zeroP RmA-0 (Evaluation error)
+9,float division by zeroBr RmA-0 (Evaluation error)
+9,float division by zeroS RmA-0 (Evaluation error)
+9,float division by zeroN RmA-0 (Evaluation error)
+9,float division by zeroF RmA-0 (Evaluation error)
+10,float division by zeroP RmA-0 (Evaluation error)
+10,float division by zeroC RmA-0 (Evaluation error)
+10,float division by zeroBr RmA-0 (Evaluation error)
+11,float division by zeroP RmA-0 (Evaluation error)
+11,float division by zeroC RmA-0 (Evaluation error)
+11,float division by zeroBr RmA-0 (Evaluation error)
+12,float division by zeroP RmA-0 (Evaluation error)
+12,float division by zeroC RmA-0 (Evaluation error)
+13,float division by zeroP RmA-0 (Evaluation error)
+59,No improver found
+61,No improver found
+64,No improver found
+68,No improver found
+69,No improver found
+70,No improver found
+213,No improver found
+216,No improver found
+216,No improver found
+217,No improver found
+219,No improver found
+221,No improver found
+222,No improver found
+222,No improver found
+224,No improver found

@@ -1,0 +1,21 @@
+step,error
+0,No more individual to be mutated
+1,No more individual to be mutated
+2,No more individual to be mutated
+3,No more individual to be mutated
+15,No improver found
+15,No improver found
+15,"Sanitization error: Explicit valence for atom # 1 C, 5, is greater than permittedON1C2C3CS(Br)(Br)C1N32 AddA-24 (Evaluation error)"
+15,No improver found
+21,No improver found
+21,No improver found
+21,"Sanitization error: Explicit valence for atom # 1 C, 5, is greater than permittedOCC[SH](F)Br ChB-740_ChB-1480 (Evaluation error)"
+22,No improver found
+22,No improver found
+22,No improver found
+22,No improver found
+22,No improver found
+22,"Sanitization error: Explicit valence for atom # 3 C, 5, is greater than permittedCNCCS(P)(Br)Br AddA-52_CutA-0 (Evaluation error)"
+22,No improver found
+22,No improver found
+26,No improver found
