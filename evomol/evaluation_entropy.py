@@ -1,15 +1,14 @@
 import os
 import sys
 import tempfile
-from os.path import join
 
-from rdkit.Chem import AllChem
-
-from .evaluation import EvaluationStrategy, EvaluationError
 import numpy as np
+from rdkit import RDPaths, Chem
+from rdkit.Chem import AllChem
 from rdkit.Chem.Scaffolds import MurckoScaffold
 from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
-from rdkit import RDPaths, Chem
+
+from .evaluation import EvaluationStrategy, EvaluationError
 
 ifg_path = os.path.join(RDPaths.RDContribDir, 'IFG')
 sys.path.append(ifg_path)
@@ -304,7 +303,6 @@ def extract_checkmol(molgraph):
     see https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html
     """
 
-    # obabel_cmd = join(os.getenv("OPT_LIBS"), "obabel/openbabel-2.4.1/bin/obabel") + " \"-:%s\" -omol -O %s 2>/dev/null"
     obabel_cmd = "obabel" + " \"-:%s\" -omol -O %s 2>/dev/null"
     checkmol_cmd = os.getenv("CHECKMOL_EXE") + " %s > %s"
 
