@@ -392,8 +392,7 @@ be downloaded <a href="https://github.com/reymond-group/GDBChEMBL"> here</a>.
 ### DFT optimization
 
 To perform DFT computations, you need to bind <a href="https://gaussian.com/glossary/g09/">Gaussian09</a> or another 
-version of Gaussian with <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-019-0372-5">OpenBabel</a> 
-with EvoMol.
+version of Gaussian with EvoMol.
 
 To do so, the ```$OPT_LIBS``` environment variable must point to a folder containing ```run.sh```, a script launching a 
 DFT optimization with Gaussian09 of the input filepath given as parameter.
