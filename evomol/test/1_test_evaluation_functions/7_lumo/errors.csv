@@ -1,32 +1,9 @@
 step,error
 0,No more individual to be mutated
-1,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-1,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
+1,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 1,No more individual to be mutated
-1,No replacement occured
-2,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-2,No more individual to be mutated
-3,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-3,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-3,No more individual to be mutated
-4,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-4,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-4,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-4,No more individual to be mutated
-5,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-6,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-10 (Evaluation error)"
-6,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-7,"expected str, bytes or os.PathLike object, not NoneTypeC=O AddA-11_Sub-10 (Evaluation error)"
-7,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-7,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+3,DFT failure in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+7,DFT caused exception MM error (Evaluation error) (Evaluation error)O=CO Sub-5_AddA-11 (Evaluation error)
 8,No improver found
-9,DFT error in cache for  (Evaluation error)N=O RmA-1_RmA-0 (Evaluation error)
-9,No improver found
-9,"expected str, bytes or os.PathLike object, not NoneTypeNC=O AddA-8_ChB-1479 (Evaluation error)"
-9,DFT error in cache for  (Evaluation error)NO RmA-1_RmA-0 (Evaluation error)
-9,"expected str, bytes or os.PathLike object, not NoneTypeF AddA-5_InsA-0 (Evaluation error)"
-9,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-9,"expected str, bytes or os.PathLike object, not NoneTypeCO InsA-0_AddA-10 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCCO CutA-2_AddA-4 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCNN ChB-1443 (Evaluation error)"
-9,No more individual to be mutated
+9,DFT failure in cache for CC(O)F (Evaluation error)C=O InsA-0_AddA-15 (Evaluation error)
+9,DFT failure in cache for OCCO (Evaluation error)O=CO ChB-703_InsA-0 (Evaluation error)

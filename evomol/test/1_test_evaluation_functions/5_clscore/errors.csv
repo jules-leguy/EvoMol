@@ -1,7 +1,45 @@
 step,error
 0,No more individual to be mutated
+10,No improver found
+13,No improver found
+13,No improver found
+14,No improver found
+15,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No improver found
+16,No more individual to be mutated
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No improver found
+17,No more individual to be mutated
+17,No replacement occured
 18,No improver found
 18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No improver found
+18,No more individual to be mutated
+18,No replacement occured
+19,No improver found
 19,No improver found
 19,No improver found
 19,No improver found
@@ -12,6 +50,7 @@ step,error
 19,No improver found
 19,No improver found
 19,No more individual to be mutated
+19,No replacement occured
 20,No improver found
 20,No improver found
 20,No improver found
@@ -20,10 +59,6 @@ step,error
 20,No improver found
 20,No improver found
 20,No improver found
-20,No improver found
-20,No improver found
-20,No more individual to be mutated
-20,No replacement occured
 21,No improver found
 21,No improver found
 21,No improver found
@@ -32,13 +67,6 @@ step,error
 21,No improver found
 21,No improver found
 21,No improver found
-21,No improver found
-21,No more individual to be mutated
-22,No improver found
-22,No improver found
-22,No improver found
-22,No improver found
-22,No improver found
 22,No improver found
 22,No improver found
 22,No improver found
@@ -56,10 +84,6 @@ step,error
 24,No improver found
 24,No improver found
 24,No improver found
-24,No improver found
-24,No improver found
-25,No improver found
-25,No improver found
 25,No improver found
 25,No improver found
 25,No improver found
@@ -73,29 +97,22 @@ step,error
 26,No improver found
 26,No improver found
 26,No improver found
-26,No improver found
 27,No improver found
 27,No improver found
 27,No improver found
 27,No improver found
-27,No improver found
-27,No improver found
-27,No improver found
-27,No improver found
-27,No improver found
-27,No more individual to be mutated
+28,No improver found
+28,No improver found
+28,No improver found
+28,No improver found
+28,No improver found
+28,No improver found
 28,No improver found
 28,No improver found
 29,No improver found
 29,No improver found
 29,No improver found
 29,No improver found
-29,No improver found
-29,No improver found
-29,No improver found
-29,No improver found
-29,No improver found
-29,No more individual to be mutated
 30,No improver found
 30,No improver found
 30,No improver found
@@ -109,16 +126,24 @@ step,error
 31,No improver found
 31,No improver found
 31,No improver found
-31,No improver found
-31,No improver found
-31,No improver found
-31,No more individual to be mutated
+32,No improver found
+32,No improver found
+32,No improver found
+32,No improver found
+32,No improver found
+32,No improver found
 32,No improver found
 32,No improver found
 33,No improver found
 33,No improver found
 33,No improver found
 33,No improver found
+33,No improver found
+33,No improver found
+34,No improver found
+34,No improver found
+34,No improver found
+34,No improver found
 34,No improver found
 34,No improver found
 34,No improver found
@@ -127,9 +152,10 @@ step,error
 35,No improver found
 35,No improver found
 35,No improver found
-35,No improver found
-35,No improver found
-35,No improver found
+36,No improver found
+36,No improver found
+36,No improver found
+36,No improver found
 36,No improver found
 36,No improver found
 36,No improver found
@@ -138,26 +164,21 @@ step,error
 37,No improver found
 37,No improver found
 37,No improver found
-37,No improver found
-37,No improver found
-37,No improver found
-37,No improver found
-37,No improver found
-37,No more individual to be mutated
 38,No improver found
 38,No improver found
 38,No improver found
 38,No improver found
+38,No improver found
+38,No improver found
+38,No improver found
 39,No improver found
 39,No improver found
 39,No improver found
 39,No improver found
-39,No improver found
-39,No improver found
-39,No improver found
-39,No improver found
-39,No improver found
-39,No more individual to be mutated
+40,No improver found
+40,No improver found
+40,No improver found
+40,No improver found
 40,No improver found
 40,No improver found
 40,No improver found
@@ -166,12 +187,17 @@ step,error
 41,No improver found
 41,No improver found
 41,No improver found
-41,No improver found
-41,No improver found
 42,No improver found
 42,No improver found
 42,No improver found
 42,No improver found
+42,No improver found
+42,No improver found
+42,No improver found
+42,No improver found
+43,No improver found
+43,No improver found
+43,No improver found
 43,No improver found
 43,No improver found
 43,No improver found
@@ -194,10 +220,15 @@ step,error
 46,No improver found
 46,No improver found
 46,No improver found
+46,No improver found
 47,No improver found
 47,No improver found
 47,No improver found
 47,No improver found
+48,No improver found
+48,No improver found
+48,No improver found
+48,No improver found
 48,No improver found
 48,No improver found
 48,No improver found

@@ -1,24 +1,20 @@
 step,error
 0,No more individual to be mutated
-1,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
-1,DFT error in cache for  (Evaluation error)C RmA-0 (Evaluation error)
+1,DFT failure in cache for CCF (Evaluation error)CF InsA-0 (Evaluation error)
+1,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 1,No more individual to be mutated
 1,No replacement occured
-2,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
+2,DFT failure in cache for CCF (Evaluation error)CF InsA-0 (Evaluation error)
+2,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 2,No more individual to be mutated
-3,DFT error in cache for  (Evaluation error)N RmA-0 (Evaluation error)
-3,DFT error in cache for  (Evaluation error)F RmA-0 (Evaluation error)
+2,No replacement occured
+3,DFT failure in cache for CCF (Evaluation error)CF InsA-0 (Evaluation error)
+3,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
 3,No more individual to be mutated
-5,"expected str, bytes or os.PathLike object, not NoneTypeCN Sub-2_AddA-10 (Evaluation error)"
-5,DFT error in cache for  (Evaluation error)N RmA-0 (Evaluation error)
-5,DFT error in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-7,"expected str, bytes or os.PathLike object, not NoneTypeCNC MoveFG-1406_Sub-4 (Evaluation error)"
-7,"expected str, bytes or os.PathLike object, not NoneTypeCCNC Sub-3 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeNN ChB-2109 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeCCCNC AddA-7 (Evaluation error)"
-8,"expected str, bytes or os.PathLike object, not NoneTypeCCNC AddA-4_InsA-38 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeNN ChB-2109 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCNC ChB-1443 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCCCNC MoveFG-1448 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCCNC ChB-1444 (Evaluation error)"
-9,"expected str, bytes or os.PathLike object, not NoneTypeCN AddA-7 (Evaluation error)"
+3,No replacement occured
+4,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
+4,No more individual to be mutated
+6,DFT failure in cache for  (Evaluation error)O RmA-0 (Evaluation error)
+6,DFT failure in cache for NCF (Evaluation error)CF AddA-5 (Evaluation error)
+6,DFT failure in cache for  (Evaluation error)F RmA-0 (Evaluation error)
+9,DFT failure in cache for  (Evaluation error)N RmA-0 (Evaluation error)

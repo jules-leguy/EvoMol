@@ -1,11 +1,3 @@
 step,error
 0,No more individual to be mutated
-1,float division by zeroP RmA-0 (Evaluation error)
-1,No more individual to be mutated
-2,float division by zeroC Sub-4_RmA-0 (Evaluation error)
-2,float division by zeroP RmA-0 (Evaluation error)
-2,No more individual to be mutated
-3,float division by zeroF RmA-0 (Evaluation error)
-4,float division by zeroCBr RmA-1_RmA-0 (Evaluation error)
-4,float division by zeroBr RmA-0 (Evaluation error)
-27,No improver found
+40,No improver found
