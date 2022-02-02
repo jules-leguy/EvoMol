@@ -1,2 +1,2 @@
 smiles,n_success_mut,n_failures_mut,homo,total,history_data
-CF,1,0,-8.5441027918495,-8.5441027918495,C
+NC=C(N)F,1,1,-3.63544104268,-3.63544104268,C

@@ -3,19 +3,11 @@ step,error
 1,No more individual to be mutated
 2,No more individual to be mutated
 3,No more individual to be mutated
-15,No improver found
-15,No improver found
-15,"Sanitization error: Explicit valence for atom # 1 C, 5, is greater than permittedON1C2C3CS(Br)(Br)C1N32 AddA-24 (Evaluation error)"
-15,No improver found
-21,No improver found
-21,No improver found
-21,"Sanitization error: Explicit valence for atom # 1 C, 5, is greater than permittedOCC[SH](F)Br ChB-740_ChB-1480 (Evaluation error)"
-22,No improver found
-22,No improver found
-22,No improver found
-22,No improver found
-22,No improver found
-22,"Sanitization error: Explicit valence for atom # 3 C, 5, is greater than permittedCNCCS(P)(Br)Br AddA-52_CutA-0 (Evaluation error)"
-22,No improver found
-22,No improver found
-26,No improver found
+70,"Explicit valence for atom # 18 C, 5, is greater than permittedCC1(PPC2C34C(CS)C3(Cl)C(=N)C(P4P(P)P)S2(F)F)NP1N ChB-910 (Evaluation error)"
+70,"Explicit valence for atom # 17 C, 5, is greater than permittedCC1(PPC2C34C(CS)C3(Cl)C(=N)C(OS2(F)F)P4P(P)P)NP1N ChB-245_MoveFG-9354 (Evaluation error)"
+78,"Explicit valence for atom # 4 C, 5, is greater than permittedCC1(PPC2C34C(CS)C3(Cl)C(=N)C(P4P(P)P)S2(F)F)NP1N MoveFG-614_InsA-362 (Evaluation error)"
+79,"Explicit valence for atom # 1 C, 5, is greater than permittedFOC12C(=CBr)C34CS5(Cl)SP5C15OP5C(CPF)C3(CC4=S)P2P AddA-48 (Evaluation error)"
+83,"Explicit valence for atom # 11 C, 5, is greater than permittedFOPP1C2C(=PBr)C34CS5(Cl)SP5C25OP5C(CPF)C13CC4=S MoveFG-9631_MoveFG-10645 (Evaluation error)"
+85,"Explicit valence for atom # 8 C, 5, is greater than permittedCC1=PP(P)P2C13OS(F)(F)C(PP)C21C(SBr)C1(Cl)C3=NC(C)PN MoveFG-18208 (Evaluation error)"
+92,"Explicit valence for atom # 23 C, 5, is greater than permittedNPC1CC2(P(P)S)C34C(SBr)C3(Cl)C(=N1)C1(C=PP(P)P14)OS2(F)F ChB-918_InsA-84 (Evaluation error)"
+105,"Explicit valence for atom # 9 C, 5, is greater than permittedNP(Br)C1C23OC4(CSPF)C(=S2F)OC2C5=C3CP(C5OSO)S1(Cl)C24 ChB-895_MoveFG-17219 (Evaluation error)"

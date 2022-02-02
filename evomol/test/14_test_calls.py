@@ -4,8 +4,8 @@ run_model({
     "obj_function": {
             "type": "linear_combination",
             "coef": [1, 0.1],
-            "functions": ["guacamol_rediscovery",
-                          "entropy_shg_1"]
+        "functions": ["guacamol_v2",
+                      "entropy_shg_1"]
     },
     "optimization_parameters": {
         "max_steps": 900,
