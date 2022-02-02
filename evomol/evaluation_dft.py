@@ -308,7 +308,7 @@ def compress_log_file(log_path):
     :return:
     """
 
-    cmd = "gzip -f" + log_path
+    cmd = "gzip -f " + log_path
     os.system(cmd)
 
 
