@@ -13,6 +13,16 @@ exploration trees is currently unavailable on Windows.
 To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on
 <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
+---
+**NOTE (2022/02/02)**
+
+In last versions (v1.5.0+), EvoMol depends on the ```openbabel``` python library instead of depending on a "hard"
+installation of OpenBabel. Thus, the evomolenv conda environment was changed and it is possible that this causes issues
+if you are updating a former EvoMol version. In the latter case, it is preferable to remove the evomolenv conda
+environment and to restart the installation from scratch.
+
+---
+
 ### Linux
 
 ```shell script
