@@ -1,12 +1,16 @@
 # EvoMol
 
+[EvoMol](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-020-00458-z#citeas) is a flexible and interpretable
+evolutionary algorithm designed for molecular properties optimization. It can optimize any (customizable) objective
+function. It can also maximize the
+[diversity of generated molecules](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-021-00554-8).
+
 ## Installation
 
-EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of 
+EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of
 exploration trees is currently unavailable on Windows.
 
-
-To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on 
+To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on
 <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
 ### Linux
