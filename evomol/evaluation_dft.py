@@ -2,7 +2,7 @@ import json
 import os
 import time
 import uuid
-from os.path import join
+from os.path import join, exists
 
 import cclib
 import numpy as np
@@ -642,7 +642,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                 self.remove_evaluation_files(post_opt_smi_path, xyz_path, opt_input_path, chk_path, opt_log_path,
                                              is_in_cache=ind_is_in_cache)
 
-                compress_log_file(opt_log_path)
+                if exists(opt_log_path):
+                    compress_log_file(opt_log_path)
 
                 raise EvaluationError("DFT caused exception " + str(e))
 
