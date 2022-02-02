@@ -199,7 +199,6 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
         for desc in desc_to_add:
             desc_count[self.get_desc_id(desc)] += 1
 
-
         end_entropy = self.pop_entropy_per_desc(desc_count, self.pop_size_max).sum()
 
         return end_entropy - start_entropy
@@ -219,7 +218,7 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
         elif self.descriptor_key == "atoms":
             return list(set(individual.get_atom_types()))
         elif self.descriptor_key == "shg_1":
-            return list(extract_shingles(individual, 1))
+            return list(extract_shingles(individual.to_aromatic_smiles(), 1))
         elif self.descriptor_key == "checkmol":
             return list(set(extract_checkmol(individual)))
 
