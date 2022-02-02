@@ -14,8 +14,8 @@ To install EvoMol on your system, run the appropriate commands in your terminal.
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env2.yml                     # Create conda environment
-$ conda activate evomolenv2                               # Activate environment
+$ conda env create -f evomol_env.yml                      # Create conda environment
+$ conda activate evomolenv                                # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
 
@@ -24,8 +24,8 @@ $ python -m pip install .                                 # Install EvoMol
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env_windows2.yml             # Create conda environment
-$ conda activate evomolenv2                               # Activate environment
+$ conda env create -f evomol_env_windows.yml              # Create conda environment
+$ conda activate evomolenv                                # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
 
