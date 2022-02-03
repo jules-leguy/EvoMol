@@ -99,7 +99,6 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
                                       dft_method=explicit_IO_parameters_dict["dft_method"],
                                       dft_mem_mb=explicit_IO_parameters_dict["dft_mem_mb"],
                                       shared_last_computation=shared_last_DFT_computation)
-        print(strat.dft_method)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
                                                  pop_size_max=explicit_search_parameters_dict["pop_max_size"],
