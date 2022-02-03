@@ -13,6 +13,5 @@ run_model({
         "dft_method": "test",
         "dft_base": "3-21G*",
         "dft_mem_mb": 32000,
-        "dft_working_dir": "/home/jleguy/Documents/these/prod/prog/evomol/evomol/test/tests/dft_test"
     }
 })
