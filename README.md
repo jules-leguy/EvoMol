@@ -195,9 +195,10 @@ options are :
   * "rdkit_mmff94" to combine RDKit with the MMFF94 force field.
   * "rdkit_uff" to combine RDKit with the UFF force field.
 * ```"dft_base"```: DFT calculations base (__"3-21G*"__).
+* ```"dft_n_jobs"```: number of threads assigned to each DFT calculation (**1**).
 * ```"silly_molecules_reference_db_path``` : path to a JSON file that represents a dictionary containing as keys all the
-ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the 
-```"sillywalks_threshold"``` parameter.
+  ECFP4 bits that are extracted from a reference dataset of quality solutions (**None**). See the
+  ```"sillywalks_threshold"``` parameter.
 * ```"evaluation_strategy_parameters"``` : a dictionary that contains an entry "evaluate_init_pop" to set given 
 parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
  "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 
