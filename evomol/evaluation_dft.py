@@ -269,7 +269,7 @@ def load_obabel_smi(smi_path):
         return smi_rdkit
 
 
-def write_input_file(opt_input_path, xyz_path, smi, n_jobs, dft_base="3-21G*"):
+def write_input_file(opt_input_path, xyz_path, smi, n_jobs, dft_base="3-21G*", dft_method="B3LYP", dft_mem_mb=512):
     with open(xyz_path, "r") as xyz:
         position = ""
         for i, l in enumerate(xyz):
@@ -279,8 +279,9 @@ def write_input_file(opt_input_path, xyz_path, smi, n_jobs, dft_base="3-21G*"):
     with open(opt_input_path, "w") as inp:
         inp.write("%Chk=" + smi + "\n")
         inp.write("%NProcShared=" + str(n_jobs) + "\n")
-        inp.write("%mem=512MB\n")
-        inp.write("#P B3LYP/" + dft_base + " opt Symmetry=(NoInt,NoGrad,None) gfprint pop=(full,HirshfeldEE)\n")
+        inp.write("%mem=" + str(dft_mem_mb) + "MB\n")
+        inp.write("#P " + dft_method + "/" + dft_base + \
+                  " opt Symmetry=(NoInt,NoGrad,None) gfprint pop=(full,HirshfeldEE)\n")
         inp.write("\n" + smi + "\n\n")
         inp.write("0 1\n")
         inp.write(position + "\n\n\n")
@@ -331,7 +332,7 @@ class OPTEvaluationStrategy(EvaluationStrategy):
 
     def __init__(self, prop, n_jobs=1, working_dir_path="/tmp/", cache_files=None, MM_program="obabel_mmff94",
                  cache_behaviour="retrieve_OPT_data", remove_chk_file=True, shared_last_computation=None,
-                 dft_base="3-21G*"):
+                 dft_base="3-21G*", dft_method="B3LYP", dft_mem_mb=512):
         """
         Initialization of the DFT evaluation strategy
         :param prop: key of the property to be assessed. Can be "homo", "lumo", "gap" or "homo-1"
@@ -350,6 +351,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         :param shared_last_computation: SharedLastComputation instance to share the values of the last computation
         values with several OPTEvaluationStrategy instances
         :param dft_base: base of G09 DFT computation (default : "3-21G*")
+        :param dft_method method of G09 DFT computation (default : "B3LYP")
+        :param dft_mem_mb memory assigned to each DFT calculation in MB (default : 512)
         """
 
         super().__init__()
@@ -388,6 +391,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
         self.cache_behaviour = cache_behaviour
         self.remove_chk_file = remove_chk_file
         self.dft_base = dft_base
+        self.dft_method = dft_method
+        self.dft_mem_mb = dft_mem_mb
 
         print("DFT MM " + str(self.MM_program))
         print(str(len(self.cache.keys())) + " molecules in cache")
@@ -560,7 +565,8 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                         f.writelines(xyz_str)
 
                     # Creating input file for OPT
-                    write_input_file(opt_input_path, xyz_path, smi, self.n_jobs, dft_base=self.dft_base)
+                    write_input_file(opt_input_path, xyz_path, smi, self.n_jobs, dft_base=self.dft_base,
+                                     dft_method=self.dft_method, dft_mem_mb=self.dft_mem_mb)
 
                     # Calculate OPT in the working directory
                     command_opt = "cd " + self.working_dir_path_uuid + "; " + join(os.environ["OPT_LIBS"],

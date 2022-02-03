@@ -96,7 +96,10 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
                                       MM_program=explicit_IO_parameters_dict["dft_MM_program"],
                                       dft_base=explicit_IO_parameters_dict["dft_base"],
                                       n_jobs=explicit_IO_parameters_dict["dft_n_jobs"],
+                                      dft_method=explicit_IO_parameters_dict["dft_method"],
+                                      dft_mem_mb=explicit_IO_parameters_dict["dft_mem_mb"],
                                       shared_last_computation=shared_last_DFT_computation)
+        print(strat.dft_method)
     elif param_eval == "entropy_ifg":
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
                                                  pop_size_max=explicit_search_parameters_dict["pop_max_size"],
@@ -386,7 +389,9 @@ def _extract_explicit_IO_parameters(parameters_dict):
         "dft_MM_program": input_IO_parameters[
             "dft_MM_program"] if "dft_MM_program" in input_IO_parameters else "obabel_mmff94",
         "dft_base": input_IO_parameters["dft_base"] if "dft_base" in input_IO_parameters else "3-21G*",
+        "dft_method": input_IO_parameters["dft_method"] if "dft_method" in input_IO_parameters else "B3LYP",
         "dft_n_jobs": input_IO_parameters["dft_n_jobs"] if "dft_n_jobs" in input_IO_parameters else 1,
+        "dft_mem_mb": input_IO_parameters["dft_mem_mb"] if "dft_mem_mb" in input_IO_parameters else 512,
         "record_history": input_IO_parameters["record_history"] if "record_history" in input_IO_parameters else False,
         "record_all_generated_individuals": input_IO_parameters[
             "record_all_generated_individuals"] if "record_all_generated_individuals" in input_IO_parameters else False,
