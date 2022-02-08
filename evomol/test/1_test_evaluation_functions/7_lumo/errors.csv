@@ -1,9 +1,0 @@
-step,error
-0,No more individual to be mutated
-1,DFT failure in cache for  (Evaluation error)C RmA-0 (Evaluation error)
-1,No more individual to be mutated
-3,DFT failure in cache for  (Evaluation error)O RmA-0 (Evaluation error)
-7,DFT caused exception MM error (Evaluation error) (Evaluation error)O=CO Sub-5_AddA-11 (Evaluation error)
-8,No improver found
-9,DFT failure in cache for CC(O)F (Evaluation error)C=O InsA-0_AddA-15 (Evaluation error)
-9,DFT failure in cache for OCCO (Evaluation error)O=CO ChB-703_InsA-0 (Evaluation error)
