@@ -1,23 +1,21 @@
 import json
+import os
 import pickle
+import sys
 from abc import ABC, abstractmethod
 from math import exp
 from os.path import join
 
 import networkx as nx
+import pandas as pd
 from guacamol.common_scoring_functions import IsomerScoringFunction
-from scipy.stats import norm
 from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem
-from rdkit.Chem.QED import qed
-from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
-from rdkit.Chem.rdMolDescriptors import CalcNumRotatableBonds
-
-import pandas as pd
-
 from rdkit.Chem import RDConfig
-import os
-import sys
+from rdkit.Chem.QED import qed
+from rdkit.Chem.rdMolDescriptors import CalcNumRotatableBonds
+from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
+from scipy.stats import norm
 
 from evomol.molgraphops.molgraph import MolGraph
 
@@ -541,11 +539,14 @@ class SillyWalksEvaluationStrategy(EvaluationStrategy):
 
     """
 
-    def __init__(self, path_to_db):
+    def __init__(self, path_to_db, radius=2):
         """
         :param path_to_db: path to the file that contains the reference dictionary of ECFP4 fingerprints keys
+        :param radius: radius of the ECFP fingerprint (radius 2 for ecfp4, radius 1 for ecfp2)
         """
         super().__init__()
+
+        self.radius = radius
 
         # Reading reference data
         with open(path_to_db, "r") as f:
@@ -559,7 +560,7 @@ class SillyWalksEvaluationStrategy(EvaluationStrategy):
         mol = MolFromSmiles(individual.to_aromatic_smiles())
 
         if mol:
-            fp = AllChem.GetMorganFingerprint(mol, 2)
+            fp = AllChem.GetMorganFingerprint(mol, self.radius)
             on_bits = fp.GetNonzeroElements().keys()
 
             silly_bits = [x for x in [self.count_dict.get(str(x)) for x in on_bits] if x is None]
