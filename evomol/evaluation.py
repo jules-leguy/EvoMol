@@ -10,9 +10,10 @@ import networkx as nx
 import pandas as pd
 from guacamol.common_scoring_functions import IsomerScoringFunction
 from rdkit import Chem
-from rdkit.Chem import Descriptors, AllChem
+from rdkit.Chem import Descriptors, AllChem, BondType
 from rdkit.Chem import RDConfig
 from rdkit.Chem.QED import qed
+from rdkit.Chem.Scaffolds import MurckoScaffold
 from rdkit.Chem.rdMolDescriptors import CalcNumRotatableBonds
 from rdkit.Chem.rdmolfiles import MolToSmiles, MolFromSmiles
 from scipy.stats import norm
@@ -508,6 +509,118 @@ class QEDEvaluationStrategy(EvaluationStrategy):
             mol_graph = MolFromSmiles(individual.to_aromatic_smiles())
             score = qed(mol_graph)
             return score, [score]
+
+
+class UnknownGenericCyclicScaffolds(EvaluationStrategy):
+    """
+    Returning the number of unknown generic cyclic scaffolds in given molecule compared to a reference dataset of
+    generic cyclic scaffolds.
+
+    Generic cyclic scaffolds are all rings extracted from the molecule and then converted so that
+    * Each atom becomes a carbon atom
+    * Each bond becomes a single bond
+    """
+
+    def __init__(self, path_to_db):
+        """
+        :param path_to_db: path to the file that contains the reference dictionary of generic cyclic scaffolds as keys
+        """
+        super().__init__()
+        self.path_to_db = path_to_db
+
+        # Reading reference data
+        with open(path_to_db, "r") as f:
+            self.ref_dict = json.load(f)
+
+    @staticmethod
+    def compute_generic_scaffold(smi):
+        # compute generic scaffold
+        mol = Chem.MolFromSmiles(smi)
+        try:
+            gscaf = MurckoScaffold.MakeScaffoldGeneric(MurckoScaffold.GetScaffoldForMol(mol))
+            smi_scaf = Chem.MolToSmiles(gscaf)
+        except:
+            smi_scaf = MurckoScaffold.MurckoScaffoldSmiles(mol=Chem.MolFromSmiles(smi), includeChirality=False)
+            mol_scaf = MolGraph(Chem.MolFromSmiles(smi_scaf))
+
+            mol_scaf.update_mol_representation()
+
+            # Setting all bonds to single
+            for i in range(mol_scaf.mol_graph.GetNumAtoms()):
+                for j in range(mol_scaf.mol_graph.GetNumAtoms()):
+                    bond = mol_scaf.mol_graph.GetBondBetweenAtoms(i, j)
+                    if bond is not None:
+                        bond.SetBondType(BondType.SINGLE)
+
+            for i in range(mol_scaf.mol_graph.GetNumAtoms()):
+                if mol_scaf.mol_graph.GetAtomWithIdx(i).GetTotalValence() <= 4:
+                    # Changing atomic number
+                    mol_scaf.mol_graph.GetAtomWithIdx(i).SetAtomicNum(6)
+                    # Setting formal charge to 0
+                    mol_scaf.mol_graph.GetAtomWithIdx(i).SetFormalCharge(0)
+
+            mol_scaf.update_mol_representation()
+            smi_scaf = mol_scaf.to_aromatic_smiles()
+        return smi_scaf
+
+    @staticmethod
+    def extract_generic_cyclic_scaffolds(smiles):
+        """
+        Returning the list of generic cyclic scaffolds for given SMILES.
+
+        Generic cyclic scaffolds are all rings extracted from the molecule and then converted so that
+        * Each atom becomes a carbon atom
+        * Each bond becomes a single bond
+
+        If an atom shares 4 cyclic neighbours or more, its type is kept unchanged since it cannot be converted to
+        a carbon atom.
+        """
+
+        # build molecular graph
+        mol = Chem.MolFromSmiles(smiles)
+        try:
+            gscaf = MurckoScaffold.GetScaffoldForMol(mol)
+            mol = MurckoScaffold.MakeScaffoldGeneric(gscaf)
+        except:
+            pass
+
+        # build RWMol object
+        molgraph = MolGraph(mol)
+        molgraph.update_mol_representation()
+
+        # compute adjacency matrix, bridges, then coordinates of bridges
+        mol_bridges = molgraph.get_bridge_bonds_matrix()
+        x, y = np.where(mol_bridges == True)
+
+        # delete all bridges
+        for i in range(len(x)):
+            molgraph.mol_graph.RemoveBond(int(x[i]), int(y[i]))
+
+        # update representation
+        molgraph.update_mol_representation()
+
+        # computes smiles of rings features and remove unique atoms
+        features = set([s for s in molgraph.to_aromatic_smiles().split(".") if len(s) > 4])
+        smi_features = [UnknownGenericCyclicScaffolds.compute_generic_scaffold(f) for f in features]
+
+        return set(smi_features)
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        # Extracting generic cyclic scaffolds for input molecule
+        unique_features = set(UnknownGenericCyclicScaffolds.extract_generic_cyclic_scaffolds(
+            individual.to_aromatic_smiles()))
+
+        # Counting unknown features
+        unknown_count = 0
+        for feature in unique_features:
+            if feature not in self.ref_dict:
+                unknown_count += 1
+
+        return unknown_count, [unknown_count]
+
+    def keys(self):
+        return ["UnkownGenericCyclicScaffolds"]
 
 
 class SillyWalksEvaluationStrategy(EvaluationStrategy):
