@@ -1007,6 +1007,7 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return value
 
 
+
 class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Wrapper that returns the opposite of the value of the single contained EvaluationStrategy
@@ -1035,6 +1036,21 @@ class OneMinusWrapperEvaluationStrategy(EvaluationStrategyComposite):
 
     def _compute_total_score(self, strat_scores):
         return 1 - strat_scores[0]
+
+
+class AbsoluteDifferenceEvaluationStrategy(EvaluationStrategyComposite):
+    """
+    Returning the absolute difference between the two given EvaluationStrategy instances
+    """
+
+    def __init__(self, evaluation_strategies):
+        super().__init__(evaluation_strategies)
+
+    def key(self):
+        return "-"
+
+    def _compute_total_score(self, strat_scores):
+        return abs(strat_scores[0] - strat_scores[1])
 
 
 class MeanEvaluationStrategyComposite(EvaluationStrategyComposite):

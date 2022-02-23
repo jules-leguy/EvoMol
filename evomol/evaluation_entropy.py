@@ -221,6 +221,8 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
             return list(extract_shingles(individual.to_aromatic_smiles(), 1))
         elif self.descriptor_key == "checkmol":
             return list(set(extract_checkmol(individual)))
+        elif self.descriptor_key == "ecfp4":
+            return extract_ECFP4(individual.to_aromatic_smiles())
 
     def get_desc_id(self, desc):
         """
@@ -294,6 +296,12 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
         local_d.update(super().get_additional_population_scores())
 
         return local_d
+
+
+def extract_ECFP4(smiles):
+    fp = AllChem.GetMorganFingerprint(MolFromSmiles(smiles), 2)
+    on_bits = fp.GetNonzeroElements().keys()
+    return list(on_bits)
 
 
 def extract_checkmol(molgraph):

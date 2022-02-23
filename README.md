@@ -72,28 +72,31 @@ to 4 entries, that are described in this section.
 
 The ```"obj_function"``` attribute can take the following values. Multi-objective functions can be nested to any depth. 
 * Implemented functions: 
-  * "<a href="https://www.nature.com/articles/nchem.1243">qed</a>", 
- "<a href="https://arxiv.org/abs/1610.02415v2">plogp</a>", 
- "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>", 
- "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>", 
- "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>", 
- "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>".
+  * "<a href="https://www.nature.com/articles/nchem.1243">qed</a>",
+    "<a href="https://arxiv.org/abs/1610.02415v2">plogp</a>",
+    "<a href="https://www.nature.com/articles/s41598-019-47148-x">norm_plogp</a>",
+    "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>",
+    "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>",
+    "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>".
   * "isomer_formula" (*e.g.* "isomer_C7H16").
   * "homo", "lumo", "gap", "homo-1"
-  * "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1" and "entropy_checkmol" can be used to maximize the entropy 
-  of descriptors, 
-   respectively using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>, 
-   <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1 
-   <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a> and 
-   <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a>.
-  * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during 
-the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of mutations.
+  * "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1", "entropy_checkmol" and "entropy_ecfp4" can be used to
+    maximize the entropy of descriptors, respectively
+    using <a href="https://jcheminf.biomedcentral.com/articles/10.1186/s13321-017-0225-z">IFGs </a>,
+    <a href="https://pubs.acs.org/doi/10.1021/jm9602928">Murcko generic scaffolds</a>, level 1
+    <a href="https://link.springer.com/article/10.1186/s13321-018-0321-8">shingles</a>,
+    <a href="https://homepage.univie.ac.at/norbert.haider/cheminf/cmmm.html">checkmol</a> and ECFP4 fingerprints (RDKit
+    Morgan fingerprints implementation).
+  * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during
+    the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of
+    mutations.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function and containing the following entries (see the [example section](https://github.com/jules-leguy/EvoMol#Designing-complex-objective-functions)).
     * ```"type"``` : 
       * "linear_combination" (linear combination of the properties).
       * "product" (product of the properties).
       * "mean" (mean of the properties).
+      * "abs_difference" (absolute difference of **exactly 2** properties).
     * ```"functions"``` : list of functions (string keys describing implemented functions, custom functions,
     multi-objective functions or wrapper functions).
     * Specific to the linear combination

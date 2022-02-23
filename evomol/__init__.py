@@ -8,7 +8,7 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
     IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy, \
-    NPerturbationsEvaluationStrategy
+    NPerturbationsEvaluationStrategy, AbsoluteDifferenceEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
@@ -47,7 +47,7 @@ def _is_describing_implemented_function(param_eval):
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
                           "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol",
-                          "n_perturbations"]\
+                          "entropy_ecfp4", "n_perturbations"] \
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
@@ -115,6 +115,10 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
         strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
                                                  pop_size_max=explicit_search_parameters_dict["pop_max_size"],
                                                  descriptor_key="checkmol")
+    elif param_eval == "entropy_ecfp4":
+        strat = EntropyContribEvaluationStrategy(explicit_search_parameters_dict["n_max_desc"],
+                                                 pop_size_max=explicit_search_parameters_dict["pop_max_size"],
+                                                 descriptor_key="ecfp4")
 
     # Parameter is a GuacaMol evaluation so the evaluation strategy is undefined for now
     elif param_eval.startswith("guacamol"):
@@ -161,12 +165,13 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
     """
 
     if param_eval["type"] in ["linear_combination", "product", "sigm_lin", "product_sigm_lin", "gaussian", "opposite",
-                              "mean", "one_minus"]:
+                              "mean", "one_minus", "abs_difference"]:
 
         # Building evaluation strategies : reading the "functions" attribute if it is defined and not empty by default,
         # which contains a list of functions . Otherwise, building a list that contains a single function from
         # the "function" attribute.
-        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [param_eval["function"]]
+        functions_desc = param_eval["functions"] if "functions" in param_eval and param_eval["functions"] else [
+            param_eval["function"]]
         evaluation_strategies = []
         for function_desc in functions_desc:
 
@@ -196,13 +201,16 @@ def _build_evaluation_strategy_from_multi_objective(param_eval, explicit_IO_para
         elif param_eval["type"] == "gaussian":
             return GaussianWrapperEvaluationStrategy(evaluation_strategies, mu=param_eval["mu"],
                                                      sigma=param_eval["sigma"],
-                                                     normalize=param_eval["normalize"] if "normalize" in param_eval else False)
+                                                     normalize=param_eval[
+                                                         "normalize"] if "normalize" in param_eval else False)
         elif param_eval["type"] == "opposite":
             return OppositeWrapperEvaluationStrategy(evaluation_strategies)
         elif param_eval["type"] == "mean":
             return MeanEvaluationStrategyComposite(evaluation_strategies)
         elif param_eval["type"] == "one_minus":
             return OneMinusWrapperEvaluationStrategy(evaluation_strategies)
+        elif param_eval["type"] == "abs_difference":
+            return AbsoluteDifferenceEvaluationStrategy(evaluation_strategies)
 
 
 def _parse_objective_function_strategy(parameters_dict, explicit_IO_parameters_dict, explicit_search_parameters_dict):
