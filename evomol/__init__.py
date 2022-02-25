@@ -1,5 +1,7 @@
+import csv
 from os.path import join
 
+import pandas as pd
 from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
 
 from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, QEDEvaluationStrategy, \
@@ -440,14 +442,29 @@ def _parse_stop_criterion_strategy(explicit_search_parameters_dict, explicit_IO_
 
 def _read_smiles_list_from_file(smiles_list_path):
     """
-    Reading a list of SMILES from a file
+    Reading a list of SMILES from a file. The file is either a list of SMILES (exactly one SMILES per row), or is a csv
+    file with comma separator and multiple columns. In the latter case, it is assumed to be a pop.csv file (EvoMol
+    output).
     :param smiles_list_path: smiles list filepath
     :return: list of SMILES
     """
 
-    with open(smiles_list_path, "r", newline='') as f:
-        smiles_list = f.readlines()
-    return smiles_list
+    # Extracting all lines
+    with open(smiles_list_path, "r") as f:
+        reader = csv.reader(f)
+        lines = list(reader)
+
+    # Checking whether the file is a pop.csv file
+    is_pop_csv_file = len(lines[0]) > 1
+
+    if is_pop_csv_file:
+
+        # Reading the csv file as a pandas object
+        df = pd.read_csv(smiles_list_path, delimiter=",")
+        return list(df["smiles"])
+
+    else:
+        return [line[0] for line in lines]
 
 
 def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strategy, explicit_search_parameters_dict,
@@ -504,6 +521,7 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
             if explicit_IO_parameters_dict["smiles_list_init_path"] is None:
                 pop_alg.load_pop_from_smiles_list(smiles_list=["C"],
                                                   atom_mutability=explicit_search_parameters_dict["mutable_init_pop"])
+            # Initialization of the population from the specified file
             else:
                 pop_alg.load_pop_from_smiles_list(
                     smiles_list=_read_smiles_list_from_file(explicit_IO_parameters_dict["smiles_list_init_path"]),
