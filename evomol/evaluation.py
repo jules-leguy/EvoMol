@@ -1007,7 +1007,6 @@ class GaussianWrapperEvaluationStrategy(EvaluationStrategyComposite):
         return value
 
 
-
 class OppositeWrapperEvaluationStrategy(EvaluationStrategyComposite):
     """
     Wrapper that returns the opposite of the value of the single contained EvaluationStrategy
