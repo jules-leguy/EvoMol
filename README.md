@@ -436,8 +436,6 @@ In order to use the checkmol descriptor for entropy evaluation, the ```$CHECKMOL
 to the executable of the 
 <a href="https://homepage.univie.ac.at/norbert.haider/download/chemistry/checkmol/checkmol.pas">checkmol program</a>.
 
-OpenBabel must also be installed (see above section).
-
 ### GuacaMol initial population
 
 To use EvoMol for <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">GuacaMol</a> goal directed benchmarks 
