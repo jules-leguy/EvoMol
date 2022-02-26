@@ -420,7 +420,9 @@ The input of ```evomol.get_objective_function_instance``` is a dictionary that c
   contribution evaluation (```"n_max_desc"``` and ```"pop_max_size"``` parameters defined
   [here](https://github.com/jules-leguy/EvoMol#Optimization-parameters)).
 
-For a more complete use of the evaluation function, see [this tutorial]().
+For a more complete use of the evaluation function,
+see [this tutorial](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/Advanced%20use%20of%20the%20evaluation%20functions%20outside%20EvoMol.ipynb)
+.
 
 ## Environment variables and data requirements
 
@@ -459,25 +461,40 @@ to the executable of the
 ### GuacaMol initial population
 
 To use EvoMol for <a href="https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839">GuacaMol</a> goal directed benchmarks 
-optimization using the best scoring molecules from their subset of 
+optimization using the best scoring molecules from their subset of
 <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> as initial population, you need to :
+
 * Download the <a href="https://figshare.com/projects/GuacaMol/56639">ChEMBL subset</a>.
 * Give the path of the data using the ```"smiles_list_init_path"``` attribute.
 * Insure that the ```"guacamol_init_top_100"``` attribute is set to True.
 
 ### rd_filters
-To use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a filter of solutions that can be 
-inserted in the population, the ```$FILTER_RULES_DATA``` environment variable must point to a folder containing the 
+
+To use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a> as a filter of solutions that can be
+inserted in the population, the ```$FILTER_RULES_DATA``` environment variable must point to a folder containing the
 ```rules.json``` and ```alert_collection.csv``` files.
+
+## Advanced tutorials
+
+In order to use advanced functions of EvoMol, some tutorials are available in the
+[```tutorials```](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/) folder.
+
+The tutorials currently available are :
+
+* [Advanced use of the evaluation functions outside EvoMol](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/Advanced%20use%20of%20the%20evaluation%20functions%20outside%20EvoMol.ipynb)
+  .
+  * Declaration of evaluation function that can be used to evaluate molecules outside EvoMol, based on the tree-based
+    dictionary declaration for the objective functions of EvoMol.
+  * Description of the evomol.evaluation.EvaluationStrategyComposant object and its methods that allow the user to
+    obtain the scores and sub-scores values for arbitrary molecules.
 
 ## Citing EvoMol
 
 To reference EvoMol, please cite one of the following articles.
 
-Leguy, J., Cauchy, T., Glavatskikh, M., Duval, B., Da Mota, B. EvoMol: a flexible and interpretable evolutionary 
-algorithm for unbiased de novo molecular generation. J Cheminform 12, 55 (2020). 
+Leguy, J., Cauchy, T., Glavatskikh, M., Duval, B., Da Mota, B. EvoMol: a flexible and interpretable evolutionary
+algorithm for unbiased de novo molecular generation. J Cheminform 12, 55 (2020).
 https://doi.org/10.1186/s13321-020-00458-z
 
-Leguy, J., Glavatskikh, M., Cauchy, T. et al. Scalable estimator of the diversity for de novo molecular 
-generation resulting in a more robust QM dataset (OD9) and a more efficient molecular optimization. 
-J Cheminform 13, 76 (2021). https://doi.org/10.1186/s13321-021-00554-8
+Leguy, J., Glavatskikh, M., Cauchy, T. et al. Scalable estimator of the diversity for de novo molecular generation
+resulting in a more robust QM dataset (OD9) and a more efficient molecular optimization. J Cheminform 13, 76 (2021). https://doi.org/10.1186/s13321-021-00554-8
