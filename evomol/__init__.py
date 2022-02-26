@@ -272,7 +272,8 @@ def _parse_action_space(parameters_dict):
             "change_bond_prevent_breaking_creating_bonds"] if "change_bond_prevent_breaking_creating_bonds" in input_param_action_space else False,
         "cut_insert": input_param_action_space["cut_insert"] if "cut_insert" in input_param_action_space else True,
         "move_group": input_param_action_space["move_group"] if "move_group" in input_param_action_space else True,
-        "remove_group": input_param_action_space["remove_group"] if "remove_group" in input_param_action_space else False,
+        "remove_group": input_param_action_space[
+            "remove_group"] if "remove_group" in input_param_action_space else False,
         "remove_group_only_remove_smallest_group": input_param_action_space[
             "remove_group_only_remove_smallest_group"] if "remove_group_only_remove_smallest_group" in input_param_action_space else True,
         "use_rd_filters": input_param_action_space[
@@ -292,12 +293,14 @@ def _parse_action_space(parameters_dict):
                              append_atom=explicit_action_space_parameters["append_atom"],
                              remove_atom=explicit_action_space_parameters["remove_atom"],
                              change_bond=explicit_action_space_parameters["change_bond"],
-                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters["change_bond_prevent_breaking_creating_bonds"],
+                             change_bond_prevent_breaking_creating_bonds=explicit_action_space_parameters[
+                                 "change_bond_prevent_breaking_creating_bonds"],
                              substitution=explicit_action_space_parameters["substitution"],
                              cut_insert=explicit_action_space_parameters["cut_insert"],
                              move_group=explicit_action_space_parameters["move_group"],
                              remove_group=explicit_action_space_parameters["remove_group"],
-                             remove_group_only_remove_smallest_group=explicit_action_space_parameters["remove_group_only_remove_smallest_group"])
+                             remove_group_only_remove_smallest_group=explicit_action_space_parameters[
+                                 "remove_group_only_remove_smallest_group"])
 
     for parameter in input_param_action_space:
         if parameter not in explicit_action_space_parameters:
@@ -528,6 +531,26 @@ def _build_instance(evaluation_strategy, mutation_strategy, stop_criterion_strat
                     atom_mutability=explicit_search_parameters_dict["mutable_init_pop"])
 
     return pop_alg
+
+
+def get_objective_function_instance(parameters_dict):
+    """
+    Returning the evomol.evaluation.EvaluationStrategyComposant instance that is described in the given EvoMol input
+    dictionary.
+    :param parameters_dict: input dictionary that describes an EvoMol run (same as given to evomol.run_model).
+    :return: evomol.evaluation.EvaluationStrategyComposant instance
+    """
+
+    # Extracting search parameters
+    explicit_search_parameters_dict = _extract_explicit_search_parameters(parameters_dict)
+
+    # Extracting IO parameters
+    explicit_IO_parameters_dict = _extract_explicit_IO_parameters(parameters_dict)
+
+    # Building and returning objective function
+    return _parse_objective_function_strategy(parameters_dict,
+                                              explicit_IO_parameters_dict=explicit_IO_parameters_dict,
+                                              explicit_search_parameters_dict=explicit_search_parameters_dict)
 
 
 def run_model(parameters_dict):

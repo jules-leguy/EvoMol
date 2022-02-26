@@ -173,7 +173,7 @@ can be branched but their atoms and bonds cannot be modified (**True**).
 descriptors such as entropy contribution (**3.000.000**).
 * ```"shuffle_init_pop"```: whether to shuffle the smiles at initialization (**False**).
 
-### Input/Output parameters
+### Input-Output parameters
 
 The ```"io_parameters"``` attribute can be set with a dictionary containing the following entries.
 * ```"model_path"``` : path where to save model's output data (**"EvoMol_model"**).
@@ -395,22 +395,42 @@ Plotting the exploration trees representing the QED values.
 
 ```python
 from evomol.plot_exploration import exploration_graph
+
 exploration_graph(model_path=model_path, layout="neato", prop_to_study_key="qed")
 ```
 
 ![Detailed exploration tree](examples/figures/large_expl_tree_entropy_multiobj.png)
 
+## Using the evaluation functions outside EvoMol
 
+It is possible to use the dictionary based declaration of the objective function to evaluate molecules independently of
+the optimization procedure defined by EvoMol. The ```evomol.get_objective_function_instance``` function is very
+comparable to ```evomol.run_model```, but returns an object that can be used to evaluate any molecule.
+
+The returned object is an instance of ```evomol.evaluation.EvaluationStrategyComposant```, which has in particular an
+```eval_smi``` method that can evaluate any molecule represented as a SMILES string.
+
+The input of ```evomol.get_objective_function_instance``` is a dictionary that can contain the following attributes
+
+* ```"obj_function"```: definition of the evaluation function (see
+  [relevant section](https://github.com/jules-leguy/EvoMol#Objective-function)).
+* ```"io_parameters"```: dictionary that is used here to define the parameters relative to DFT and molecular mechanics
+  parameters (see [relevant section](https://github.com/jules-leguy/EvoMol#Input-Output-parameters)).
+* ```"optimization_parameters"```: dictionary that is used here to define the parameters relative to entropy
+  contribution evaluation (```"n_max_desc"``` and ```"pop_max_size"``` parameters defined
+  [here](https://github.com/jules-leguy/EvoMol#Optimization-parameters)).
+
+For a more complete use of the evaluation function, see [this tutorial]().
 
 ## Environment variables and data requirements
 
 ### CLscore
 
-As the <a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full"> CLscore </a> is dependent of prior 
-data to be computed, EvoMol needs to be given the data location.
-To do so, the ```$SHINGLE_LIBS``` environment variable must be set to the location of the shingle_libs folder that can
-be downloaded <a href="https://github.com/reymond-group/GDBChEMBL"> here</a>.
- 
+As the <a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full"> CLscore </a> is dependent of prior
+data to be computed, EvoMol needs to be given the data location. To do so, the ```$SHINGLE_LIBS``` environment variable
+must be set to the location of the shingle_libs folder that can be
+downloaded <a href="https://github.com/reymond-group/GDBChEMBL"> here</a>.
+
 ### DFT optimization
 
 To perform DFT computations, you need to bind <a href="https://gaussian.com/glossary/g09/">Gaussian09</a> or another 

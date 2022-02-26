@@ -73,13 +73,18 @@ class EvaluationStrategyComposant(ABC):
         if self.do_count_calls:
             self.n_calls += 1
 
-    def eval_smi(self, smiles):
+    def eval_smi(self, smiles, get_subscores=False):
         """
         Evaluating a SMILES
-        :param smiles:
+        :param smiles: SMILES to evaluate
+        :param get_subscores: whether to also return the sub-scores
         :return:
         """
-        return self.evaluate_individual(MolGraph(MolFromSmiles(smiles)))[0]
+
+        if get_subscores:
+            return self.evaluate_individual(MolGraph(MolFromSmiles(smiles)))
+        else:
+            return self.evaluate_individual(MolGraph(MolFromSmiles(smiles)))[0]
 
     @abstractmethod
     def compute_record_scores_init_pop(self, population):
