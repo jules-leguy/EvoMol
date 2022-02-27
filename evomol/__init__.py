@@ -464,6 +464,7 @@ def _read_smiles_list_from_file(smiles_list_path):
 
         # Reading the csv file as a pandas object
         df = pd.read_csv(smiles_list_path, delimiter=",")
+        df.dropna(subset="smiles", inplace=True)
         return list(df["smiles"])
 
     else:
