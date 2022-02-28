@@ -483,10 +483,14 @@ The tutorials currently available are :
 
 * [Advanced use of the evaluation functions outside EvoMol](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/Advanced%20use%20of%20the%20evaluation%20functions%20outside%20EvoMol.ipynb)
   .
-  * Declaration of evaluation function that can be used to evaluate molecules outside EvoMol, based on the tree-based
+  * Declaration of evaluation functions that can be used to evaluate molecules outside EvoMol, based on the tree-based
     dictionary declaration for the objective functions of EvoMol.
   * Description of the evomol.evaluation.EvaluationStrategyComposant object and its methods that allow the user to
     obtain the scores and sub-scores values for arbitrary molecules.
+* [Starting a new EvoMol optimization where a previous one stopped](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/Starting%20a%20new%20EvoMol%20optimization%20where%20a%20previous%20one%20stopped.ipynb)
+  * Starting an EvoMol optimization procedure using as initial population the final population of a previous experiment.
+  * Building a cache of DFT-dependent properties values in the previous experiment so that they are not evaluated again
+    in the initial population of the new experiment.
 
 ## Citing EvoMol
 
