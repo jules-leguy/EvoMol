@@ -10,7 +10,7 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     ProductSigmLinEvaluationStrategy, ProductEvaluationStrategy, SigmLinWrapperEvaluationStrategy, \
     GaussianWrapperEvaluationStrategy, EvaluationStrategyComposant, OppositeWrapperEvaluationStrategy, \
     IsomerGuacaMolEvaluationStrategy, MeanEvaluationStrategyComposite, OneMinusWrapperEvaluationStrategy, \
-    NPerturbationsEvaluationStrategy, AbsoluteDifferenceEvaluationStrategy
+    NPerturbationsEvaluationStrategy, AbsoluteDifferenceEvaluationStrategy, SillyWalksEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
 from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
@@ -49,7 +49,7 @@ def _is_describing_implemented_function(param_eval):
 
     return param_eval in ["qed", "sascore", "norm_sascore", "plogp", "norm_plogp", "clscore", "homo", "lumo", "homo-1",
                           "gap", "entropy_gen_scaffolds", "entropy_ifg", "entropy_shg_1", "entropy_checkmol",
-                          "entropy_ecfp4", "n_perturbations"] \
+                          "entropy_ecfp4", "n_perturbations", "sillywalks_proportion"] \
            or param_eval.startswith("guacamol") or param_eval.startswith("isomer")
 
 
@@ -129,6 +129,10 @@ def _build_evaluation_strategy_from_implemented_function(param_eval, explicit_IO
     elif param_eval.startswith("isomer"):
         formula = param_eval.split("_")[1]
         strat = IsomerGuacaMolEvaluationStrategy(formula)
+
+    elif param_eval == "sillywalks_proportion":
+        strat = SillyWalksEvaluationStrategy(
+            path_to_db=explicit_IO_parameters_dict["silly_molecules_reference_db_path"])
 
     return strat
 

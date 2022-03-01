@@ -90,6 +90,9 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
   * "n_perturbations": count of the number of perturbations that were previously applied on the molecular graph during
     the optimization. If the "mutation_max_depth" parameter is set to 1, then this is equivalent to the number of
     mutations.
+  * "sillywalks_proportion": proportion of ECFP4 features that failed the
+    [sillywalks filter](https://github.com/PatWalters/silly_walks), based on the reference dataset given in the
+    ```"silly_molecules_reference_db_path"``` parameter.
 * A custom function evaluating a SMILES. It is also possible to give a tuple (function, string function name).
 * A dictionary describing a multi-objective function and containing the following entries (see the [example section](https://github.com/jules-leguy/EvoMol#Designing-complex-objective-functions)).
     * ```"type"``` : 
