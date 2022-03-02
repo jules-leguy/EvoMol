@@ -5,7 +5,6 @@ import uuid
 from os.path import join, exists
 
 import cclib
-import numpy as np
 from rdkit.Chem.rdDistGeom import EmbedMolecule
 from rdkit.Chem.rdForceFieldHelpers import MMFFOptimizeMolecule, UFFOptimizeMolecule
 from rdkit.Chem.rdmolfiles import MolFromSmiles, MolToXYZBlock, MolToSmiles
@@ -652,22 +651,3 @@ class OPTEvaluationStrategy(EvaluationStrategy):
                     compress_log_file(opt_log_path)
 
                 raise EvaluationError("DFT caused exception " + str(e))
-
-    def compute_record_scores_init_pop(self, population):
-        self.scores = []
-
-        for idx, ind in enumerate(population):
-            if ind is not None:
-                score, _ = self.evaluate_individual(ind)
-                self.scores.append(score)
-
-    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
-
-        if idx == len(self.scores):
-            self.scores.append(None)
-
-        self.scores[idx] = new_total_score
-
-    def get_population_scores(self):
-
-        return self.scores, np.array([self.scores])

@@ -2,6 +2,7 @@ import json
 import os
 import pickle
 import sys
+import time
 from abc import ABC, abstractmethod
 from math import exp
 from os.path import join
@@ -63,6 +64,14 @@ class EvaluationStrategyComposant(ABC):
         pass
 
     @abstractmethod
+    def get_population_comput_time_vector(self):
+        """
+        Returning the computation time for the evaluation of the complete population
+        :return: computation time for the evaluation of each individual in the population (list)
+        """
+        pass
+
+    @abstractmethod
     def evaluate_individual(self, individual, to_replace_idx=None):
         """
         Evaluation of a given individual.
@@ -95,13 +104,14 @@ class EvaluationStrategyComposant(ABC):
         pass
 
     @abstractmethod
-    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual, comput_time):
         """
         Updating the scores of the individual at the given index
         :param idx: index
         :param new_total_score: total score of the individual
         :param new_scores: intermediate scores
         :param new_individual: new individual to be inserted at the given index
+        :param comput_time: time that was necessary to evaluate the given individual
         :return:
         """
 
@@ -167,20 +177,29 @@ class EvaluationStrategy(EvaluationStrategyComposant, ABC):
         super().__init__()
         self.to_be_replaced_current_step_idx = None
         self.scores = None
+        self.comput_time = None
 
     def compute_record_scores_init_pop(self, population):
         self.scores = []
+        self.comput_time = []
         for idx, ind in enumerate(population):
             if ind is not None:
+                tstart = time.time()
                 self.scores.append(self.evaluate_individual(ind)[0])
+                self.comput_time.append(time.time() - tstart)
 
-    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual, comput_time):
         if idx == len(self.scores):
             self.scores.append(None)
+            self.comput_time.append(None)
         self.scores[idx] = new_total_score
+        self.comput_time[idx] = comput_time
 
     def get_population_scores(self):
         return np.array(self.scores), np.array([self.scores])
+
+    def get_population_comput_time_vector(self):
+        return np.array(self.comput_time)
 
     def end_step_population(self, pop):
         pass
@@ -791,6 +810,7 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
     def __init__(self, evaluation_strategies):
         super().__init__()
         self.evaluation_strategies = evaluation_strategies
+        self.comput_time = None
 
     def end_step_population(self, pop):
         for strategy in self.evaluation_strategies:
@@ -842,10 +862,39 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
         return strat_keys
 
     def compute_record_scores_init_pop(self, population):
+        """
+        Calling the corresponding method in all contained evaluation strategies, and saving a list of times that is
+        computed as the sum of the times of the contained strategies.
+        :param population:
+        :return:
+        """
+
+        self.comput_time = []
+        comput_times_substrategies = []
+
         for strategy in self.evaluation_strategies:
             strategy.compute_record_scores_init_pop(population)
+            comput_times_substrategies.append(strategy.get_population_comput_time_vector())
 
-    def record_ind_score(self, idx, new_total_score, new_sub_scores, new_individual):
+        self.comput_time = list(np.array(comput_times_substrategies).sum(axis=0))
+
+    def record_ind_score(self, idx, new_total_score, new_sub_scores, new_individual, comput_time):
+        """
+        Calling corresponding method to contained instances to propagate score values.
+        Recording the computation time in the current instance
+        :param idx:
+        :param new_total_score:
+        :param new_sub_scores:
+        :param new_individual:
+        :param comput_time:
+        :return:
+        """
+
+        # Saving computation time in current instance
+        if idx == len(self.comput_time):
+            self.comput_time.append(None)
+        self.comput_time[idx] = comput_time
+
         # Iterative in-depth search in order to set the previously computed sub-scores for the given individual
         # (given by index). Building ordered list of evaluation strategies.
         stack = [self]
@@ -878,7 +927,11 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
 
             else:
                 n_keys = len(ordered_strategy.keys())
-                ordered_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual)
+                # Note : comput_time is not passed here since it corresponds to the evaluation time of the entire
+                # objective and not the specific time to compute the current sub-objective (btw : information not
+                # stored).
+                ordered_strategy.record_ind_score(idx, new_sub_scores[i], new_sub_scores[i:i + n_keys], new_individual,
+                                                  comput_time=None)
                 i += n_keys
 
     def get_population_scores(self):
@@ -901,6 +954,11 @@ class EvaluationStrategyComposite(EvaluationStrategyComposant):
             total_scores.append(self._compute_total_score(curr_ind_scores))
 
         return np.array(total_scores), np.concatenate([np.array([total_scores]), np.array(sub_scores)])
+
+    def get_population_comput_time_vector(self):
+
+        # No need to call the contained instances since time information is kept in the current composite strategy
+        return np.array(self.comput_time)
 
     def evaluate_individual(self, individual, to_replace_idx=None):
 

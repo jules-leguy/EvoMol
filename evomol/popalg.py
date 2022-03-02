@@ -1,3 +1,4 @@
+import copy
 import csv
 import time
 from collections import deque
@@ -5,12 +6,11 @@ from os import makedirs
 from os.path import dirname, join
 
 import numpy as np
+from rdkit.Chem.rdmolfiles import MolFromSmiles
+
 from .evaluation import EvaluationError, scores_to_scores_dict
 from .molgraphops.molgraph import MolGraph
 from .mutation import NoImproverError, MutationError
-from rdkit.Chem.rdmolfiles import MolFromSmiles
-
-import copy
 
 
 class NoMoreIndToMutate(Exception):
@@ -39,16 +39,18 @@ class GeneratedIndividualsRecorder:
         self.failed_sillywalks = []
         self.failed_sascore = []
         self.evaluation_strategy = evaluation_strategy
+        self.obj_computation_time = []
 
     def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation,
-                          failed_tabu_pop=False, failed_tabu_external=False, failed_rdfilters=False,
-                          failed_sillywalks=False, failed_sascore=False):
+                          obj_computation_time, failed_tabu_pop=False, failed_tabu_external=False,
+                          failed_rdfilters=False, failed_sillywalks=False, failed_sascore=False):
         self.smiles.append(individual.to_aromatic_smiles())
         self.total_scores.append(total_score)
         self.scores.append(scores)
         self.objective_calls.append(objective_calls)
         self.improver.append(improver)
         self.success_obj_computation.append(success_obj_computation)
+        self.obj_computation_time.append(obj_computation_time)
         failed_any_quality_filter = failed_rdfilters or failed_sillywalks or failed_sascore
         self.failed_any_quality_filter.append(failed_any_quality_filter)
         self.failed_any_filter.append(failed_any_quality_filter or failed_tabu_pop or failed_tabu_external)
@@ -177,6 +179,7 @@ class PopAlg:
         self.all_generated_individuals_scores = None
         self.all_generated_individuals_improver = None
         self.all_generated_individuals_success_obj_computation = None
+        self.all_generated_individuals_obj_computation_time = None
         self.pop_tabu_list = None
         self.external_tabu_list = external_tabu_list
         self.step_traces = None
@@ -222,6 +225,7 @@ class PopAlg:
         self.all_generated_individuals_scores = np.array([]).reshape(0, len(self.evaluation_strategy.keys()))
         self.all_generated_individuals_improver = []
         self.all_generated_individuals_success_obj_computation = []
+        self.all_generated_individuals_obj_computation_time = []
 
         # Insuring the SMILES of the external tabu list are canonical
         if self.external_tabu_list is not None:
@@ -313,6 +317,7 @@ class PopAlg:
         # The file is thus badly named indeed. But it will stay that way for compatibility reasons.
         if self.record_all_generated_individuals:
             scores, all_scores = self.evaluation_strategy.get_population_scores()
+            comput_time = self.evaluation_strategy.get_population_comput_time_vector()
 
             # Iterating over all individuals of the initial population
             for i in range(len(scores)):
@@ -322,6 +327,7 @@ class PopAlg:
                 self.all_generated_individuals_n_obj_calls.append(0)
                 self.all_generated_individuals_success_obj_computation.append(True)
                 self.all_generated_individuals_obj_value.append(scores[i])
+                self.all_generated_individuals_obj_computation_time.append(comput_time[i])
 
                 all_scores_vect = []
                 for j in range(len(self.evaluation_strategy.keys())):
@@ -369,9 +375,11 @@ class PopAlg:
                              ["obj_calls"] + self.all_generated_individuals_n_obj_calls,
                              ["obj_value"] + self.all_generated_individuals_obj_value,
                              ["improver"] + self.all_generated_individuals_improver,
-                             ["success_obj_computation"] + self.all_generated_individuals_success_obj_computation]
+                             ["success_obj_computation"] + self.all_generated_individuals_success_obj_computation,
+                             ["obj_computation_time"] + self.all_generated_individuals_obj_computation_time]
 
                 for i, key in enumerate(self.evaluation_strategy.keys()):
+
                     csv_array.append(
                         [key] + self.all_generated_individuals_scores.T[i].tolist()
                     )
@@ -407,6 +415,12 @@ class PopAlg:
                 scores_list_np = np.full((self.pop_max_size,), None)
                 scores_list_np[:len(scores_list)] = scores_list
                 csv_array.append([k] + list(scores_list_np))
+
+            # Computation time
+            obj_comput_time_list = list(self.evaluation_strategy.get_population_comput_time_vector())
+            obj_comput_time_np = np.full((self.pop_max_size,), None)
+            obj_comput_time_np[:len(obj_comput_time_list)] = obj_comput_time_list
+            csv_array.append(["obj_computation_time"] + list(obj_comput_time_np))
 
             # Action history data
             csv_array.append(["history_data"] + self.actions_history)
@@ -702,7 +716,7 @@ class PopAlg:
                                     curr_to_be_replaced_smiles = self.pop_tabu_list[curr_to_be_replaced_idx]
 
                                     # Trying to perform mutation
-                                    mutated_ind, mutation_desc, mutated_total_score, mutated_scores = \
+                                    mutated_ind, mutation_desc, mutated_total_score, mutated_scores, evaluation_time = \
                                         self.mutation_strategy.mutate(
                                             individual=self.pop[curr_to_be_mutated_idx],
                                             ind_to_replace_idx=curr_to_be_replaced_idx,
@@ -737,7 +751,8 @@ class PopAlg:
                                     # Updating score
                                     self.evaluation_strategy.record_ind_score(curr_to_be_replaced_idx,
                                                                               mutated_total_score,
-                                                                              mutated_scores, mutated_ind)
+                                                                              mutated_scores, mutated_ind,
+                                                                              evaluation_time)
 
                                     # Recording success
                                     replaced_during_step.append((curr_to_be_replaced_idx, mutated_ind))
@@ -783,7 +798,7 @@ class PopAlg:
                     self.all_generated_individuals_step.extend(np.array(step_gen_ind_recorder.get_step_vect())[
                                                                    step_gen_ind_recorder.get_passed_filters_mask()])
                     self.all_generated_individuals_obj_value.extend(np.array(step_gen_ind_recorder.total_scores)[
-                                                                    step_gen_ind_recorder.get_passed_filters_mask()])
+                                                                        step_gen_ind_recorder.get_passed_filters_mask()])
                     self.all_generated_individuals_scores = np.concatenate([
                         self.all_generated_individuals_scores,
                         step_gen_ind_recorder.get_scores_array()[step_gen_ind_recorder.get_passed_filters_mask()]
@@ -793,6 +808,8 @@ class PopAlg:
                     self.all_generated_individuals_success_obj_computation.extend(
                         np.array(step_gen_ind_recorder.success_obj_computation)[
                             step_gen_ind_recorder.get_passed_filters_mask()])
+                    self.all_generated_individuals_obj_computation_time.extend(np.array(
+                        step_gen_ind_recorder.obj_computation_time)[step_gen_ind_recorder.get_passed_filters_mask()])
 
                 # Informing the evaluator that the step has reached its end
                 self.evaluation_strategy.end_step_population(self.pop)

@@ -109,14 +109,18 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
         # Computing cache and scores
         self.compute_cache_record_scores()
 
-    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+        # Assuming here that the time for computing entropy for initial population was null
+        self.comput_time = [0. for ind in population if ind is not None]
+
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual, comput_time):
 
         # Updating the descriptors of the given individual
         self.update_descriptors(idx, new_individual)
 
         # Call to super class to update the score of the given individual. Note : useless as all population scores will
         # be computed at the beginning of the next step
-        super(EntropyContribEvaluationStrategy, self).record_ind_score(idx, new_total_score, new_total_score, new_individual)
+        super(EntropyContribEvaluationStrategy, self).record_ind_score(idx, new_total_score, new_total_score,
+                                                                       new_individual, comput_time)
 
     def evaluate_individual(self, individual, to_replace_idx=None):
         """

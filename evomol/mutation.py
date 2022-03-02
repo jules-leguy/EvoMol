@@ -1,4 +1,4 @@
-import os
+import time
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -6,6 +6,15 @@ from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalks
     SAScoreEvaluationStrategy
 from .molgraphops.molgraph import MolGraphBuilder
 from .molgraphops.exploration import random_neighbour
+import time
+from abc import ABC, abstractmethod
+
+import numpy as np
+
+from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy, \
+    SAScoreEvaluationStrategy
+from .molgraphops.exploration import random_neighbour
+from .molgraphops.molgraph import MolGraphBuilder
 
 
 class MutationError(RuntimeError):
@@ -138,18 +147,26 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                     not failed_sillywalks_filter and not failed_sascore_filter:
 
                 try:
+                    tstart = time.time()
 
                     # Computing score
                     mutated_total_score, mutated_scores = \
                         self.evaluation_strategy.evaluate_individual(mutated_ind, to_replace_idx=ind_to_replace_idx)
 
+                    evaluation_time = time.time() - tstart
+
                 except Exception as e:
+
+                    evaluation_time = time.time() - tstart
+
                     generated_ind_recorder.record_individual(individual=mutated_ind,
                                                              total_score=None,
-                                                             scores=np.full((len(self.evaluation_strategy.keys(), )), None),
+                                                             scores=np.full((len(self.evaluation_strategy.keys(), )),
+                                                                            None),
                                                              objective_calls=self.evaluation_strategy.n_calls,
                                                              success_obj_computation=False,
-                                                             improver=False)
+                                                             improver=False,
+                                                             obj_computation_time=evaluation_time)
 
                     raise EvaluationError(str(e) + individual.to_aromatic_smiles() + " " + desc) from e
 
@@ -162,11 +179,12 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                                                          scores=mutated_scores,
                                                          objective_calls=self.evaluation_strategy.n_calls,
                                                          success_obj_computation=True,
-                                                         improver=is_improver)
+                                                         improver=is_improver,
+                                                         obj_computation_time=evaluation_time)
 
                 # Returning the mutated solution if it is an improver
                 if is_improver:
-                    return mutated_ind, desc, mutated_total_score, mutated_scores
+                    return mutated_ind, desc, mutated_total_score, mutated_scores, evaluation_time
 
             # The mutated solution did not pass the filters
             else:
@@ -180,7 +198,8 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                                                          failed_tabu_external=failed_tabu_external,
                                                          failed_rdfilters=failed_quality_filter,
                                                          failed_sillywalks=failed_sillywalks_filter,
-                                                         failed_sascore=failed_sascore_filter)
+                                                         failed_sascore=failed_sascore_filter,
+                                                         obj_computation_time=None)
 
         # Raising error if no improver was found
         raise NoImproverError("No improver found")

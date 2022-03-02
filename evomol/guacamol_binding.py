@@ -1,10 +1,11 @@
 from os.path import join
 from typing import Optional, List
-import numpy as np
 
-from .evaluation import EvaluationStrategy, EvaluationStrategyComposite
+import numpy as np
 from guacamol.goal_directed_benchmark import GoalDirectedGenerator
 from guacamol.scoring_function import ScoringFunction
+
+from .evaluation import EvaluationStrategy, EvaluationStrategyComposite
 from .stopcriterion import KthScoreMaxValue
 
 
@@ -26,7 +27,7 @@ class UndefinedGuacaMolEvaluationStrategy(EvaluationStrategy):
     def compute_record_scores_init_pop(self, population):
         raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
 
-    def record_ind_score(self, idx, new_total_score, new_scores, new_individual):
+    def record_ind_score(self, idx, new_total_score, new_scores, new_individual, time_comput):
         raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
 
     def get_population_scores(self):
@@ -36,6 +37,9 @@ class UndefinedGuacaMolEvaluationStrategy(EvaluationStrategy):
         raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
 
     def get_additional_population_scores(self):
+        raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
+
+    def get_population_comput_time_vector(self):
         raise RuntimeError("Undefined GuacaMol evaluation strategy being used")
 
 
