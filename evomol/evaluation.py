@@ -501,6 +501,7 @@ class IsomerGuacaMolEvaluationStrategy(EvaluationStrategy):
         return ["isomer_" + self.formula]
 
     def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
 
         if individual is None:
             return None, [None]
@@ -522,6 +523,7 @@ class RediscoveryGuacaMolEvaluationStrategy(EvaluationStrategy):
         self.guacamol_scorer = TanimotoScoringFunction(target_smiles, fp_type="ECFP4")
 
     def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
 
         if individual is None:
             return None, [None]
@@ -654,6 +656,7 @@ class UnknownGenericCyclicScaffolds(EvaluationStrategy):
         return set(smi_features)
 
     def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
 
         # Extracting generic cyclic scaffolds for input molecule
         unique_features = set(UnknownGenericCyclicScaffolds.extract_generic_cyclic_scaffolds(
@@ -718,6 +721,8 @@ class SillyWalksEvaluationStrategy(EvaluationStrategy):
 
     def evaluate_individual(self, individual, to_replace_idx=None):
 
+        super().evaluate_individual(individual, to_replace_idx)
+
         mol = MolFromSmiles(individual.to_aromatic_smiles())
 
         if mol:
@@ -743,6 +748,7 @@ class NPerturbationsEvaluationStrategy(EvaluationStrategy):
         return ["n_perturbations"]
 
     def evaluate_individual(self, individual, to_replace_idx=None):
+        super().evaluate_individual(individual, to_replace_idx)
         return individual.n_modifications, [individual.n_modifications]
 
 
