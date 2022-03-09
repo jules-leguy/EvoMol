@@ -78,7 +78,9 @@ The ```"obj_function"``` attribute can take the following values. Multi-objectiv
     "<a href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8">sascore</a>",
     "<a href="https://arxiv.org/abs/1705.10843">norm_sascore</a>",
     "<a href="https://www.frontiersin.org/articles/10.3389/fchem.2020.00046/full">clscore</a>".
-  * "isomer_formula" (*e.g.* "isomer_C7H16").
+  * "<a href=https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839>isomer</a>_formula" (*e.g.* "isomer_C7H16").
+  * "<a href=https://pubs.acs.org/doi/10.1021/acs.jcim.8b00839>rediscovery</a>_smiles" (*e.g.* "rediscovery_CC(=O)
+    OC1=CC=CC=C1C(=O)O")
   * "homo", "lumo", "gap", "homo-1"
   * "entropy_ifg", "entropy_gen_scaffolds", "entropy_shg_1", "entropy_checkmol" and "entropy_ecfp4" can be used to
     maximize the entropy of descriptors, respectively

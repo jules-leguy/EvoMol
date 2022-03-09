@@ -9,7 +9,7 @@ from os.path import join
 
 import networkx as nx
 import pandas as pd
-from guacamol.common_scoring_functions import IsomerScoringFunction
+from guacamol.common_scoring_functions import IsomerScoringFunction, TanimotoScoringFunction
 from rdkit import Chem
 from rdkit.Chem import Descriptors, AllChem, BondType
 from rdkit.Chem import RDConfig
@@ -507,6 +507,30 @@ class IsomerGuacaMolEvaluationStrategy(EvaluationStrategy):
         else:
             score = self.guacamol_scorer.score(individual.to_aromatic_smiles())
             return score, [score]
+
+
+class RediscoveryGuacaMolEvaluationStrategy(EvaluationStrategy):
+    """
+    Rediscovery score based on the implementation of GuacaMol
+    Nathan Brown et al., “GuacaMol: Benchmarking Models for de Novo Molecular Design,” Journal of Chemical Information
+    and Modeling 59, no. 3 (March 25, 2019): 1096–1108, https://doi.org/10.1021/acs.jcim.8b00839.
+    """
+
+    def __init__(self, target_smiles):
+        super().__init__()
+        self.target_smiles = target_smiles
+        self.guacamol_scorer = TanimotoScoringFunction(target_smiles, fp_type="ECFP4")
+
+    def evaluate_individual(self, individual, to_replace_idx=None):
+
+        if individual is None:
+            return None, [None]
+        else:
+            score = self.guacamol_scorer.score(individual.to_aromatic_smiles())
+            return score, [score]
+
+    def keys(self):
+        return ["rediscovery_" + self.target_smiles]
 
 
 class QEDEvaluationStrategy(EvaluationStrategy):
