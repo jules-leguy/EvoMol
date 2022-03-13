@@ -636,7 +636,7 @@ class PopAlg:
         i = 0
         # Computing the list of k_best best individuals that are not in the tabu list
         while len(returned_smiles) < k_best and i < len(best_solutions_ind):
-            curr_sol_smiles = best_solutions_ind[i].to_aromatic_smiles()
+            curr_sol_smiles = MolGraph(MolFromSmiles(best_solutions_ind[i].to_aromatic_smiles()).to_aromatic_smiles())
             if tabu_list is None or curr_sol_smiles not in tabu_list:
                 returned_smiles.append(curr_sol_smiles)
                 returned_scores.append(best_solutions_scores[i])
