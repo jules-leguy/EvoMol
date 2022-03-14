@@ -4,13 +4,13 @@ from os.path import dirname
 
 import networkx as nx
 import numpy as np
+from PIL import Image
+from rdkit.Chem import Kekulize, FastFindRings, MolFromSmiles
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.rdDepictor import Compute2DCoords
 from rdkit.Chem.rdchem import RWMol, Atom, GetPeriodicTable, Bond, BondType
 from rdkit.Chem.rdmolfiles import MolToSmiles
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix, SanitizeMol
-from rdkit.Chem import Kekulize, FastFindRings, MolFromSmiles
-from PIL import Image
 
 
 class MolGraph:
@@ -446,7 +446,8 @@ class MolGraph:
         return MolToSmiles(self.mol_graph)
 
     def to_aromatic_smiles(self):
-        return MolToSmiles(MolFromSmiles(self.to_smiles()))
+        return MolToSmiles(MolFromSmiles(MolToSmiles(MolGraph(MolFromSmiles(self.to_smiles())).mol_graph)))
+        # return MolToSmiles(MolFromSmiles(self.to_smiles()))
 
     def export_mol(self):
         """
