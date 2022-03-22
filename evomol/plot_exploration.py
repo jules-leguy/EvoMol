@@ -116,13 +116,13 @@ def crop_image_with_transparency(img):
     # Computing bounding box of non zero pixels
     bbox = Image.fromarray(image_data).getbbox()
 
-    # If the bbox is None then the image is empty then a single pixel is selected
+    w, h = img.size
+
+    # If the bbox is None then the image is empty then the central box is selected
     if bbox is None:
-        l, u, r, b = 0, 0, 0, 0
+        l, u, r, b = w // 2, h // 2, w // 2, h // 2
     else:
         l, u, r, b = bbox
-
-    w, h = img.size
 
     mask = Image.new('L', img.size, color=255)
     epsilon = 10
