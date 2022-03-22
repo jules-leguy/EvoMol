@@ -1,17 +1,18 @@
 import csv
 from os.path import join
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 from PIL import Image, ImageDraw
-from .evaluation import EvaluationStrategy
 from matplotlib.colors import LogNorm
-from .molgraphops.molgraph import MolGraph
 from networkx.drawing.nx_agraph import graphviz_layout
 from rdkit.Chem.Draw import MolsToGridImage, MolToImage, DrawingOptions
 from rdkit.Chem.rdmolfiles import MolFromSmiles
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-import numpy as np
+
+from .evaluation import EvaluationStrategy
+from .molgraphops.molgraph import MolGraph
 
 figsize = (15, 10)
 dpi = 500
@@ -113,7 +114,14 @@ def crop_image_with_transparency(img):
     a[white_pixels_mask] = 0
 
     # Computing bounding box of non zero pixels
-    l, u, r, b = Image.fromarray(image_data).getbbox()
+    bbox = Image.fromarray(image_data).getbbox()
+
+    # If the bbox is None then the image is empty then a single pixel is selected
+    if bbox is None:
+        l, u, r, b = 0, 0, 0, 0
+    else:
+        l, u, r, b = bbox
+
     w, h = img.size
 
     mask = Image.new('L', img.size, color=255)
