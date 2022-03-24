@@ -138,6 +138,7 @@ def crop_image_with_transparency(img):
 
 
 def compute_mol_legend(action_history_k, smi, action_history_scores, legend_scores_keys_strat=None):
+
     legend = ""
     last = 0
     scores_float = []
@@ -170,7 +171,8 @@ def compute_mol_legend(action_history_k, smi, action_history_scores, legend_scor
 
 
 def compute_mol_attributes(graph, labels_dict, actions_history_smi_pop, actions_history_smi_removed,
-                           actions_history_scores_pop, actions_history_scores_removed, legend_scores_keys_strat=None):
+                           actions_history_scores_pop, actions_history_scores_removed, legend_scores_keys_strat=None,
+                           mol_size_px=(800, 000)):
     images_attributes = {}
     scores_attributes = {}
 
@@ -183,7 +185,7 @@ def compute_mol_attributes(graph, labels_dict, actions_history_smi_pop, actions_
         if action_history_k in actions_history_smi_pop:
 
             smi = actions_history_smi_pop[action_history_k]
-            img = MolToImage(MolFromSmiles(smi), size=(800, 800),
+            img = MolToImage(MolFromSmiles(smi), size=mol_size_px,
                              options=draw_opt)
             images_attributes[action_history_k] = crop_image_with_transparency(img)
 
@@ -194,7 +196,7 @@ def compute_mol_attributes(graph, labels_dict, actions_history_smi_pop, actions_
         else:
 
             smi = actions_history_smi_removed[action_history_k]
-            img = MolToImage(MolFromSmiles(smi), size=(800, 800),
+            img = MolToImage(MolFromSmiles(smi), size=mol_size_px,
                              options=draw_opt)
             images_attributes[action_history_k] = crop_image_with_transparency(img)
 
@@ -209,7 +211,7 @@ def compute_mol_attributes(graph, labels_dict, actions_history_smi_pop, actions_
 
 def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_removed,
                     actions_history_scores_pop, actions_history_scores_removed, legend_scores_keys_strat=None,
-                    problem_type="max", mols_per_row=4, draw_n_mols=None):
+                    problem_type="max", mols_per_row=4, draw_n_mols=None, mol_size_px=(200, 200)):
     smi_to_draw = {}
     legends_to_draw = {}
     scores_float = {}
@@ -238,11 +240,11 @@ def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_re
     mols = []
     legends = []
     scores_to_sort = []
-    for k, smi in smi_to_draw.items():
-        mols.append(MolFromSmiles(smi))
-        legends.append(legends_to_draw[k])
-        scores_to_sort.append(scores_float[k][0])
 
+    for k, smi in smi_to_draw.items():
+        mols.append(MolFromSmiles(smi) if smi != "" else MolFromSmiles("H"))
+        legends.append(legends_to_draw[k])
+        scores_to_sort.append(scores_float[k][0]) if len(scores_float[k]) > 0 else scores_to_sort.append(np.nan)
 
     mols = np.array(mols)
     legends = np.array(legends)
@@ -260,7 +262,7 @@ def draw_mol_labels(labels_dict, actions_history_smi_pop, actions_history_smi_re
     legends = list(legends[sorted_order])
     mols = list(mols[sorted_order])
 
-    img = MolsToGridImage(mols, legends=legends, molsPerRow=mols_per_row, subImgSize=(200, 200))
+    img = MolsToGridImage(mols, legends=legends, molsPerRow=mols_per_row, subImgSize=mol_size_px)
     return img
 
 
@@ -294,9 +296,9 @@ def normalize_layout(input_layout):
 
 
 def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_images=False,
-                      mol_size=0.1, figsize=(15, 10), draw_scores=False, draw_actions=False, plot_labels=False,
-                      layout="dot", cmap="inferno", prop_to_study_key="total", dpi=300, legend_offset=(0, 0),
-                      legend_scores_keys_strat=None, problem_type="max",
+                      mol_size_inches=0.1, mol_size_px=(800, 800), figsize=(15, 10), draw_scores=False,
+                      draw_actions=False, plot_labels=False, layout="dot", cmap="inferno", prop_to_study_key="total",
+                      dpi=300, legend_offset=(0, 0), legend_scores_keys_strat=None, problem_type="max",
                       mols_per_row=4, draw_n_mols=None, legends_font_size=15):
 
     # Computing file names file names
@@ -372,7 +374,8 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
 
     if draw_actions:
         nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels,
-                                     bbox=dict(facecolor='#ffffff', edgecolor='none', alpha=0.3), font_size=15)
+                                     bbox=dict(facecolor='#ffffff', edgecolor='none', alpha=0.3),
+                                     font_size=legends_font_size)
 
     ax = plt.gca()
     # ax.axis('off')
@@ -383,7 +386,8 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
     if plot_images or draw_scores:
 
         compute_mol_attributes(graph, labels, actions_history_smi_pop, actions_history_smi_removed,
-                               actions_history_scores_pop, actions_history_scores_removed, legend_scores_keys_strat)
+                               actions_history_scores_pop, actions_history_scores_removed, legend_scores_keys_strat,
+                               mol_size_px=mol_size_px)
 
         images = nx.get_node_attributes(graph, "image")
         scores = nx.get_node_attributes(graph, "score_label")
@@ -397,7 +401,7 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
                 xa, ya = trans2((xx, yy))  # axes coordinates
 
                 if plot_images:
-                    a = plt.axes([xa - mol_size / 2, ya - mol_size / 2, mol_size, mol_size])
+                    a = plt.axes([xa - mol_size_inches / 2, ya - mol_size_inches / 2, mol_size_inches, mol_size_inches])
                     a.imshow(images[n])
                     a.set_aspect('equal')
                     a.patch.set_alpha(0)
@@ -411,7 +415,7 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
         img_labels = draw_mol_labels(labels, actions_history_smi_pop, actions_history_smi_removed,
                                      actions_history_scores_pop, actions_history_scores_removed,
                                      legend_scores_keys_strat=legend_scores_keys_strat, problem_type=problem_type,
-                                     mols_per_row=mols_per_row, draw_n_mols=draw_n_mols)
+                                     mols_per_row=mols_per_row, draw_n_mols=draw_n_mols, mol_size_px=mol_size_px)
         with open(join(model_path, "mol_table.png"), "wb") as f:
             img_labels.save(f, "png")
 

@@ -358,8 +358,8 @@ Also plotting a table of molecular drawings.
 from evomol.plot_exploration import exploration_graph
 
 exploration_graph(model_path=model_path, layout="dot", draw_actions=True, plot_images=True, draw_scores=True,
-                  root_node="O=C(C)Oc1ccccc1C(=O)O", legend_scores_keys_strat=["total"], mol_size=0.3,
-                  legend_offset=(-0.007, -0.05), figsize=(20, 20/1.5), legends_font_size=13)
+                  root_node="O=C(C)Oc1ccccc1C(=O)O", legend_scores_keys_strat=["total"], mol_size_inches=0.3,
+                  mol_size_px=(800, 800), legend_offset=(-0.007, -0.05), figsize=(20, 20/1.5), legends_font_size=13)
 ```
 
 ![Detailed exploration tree](examples/figures/detailed_expl_tree.png)
