@@ -1,4 +1,5 @@
 import csv
+import io
 from os.path import join
 
 import matplotlib as mpl
@@ -416,6 +417,14 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
                                      actions_history_scores_pop, actions_history_scores_removed,
                                      legend_scores_keys_strat=legend_scores_keys_strat, problem_type=problem_type,
                                      mols_per_row=mols_per_row, draw_n_mols=draw_n_mols, mol_size_px=mol_size_px)
+
+        # Making sure the image is a PIL.Image even if launched from a notebook
+        if not isinstance(img_labels, Image.Image):
+            buf = io.BytesIO()
+            buf.write(img_labels.data)
+            buf.seek(0)
+            img_labels = Image.open(buf)
+
         with open(join(model_path, "mol_table.png"), "wb") as f:
             img_labels.save(f, "png")
 
