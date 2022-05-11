@@ -276,7 +276,7 @@ def write_input_file(opt_input_path, xyz_path, smi, n_jobs, dft_base="3-21G*", d
                 position += l
 
     with open(opt_input_path, "w") as inp:
-        inp.write("%Chk=" + smi + "\n")
+        inp.write("%Chk=" + smi_to_filename(smi) + "\n")
         inp.write("%NProcShared=" + str(n_jobs) + "\n")
         inp.write("%mem=" + str(dft_mem_mb) + "MB\n")
         inp.write("#P " + dft_method + "/" + dft_base + \
