@@ -292,6 +292,8 @@ def _parse_action_space(parameters_dict):
             "sillywalks_threshold"] if "sillywalks_threshold" in input_param_action_space else 1,
         "sascore_threshold": input_param_action_space[
             "sascore_threshold"] if "sascore_threshold" in input_param_action_space else float("inf"),
+        "custom_filter_function": input_param_action_space["custom_filter_function"] if \
+            "custom_filter_function" in input_param_action_space else None,
         "sulfur_valence": input_param_action_space[
             "sulfur_valence"] if "sulfur_valence" in input_param_action_space else 6}
 
@@ -342,7 +344,10 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                  silly_molecules_db=explicit_IO_parameters[
                                                                      "silly_molecules_reference_db_path"],
                                                                  sascore_threshold=search_space_parameters[
-                                                                     "sascore_threshold"])
+                                                                     "sascore_threshold"],
+                                                                 custom_filter_function=search_space_parameters[
+                                                                     "custom_filter_function"
+                                                                 ])
 
     return mutation_strategy
 

@@ -2,14 +2,6 @@ import time
 from abc import ABC, abstractmethod
 
 import numpy as np
-from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy, \
-    SAScoreEvaluationStrategy
-from .molgraphops.molgraph import MolGraphBuilder
-from .molgraphops.exploration import random_neighbour
-import time
-from abc import ABC, abstractmethod
-
-import numpy as np
 
 from .evaluation import EvaluationError, RDFiltersEvaluationStrategy, SillyWalksEvaluationStrategy, \
     SAScoreEvaluationStrategy
@@ -62,7 +54,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
 
     def __init__(self, k, max_n_try, evaluation_strategy, action_spaces, action_spaces_parameters, problem_type="max",
                  quality_filter=False, silly_molecules_fp_threshold=1, silly_molecules_db=None,
-                 sascore_threshold=float("inf")):
+                 sascore_threshold=float("inf"), custom_filter_function=None):
         """
 
         :param k: max number of successive graph operations
@@ -77,6 +69,8 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         bits in the ECFP4 fingerprint that do not exist in the ChemBL. The molecules with a proportion that is higher
         than the given threshold are discarded (https://github.com/PatWalters/silly_walks).
         :param sascore_threshold : discarding solutions that have a SAScore value above the given threshold
+        :param custom_filter_function: custom boolean function that evaluates a smiles and assess whether it is part
+        of an acceptable search space or not.
         """
         self.k = k
         self.max_n_try = max_n_try
@@ -87,6 +81,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
         self.quality_filter = quality_filter
         self.silly_molecules_fp_threshold = silly_molecules_fp_threshold
         self.sascore_threshold = sascore_threshold
+        self.custom_filter_function = custom_filter_function
 
         if self.quality_filter:
             self.rd_filter_eval_strat = RDFiltersEvaluationStrategy()
@@ -129,22 +124,26 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
             # Computing boolean filter values
             failed_tabu_pop = mutated_ind.to_aromatic_smiles() in pop_tabu_list
             failed_tabu_external = external_tabu_list is not None and \
-                mutated_ind.to_aromatic_smiles() in external_tabu_list
+                                   mutated_ind.to_aromatic_smiles() in external_tabu_list
             failed_quality_filter = self.quality_filter and \
-                self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 0
+                                    self.rd_filter_eval_strat.evaluate_individual(mutated_ind)[0] == 0
             failed_sillywalks_filter = self.silly_molecules_fp_threshold < 1 and \
-                self.silly_walks_eval_strat.evaluate_individual(mutated_ind)[0] > self.silly_molecules_fp_threshold
+                                       self.silly_walks_eval_strat.evaluate_individual(mutated_ind)[
+                                           0] > self.silly_molecules_fp_threshold
+            failed_custom_filter = self.custom_filter_function is not None and \
+                                   not self.custom_filter_function(mutated_ind.to_aromatic_smiles())
 
             try:
                 failed_sascore_filter = self.sascore_threshold < float("inf") and \
-                    self.sascore_eval_strat.evaluate_individual(mutated_ind)[0] > self.sascore_threshold
+                                        self.sascore_eval_strat.evaluate_individual(mutated_ind)[
+                                            0] > self.sascore_threshold
             except ZeroDivisionError:
                 failed_sascore_filter = True
 
             # Only evaluating the neighbour if it has not been encountered yet in the population and if it is valid
             # if the filters are enabled and if it is not in the external tabu list
             if not failed_tabu_pop and not failed_tabu_external and not failed_quality_filter and \
-                    not failed_sillywalks_filter and not failed_sascore_filter:
+                    not failed_sillywalks_filter and not failed_sascore_filter and not failed_custom_filter:
 
                 try:
                     tstart = time.time()
@@ -199,6 +198,7 @@ class KRandomGraphOpsImprovingMutationStrategy(MutationStrategy):
                                                          failed_rdfilters=failed_quality_filter,
                                                          failed_sillywalks=failed_sillywalks_filter,
                                                          failed_sascore=failed_sascore_filter,
+                                                         failed_custom_filter=failed_custom_filter,
                                                          obj_computation_time=None)
 
         # Raising error if no improver was found

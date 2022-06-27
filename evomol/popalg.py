@@ -38,12 +38,14 @@ class GeneratedIndividualsRecorder:
         self.failed_rdfilters = []
         self.failed_sillywalks = []
         self.failed_sascore = []
+        self.failed_custom_filter = []
         self.evaluation_strategy = evaluation_strategy
         self.obj_computation_time = []
 
     def record_individual(self, individual, total_score, scores, objective_calls, improver, success_obj_computation,
                           obj_computation_time, failed_tabu_pop=False, failed_tabu_external=False,
-                          failed_rdfilters=False, failed_sillywalks=False, failed_sascore=False):
+                          failed_rdfilters=False, failed_sillywalks=False, failed_sascore=False,
+                          failed_custom_filter=False):
         self.smiles.append(individual.to_aromatic_smiles())
         self.total_scores.append(total_score)
         self.scores.append(scores)
@@ -59,6 +61,7 @@ class GeneratedIndividualsRecorder:
         self.failed_rdfilters.append(failed_rdfilters)
         self.failed_sillywalks.append(failed_sillywalks)
         self.failed_sascore.append(failed_sascore)
+        self.failed_custom_filter.append(failed_custom_filter)
 
     def get_scores_array(self):
         return np.array(self.scores).reshape(len(self.smiles), len(self.evaluation_strategy.keys()))
@@ -244,7 +247,8 @@ class PopAlg:
             'n_discarded_filters': [],
             'n_discarded_rdfilters': [],
             'n_discarded_sillywalks': [],
-            'n_discarded_sascore': []
+            'n_discarded_sascore': [],
+            'n_discarded_custom_filter': []
         }
 
         # Initialization of keys in the self.step_traces dict declared by the evaluation strategy instance
@@ -362,6 +366,7 @@ class PopAlg:
             csv_array.append(["n_discarded_rdfilters"] + self.step_traces["n_discarded_rdfilters"])
             csv_array.append(["n_discarded_sillywalks"] + self.step_traces["n_discarded_sillywalks"])
             csv_array.append(["n_discarded_sascore"] + self.step_traces["n_discarded_sascore"])
+            csv_array.append(["n_discarded_custom_filter"] + self.step_traces["n_discarded_custom_filter"])
 
             with open(join(self.output_folder_path, 'steps.csv'), "w", newline='') as f:
                 writer = csv.writer(f)
@@ -506,6 +511,7 @@ class PopAlg:
             self.step_traces["n_discarded_rdfilters"].append(np.sum(step_gen_ind_recorder.failed_rdfilters))
             self.step_traces["n_discarded_sillywalks"].append(np.sum(step_gen_ind_recorder.failed_sillywalks))
             self.step_traces["n_discarded_sascore"].append(np.sum(step_gen_ind_recorder.failed_sascore))
+            self.step_traces["n_discarded_custom_filter"].append(np.sum(step_gen_ind_recorder.failed_custom_filter))
         else:
             self.step_traces["n_failed_obj_computation"].append(0)
             self.step_traces["n_not_improvers_among_success_obj_computation"].append(0)
@@ -514,6 +520,7 @@ class PopAlg:
             self.step_traces["n_discarded_rdfilters"].append(0)
             self.step_traces["n_discarded_sillywalks"].append(0)
             self.step_traces["n_discarded_sascore"].append(0)
+            self.step_traces["n_discarded_custom_filter"].append(0)
 
     def evaluate_pop_record_step_data(self, n_replaced, record_step_data=True, step_gen_ind_recorder=None):
 
