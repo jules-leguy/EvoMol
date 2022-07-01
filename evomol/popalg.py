@@ -53,7 +53,7 @@ class GeneratedIndividualsRecorder:
         self.improver.append(improver)
         self.success_obj_computation.append(success_obj_computation)
         self.obj_computation_time.append(obj_computation_time)
-        failed_any_quality_filter = failed_rdfilters or failed_sillywalks or failed_sascore
+        failed_any_quality_filter = failed_rdfilters or failed_sillywalks or failed_sascore or failed_custom_filter
         self.failed_any_quality_filter.append(failed_any_quality_filter)
         self.failed_any_filter.append(failed_any_quality_filter or failed_tabu_pop or failed_tabu_external)
         self.failed_tabu_pop.append(failed_tabu_pop)
