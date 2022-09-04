@@ -214,6 +214,8 @@ class EntropyContribEvaluationStrategy(EvaluationStrategy):
         :return:
         """
 
+        if self.descriptor_key == "scaffolds":
+            return [MolToSmiles(MurckoScaffold.MurckoScaffoldSmiles(MolFromSmiles(individual.to_smiles())))]
         if self.descriptor_key == "gen_scaffolds":
             return [MolToSmiles(MurckoScaffold.MakeScaffoldGeneric(MolFromSmiles(individual.to_smiles())))]
         elif self.descriptor_key == "ifg":
