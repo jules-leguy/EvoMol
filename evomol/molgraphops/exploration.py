@@ -213,3 +213,12 @@ class RandomActionTypeSelectionStrategy(NeighbourGenerationStrategy):
 
     def select_action_type(self, action_types_list, evaluation_strategy):
         return np.random.choice(action_types_list)
+
+
+class AlwaysFirstActionSelectionStrategy(NeighbourGenerationStrategy):
+    """
+    Always selecting the first action type
+    """
+
+    def select_action_type(self, action_types_list, evaluation_strategy):
+        return action_types_list[0]

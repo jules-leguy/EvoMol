@@ -1,6 +1,6 @@
 from rdkit.Chem import Lipinski, MolFromSmiles
 
-from evomol.molgraphops.exploration import RandomActionTypeSelectionStrategy2
+from evomol.molgraphops.exploration import AlwaysFirstActionSelectionStrategy
 
 
 def hetero_atoms_proportion(smiles):
@@ -64,6 +64,6 @@ run_model({
     },
     "optimization_parameters": {
         "max_steps": 50,
-        "neighbour_generation_strategy": RandomActionTypeSelectionStrategy2()
+        "neighbour_generation_strategy": AlwaysFirstActionSelectionStrategy()
     }
 })
