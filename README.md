@@ -172,6 +172,9 @@ to their objective function value ("random_weighted") .
 * ```"problem_type"``` : whether it is a maximization (**"max"**) or minimization ("min") problem.
 * ```"mutation_max_depth"``` : maximum number of successive actions on the molecular graph during a single mutation 
 (**2**).
+* ```"neighbour_generation_strategy"```: strategy to generate neighbour candidates (mutation). By default, the type of
+perturbation is first drawn randomly, then the actual perturbation of previously selected type is drawn randomly among 
+the valid ones (**evomol.molgraphops.exploration.RandomActionTypeSelectionStrategy()**).
 * ```"mutation_find_improver_tries"``` : maximum number of mutations to find an improver (**50**).
 * ```"guacamol_init_top_100"``` : whether to initialize the population with the 100 best scoring individuals of the 
 GuacaMol <a href="https://academic.oup.com/nar/article/45/D1/D945/2605707">ChEMBL</a> subset in case of taking the 

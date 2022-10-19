@@ -2,7 +2,6 @@ import csv
 from os.path import join
 
 import pandas as pd
-from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
 
 from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, QEDEvaluationStrategy, \
     NormalizedSAScoreEvaluationStrategy, CLScoreEvaluationStrategy, SAScoreEvaluationStrategy, \
@@ -14,13 +13,15 @@ from .evaluation import EvaluationStrategy, GenericFunctionEvaluationStrategy, Q
     RediscoveryGuacaMolEvaluationStrategy
 from .evaluation_dft import OPTEvaluationStrategy, SharedLastComputation
 from .evaluation_entropy import EntropyContribEvaluationStrategy
-from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
-    GuacamolEvaluationStrategy, UndefinedGuacaMolEvaluationStrategy, get_GuacaMol_benchmark_parameter
 from .molgraphops.default_actionspaces import generic_action_space
+from .molgraphops.exploration import RandomActionTypeSelectionStrategy
 from .mutation import KRandomGraphOpsImprovingMutationStrategy
 from .popalg import PopAlg
 from .stopcriterion import MultipleStopCriterionsStrategy, FileStopCriterion, KStepsStopCriterionStrategy, \
     KObjFunCallsFunctionStopCriterion, KthScoreMaxValue
+from guacamol.assess_goal_directed_generation import assess_goal_directed_generation
+from .guacamol_binding import ChemPopAlgGoalDirectedGenerator, is_or_contains_undefined_GuacaMol_evaluation_strategy, \
+    GuacamolEvaluationStrategy, UndefinedGuacaMolEvaluationStrategy, get_GuacaMol_benchmark_parameter
 
 
 def _is_describing_multi_objective_function(param_eval):
@@ -345,9 +346,12 @@ def _parse_mutation_parameters(explicit_search_parameters, evaluation_strategy, 
                                                                      "silly_molecules_reference_db_path"],
                                                                  sascore_threshold=search_space_parameters[
                                                                      "sascore_threshold"],
+                                                                 neighbour_gen_strategy=explicit_search_parameters[
+                                                                     "neighbour_generation_strategy"],
                                                                  custom_filter_function=search_space_parameters[
                                                                      "custom_filter_function"
                                                                  ])
+
 
     return mutation_strategy
 
@@ -382,7 +386,9 @@ def _extract_explicit_search_parameters(parameters_dict):
             "mutation_find_improver_tries"] if "mutation_find_improver_tries" in input_search_parameters else 50,
         "n_max_desc": input_search_parameters["n_max_desc"] if "n_max_desc" in input_search_parameters else 3000000,
         "shuffle_init_pop": input_search_parameters[
-            "shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False}
+            "shuffle_init_pop"] if "shuffle_init_pop" in input_search_parameters else False,
+        "neighbour_generation_strategy": input_search_parameters["neighbour_generation_strategy"] if \
+            "neighbour_generation_strategy" in input_search_parameters else RandomActionTypeSelectionStrategy()}
 
     for parameter in input_search_parameters:
         if parameter not in explicit_search_parameters:
