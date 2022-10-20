@@ -1,4 +1,4 @@
-name: evomolenv_new_2023_bis
+name: evomolenv
 channels:
   - conda-forge
   - defaults
