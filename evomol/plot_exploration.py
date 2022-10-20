@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from PIL import Image, ImageDraw
-from matplotlib.colors import LogNorm
 from networkx.drawing.nx_agraph import graphviz_layout
 from rdkit.Chem.Draw import MolsToGridImage, MolToImage, DrawingOptions
 from rdkit.Chem.rdmolfiles import MolFromSmiles
@@ -432,6 +431,10 @@ def exploration_graph(model_path, neighbours_threshold=0, root_node="C", plot_im
         norm = mpl.colors.Normalize(vmin=0, vmax=1)
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
-        plt.colorbar(sm)
+
+        cbar = plt.colorbar(
+            sm,
+            ax=plt.gca()
+        )
 
     plt.savefig(join(model_path, "expl_tree.png"), dpi=dpi)

@@ -5,7 +5,7 @@ from evomol.evaluation import GaussianWrapperEvaluationStrategy
 from evomol.molgraphops.molgraph import MolGraph
 
 smi = "c1nncnn1"
-smi = "C1=C2C=C3CC1N1C2C31"
+# smi = "C1=C2C=C3CC1N1C2C31"
 # smi = "CO"
 
 s = OPTEvaluationStrategy("gap")

@@ -8,7 +8,7 @@ run_model({
                       "entropy_shg_1"]
     },
     "optimization_parameters": {
-        "max_steps": 900,
+        "max_steps": 100,
         "pop_max_size": 1000,
         "guacamol_init_top_100": False},
     "io_parameters": {

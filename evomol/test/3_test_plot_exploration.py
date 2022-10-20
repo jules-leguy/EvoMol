@@ -5,17 +5,17 @@ from evomol.plot_exploration import exploration_graph
 # Plotting large exploration tree with colors
 model_path = "3_plot_exploration_tree/"
 
-# run_model({
-#     "obj_function": "qed",
-#     "optimization_parameters": {
-#         "max_steps": 500},
-#     "io_parameters": {
-#         "model_path": model_path,
-#         "record_history": True
-#     }
-# })
+run_model({
+    "obj_function": "qed",
+    "optimization_parameters": {
+        "max_steps": 200},
+    "io_parameters": {
+        "model_path": model_path,
+        "record_history": True
+    }
+})
 
-# exploration_graph(model_path=model_path, layout="neato")
+exploration_graph(model_path=model_path, layout="neato")
 
 
 # Plotting small exploration tree with images and actions
@@ -39,5 +39,5 @@ run_model({
 
 
 exploration_graph(model_path=model_path, layout="dot", draw_actions=True, plot_images=True, draw_scores=True,
-                  root_node="O=C(C)Oc1ccccc1C(=O)O", legend_scores_keys_strat=["total"], mol_size=0.08,
-                  legend_offset=(-0.007, -0.05), figsize=(20, 20/1.5), legends_font_size=13)
+                  root_node="O=C(C)Oc1ccccc1C(=O)O", legend_scores_keys_strat=["total"], mol_size_inches=0.055,
+                  mol_size_px=(200, 200), figsize=(30, 30 / 1.5), legend_offset=(-0.007, -0.05), legends_font_size=13)

@@ -10,7 +10,7 @@ run_model({
         "coef": [1, -1]
     },
     "optimization_parameters": {
-        "max_steps": 500,
+        "max_steps": 200,
         "pop_max_size": 1000,
         "mutation_max_depth": 1,
         "selection": "random_weighted"

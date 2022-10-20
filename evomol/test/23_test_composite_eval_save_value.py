@@ -1,7 +1,7 @@
 from rdkit.Chem import MolFromSmiles
 
-from evomol import OppositeWrapperEvaluationStrategy, MeanEvaluationStrategyComposite, CLScoreEvaluationStrategy, \
-    QEDEvaluationStrategy, GaussianWrapperEvaluationStrategy, LinearCombinationEvaluationStrategy, \
+from evomol import OppositeWrapperEvaluationStrategy, MeanEvaluationStrategyComposite, QEDEvaluationStrategy, \
+    GaussianWrapperEvaluationStrategy, LinearCombinationEvaluationStrategy, \
     SAScoreEvaluationStrategy, PenalizedLogPEvaluationStrategy, run_model
 from evomol.molgraphops.molgraph import MolGraph
 
@@ -30,11 +30,11 @@ print(eval2)
 eval3 = eval_strat.evaluate_individual(ind3)
 print(eval3)
 
-eval_strat.record_ind_score(0, eval1[0], eval1[1], ind)
+eval_strat.record_ind_score(0, eval1[0], eval1[1], ind, comput_time=None)
 print(eval_strat.get_population_scores())
-eval_strat.record_ind_score(1, eval2[0], eval2[1], ind2)
+eval_strat.record_ind_score(1, eval2[0], eval2[1], ind2, comput_time=None)
 print(eval_strat.get_population_scores())
-eval_strat.record_ind_score(2, eval3[0], eval3[1], ind2)
+eval_strat.record_ind_score(2, eval3[0], eval3[1], ind2, comput_time=None)
 print(eval_strat.get_population_scores())
 
 run_model({

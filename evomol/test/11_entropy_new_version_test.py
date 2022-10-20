@@ -1,7 +1,5 @@
-from evomol import EntropyContribEvaluationStrategy, run_model
-from evomol.molgraphops.molgraph import MolGraph
+from evomol import run_model
 from evomol.plot_exploration import exploration_graph
-from rdkit.Chem.rdmolfiles import MolFromSmiles
 
 coefs = [1, 1000]
 
@@ -17,7 +15,7 @@ run_model(
         "optimization_parameters": {
             "pop_max_size": 1000,
             "k_to_replace": 10,
-            "max_steps": 700,
+            "max_steps": 50,
             "mutation_max_depth": 3
         },
         "io_parameters": {

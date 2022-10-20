@@ -1,15 +1,10 @@
-from rdkit.Chem.rdmolfiles import MolFromSmiles
-
-from evomol import KRandomGraphOpsImprovingMutationStrategy, run_model
-from evomol.evaluation import IsomerGuacaMolEvaluationStrategy
-from evomol.molgraphops.molgraph import MolGraph, MolGraphBuilder
-
+from evomol import run_model
 
 run_model(
     {
         "obj_function": "isomer_S1F6",
         "optimization_parameters":{
-            "max_steps": 250
+            "max_steps": 150
         },
         "io_parameters": {
             "model_path": "test/21_valence_6",
@@ -22,7 +17,7 @@ run_model(
     {
         "obj_function": "isomer_S1F6",
         "optimization_parameters":{
-            "max_steps": 250
+            "max_steps": 150
         },
         "action_space_parameters":{
             "sulfur_valence": 2

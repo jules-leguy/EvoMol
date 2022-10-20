@@ -10,7 +10,7 @@ cache_files = [os.environ["DATA"] + "/00_datasets/DFT/cache_OD9_step7.json",
 run_model({
     "obj_function": "homo",
     "optimization_parameters": {
-        "max_steps": 20,
+        "max_steps": 5,
         "pop_max_size": 1,
         "k_to_replace": 1,
         "problem_type": "max",
