@@ -1,4 +1,4 @@
-name: evomolenv
+name: evomolenv_new_2023_bis
 channels:
   - conda-forge
   - defaults
@@ -9,7 +9,7 @@ dependencies:
   - joblib=1.1.0
   - matplotlib=3.5.1
   - networkx=2.6.3
-  - numpy=1.21.5
+  - numpy=1.23.4
   - openbabel=3.1.1
   - pillow=8.4.0
   - pip=22.0.2
