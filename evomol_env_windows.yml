@@ -3,23 +3,21 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cclib=1.7.1
-  - fcd=1.1
-  - ipython=8.0.1
-  - joblib=1.1.0
-  - matplotlib=3.5.1
-  - networkx=2.6.3
-  - numpy=1.21.5
   - openbabel=3.1.1
-  - pillow=8.4.0
-  - pip=22.0
+  - pip=22.0.2
   - python=3.9.10
   - rdkit=2021.09.4
-  - scipy=1.7.3
-  - seaborn=0.11.2
-  - setuptools=60.5.0
-  - tqdm=4.62.3
-  - wheel=0.37.1
+  - wheel==0.37.1
+  - pygraphviz==1.10
   - pip:
       - guacamol==0.5.2
-prefix: /home/tcauchy/anaconda3/envs/evomolenv
+      - cclib==1.7.1
+      - ipython==8.0.1
+      - joblib==1.1.0
+      - matplotlib==3.5.1
+      - networkx==2.6.3
+      - numpy==1.22.4
+      - pillow==8.4.0
+      - scipy==1.7.3
+      - setuptools==60.5.0
+prefix: /home/jleguy/anaconda3/envs/evomolenv
