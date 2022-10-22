@@ -1,10 +1,10 @@
 step,error
-3,DFT caused exception DFT error : Error during OPT for NC(N)F (Evaluation error) (Evaluation error)NC=CF AddA-5_CutA-2 (Evaluation error)
+1,DFT caused exception DFT error : Error during OPT for  (Evaluation error) (Evaluation error)N RmA-0 (Evaluation error)
+1,No more individual to be mutated
+1,No replacement occured
+3,DFT caused exception DFT error : Different SMILES : N=N [NH][NH] (Evaluation error) (Evaluation error)NN ChB-72 (Evaluation error)
 3,No more individual to be mutated
 3,No replacement occured
-4,DFT caused exception MM error (Evaluation error) (Evaluation error)NC=CF Sub-1_ChB-80 (Evaluation error)
+4,DFT caused exception DFT error : Different SMILES : N=N [NH][NH] (Evaluation error) (Evaluation error)NN ChB-72 (Evaluation error)
 4,No more individual to be mutated
 4,No replacement occured
-6,DFT caused exception MM error (Evaluation error) (Evaluation error)NC=C(N)F ChB-80 (Evaluation error)
-6,No more individual to be mutated
-6,No replacement occured

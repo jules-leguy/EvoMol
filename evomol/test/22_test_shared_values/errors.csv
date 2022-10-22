@@ -1,5 +1,18 @@
 step,error
-0,DFT caused exception MM error (Evaluation error) (Evaluation error)C RmA-0 (Evaluation error)
+0,DFT caused exception MM error (Evaluation error) (Evaluation error)C Sub-1_RmA-0 (Evaluation error)
 0,No more individual to be mutated
 0,No replacement occured
+1,DFT caused exception MM error (Evaluation error) (Evaluation error)C RmA-0 (Evaluation error)
 1,No more individual to be mutated
+1,No replacement occured
+2,DFT caused exception MM error (Evaluation error) (Evaluation error)C RmA-0 (Evaluation error)
+2,No more individual to be mutated
+2,No replacement occured
+3,No more individual to be mutated
+4,No more individual to be mutated
+5,DFT caused exception MM error (Evaluation error) (Evaluation error)SS ChB-90 (Evaluation error)
+5,DFT caused exception DFT error : Error during OPT for CNF (Evaluation error) (Evaluation error)CN AddA-13 (Evaluation error)
+5,DFT caused exception MM error (Evaluation error) (Evaluation error)S Sub-2_RmA-0 (Evaluation error)
+5,DFT caused exception MM error (Evaluation error) (Evaluation error)C Sub-3 (Evaluation error)
+5,No more individual to be mutated
+5,No replacement occured

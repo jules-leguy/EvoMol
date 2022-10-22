@@ -1,2 +1,2 @@
-smiles,n_success_mut,n_failures_mut,homo,total,history_data
-NC=C(N)F,1,1,-3.63544104268,-3.63544104268,C
+smiles,n_success_mut,n_failures_mut,homo,total,obj_computation_time,history_data
+NN,1,2,-4.9260770356015,-4.9260770356015,6.837420463562012,C

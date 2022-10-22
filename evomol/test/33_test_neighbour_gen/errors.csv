@@ -1,10 +1,10 @@
 step,error
 0,No more individual to be mutated
+1,division by zeroC RmA-0 (Evaluation error)
 1,No more individual to be mutated
-2,division by zeroBr RmA-0 (Evaluation error)
-2,division by zeroCl RmA-0 (Evaluation error)
+2,division by zeroCBr RmA-1_RmA-0 (Evaluation error)
+2,division by zeroC RmA-0 (Evaluation error)
 2,No more individual to be mutated
-3,division by zeroBr RmA-0 (Evaluation error)
+3,division by zeroC RmA-0 (Evaluation error)
 3,No more individual to be mutated
-4,division by zeroCl RmA-0 (Evaluation error)
-5,division by zeroC RmA-0 (Evaluation error)
+4,No more individual to be mutated
