@@ -10,7 +10,7 @@ function. It can also maximize the
 EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of
 exploration trees is currently unavailable on Windows.
 
-To install EvoMol on your system, run the appropriate commands in your terminal. The installation depends on
+To install EvoMol on your system, run the following commands in your terminal. The installation depends on
 <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
 ---
@@ -20,25 +20,12 @@ In latest versions (v1.5.0+), EvoMol depends on the ```openbabel``` python libra
 installation of OpenBabel. Thus, the evomolenv conda environment was changed and it is possible that this causes issues
 if you are updating a former EvoMol installation. In the latter case, it is preferable to remove the evomolenv conda
 environment (```conda remove --name evomolenv --all```) and to restart the installation from scratch.
-
 ---
-
-### Linux
 
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
 $ conda env create -f evomol_env.yml                      # Create conda environment
-$ conda activate evomolenv                                # Activate environment
-$ python -m pip install .                                 # Install EvoMol
-```
-
-### Windows
-
-```shell script
-$ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
-$ cd EvoMol                                               # Move into EvoMol directory
-$ conda env create -f evomol_env_windows.yml              # Create conda environment
 $ conda activate evomolenv                                # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
