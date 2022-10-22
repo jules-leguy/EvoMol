@@ -14,12 +14,14 @@ To install EvoMol on your system, run the following commands in your terminal. T
 <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
 ---
+
 **NOTE (2022/02/02)**
 
 In latest versions (v1.5.0+), EvoMol depends on the ```openbabel``` python library instead of depending on a "hard"
 installation of OpenBabel. Thus, the evomolenv conda environment was changed and it is possible that this causes issues
 if you are updating a former EvoMol installation. In the latter case, it is preferable to remove the evomolenv conda
 environment (```conda remove --name evomolenv --all```) and to restart the installation from scratch.
+
 ---
 
 ```shell script
