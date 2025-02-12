@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='EvoMol',
-      version='1.5.1',
+      version='1.5.2',
       description='Optimizing molecular properties with an evolutionary algorithm',
       url='https://github.com/jules-leguy/EvoMol',
       author='Jules Leguy',
