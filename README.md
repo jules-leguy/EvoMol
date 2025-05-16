@@ -5,6 +5,8 @@ evolutionary algorithm designed for molecular properties optimization. It can op
 function. It can also maximize the
 [diversity of generated molecules](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-021-00554-8).
 
+---
+
 ## Installation
 
 EvoMol was designed on Ubuntu (18.04+). Some features might be missing on other systems. Especially, the drawing of
@@ -13,17 +15,6 @@ exploration trees is currently unavailable on Windows.
 To install EvoMol on your system, run the following commands in your terminal. The installation depends on
 <a href='https://www.anaconda.com/products/individual'>Anaconda</a>.
 
----
-
-**NOTE (2022/02/02)**
-
-In latest versions (v1.5.0+), EvoMol depends on the ```openbabel``` python library instead of depending on a "hard"
-installation of OpenBabel. Thus, the evomolenv conda environment was changed and it is possible that this causes issues
-if you are updating a former EvoMol installation. In the latter case, it is preferable to remove the evomolenv conda
-environment (```conda remove --name evomolenv --all```) and to restart the installation from scratch.
-
----
-
 ```shell script
 $ git clone https://github.com/jules-leguy/EvoMol.git     # Clone EvoMol
 $ cd EvoMol                                               # Move into EvoMol directory
@@ -31,6 +22,8 @@ $ conda env create -f evomol_env.yml                      # Create conda environ
 $ conda activate evomolenv                                # Activate environment
 $ python -m pip install .                                 # Install EvoMol
 ```
+
+---
 
 ## Quickstart
 
@@ -49,6 +42,8 @@ run_model({
     },
 })
 ```
+
+---
 
 ## Settings
 
@@ -211,6 +206,8 @@ options are :
 parameters to the EvaluationStrategy instance in the context of the evaluation of the initial population. An entry
  "evaluate_new_sol" must be also contained to set given parameters for the evaluation of new solutions during the 
  optimization process. If None, both keys are set to an empty set of parameters (**None**).
+
+---
 
 ## Examples
 
@@ -425,6 +422,8 @@ For a more complete use of the evaluation function,
 see [this tutorial](https://github.com/jules-leguy/EvoMol/blob/master/tutorials/Advanced%20use%20of%20the%20evaluation%20functions%20outside%20EvoMol.ipynb)
 .
 
+---
+
 ## Environment variables and data requirements
 
 ### CLscore
@@ -475,6 +474,8 @@ To use the <a href=https://github.com/PatWalters/rd_filters>rd_filter program</a
 inserted in the population, the ```$FILTER_RULES_DATA``` environment variable must point to a folder containing the
 ```rules.json``` and ```alert_collection.csv``` files.
 
+---
+
 ## Advanced tutorials
 
 In order to use advanced functions of EvoMol, some tutorials are available in the
@@ -492,6 +493,8 @@ The tutorials currently available are :
   * Starting an EvoMol optimization procedure using as initial population the final population of a previous experiment.
   * Building a cache of DFT-dependent properties values in the previous experiment so that they are not evaluated again
     in the initial population of the new experiment.
+
+---
 
 ## Citing EvoMol
 
